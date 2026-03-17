@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Heart, User, LogOut } from 'lucide-react';
-import { SearchBar } from './SearchBar';
+import { SearchBar } from '../product/SearchBar';
 
 interface NavigationProps {
   cartItemCount?: number;
