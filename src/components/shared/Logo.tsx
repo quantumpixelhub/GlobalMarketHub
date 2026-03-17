@@ -8,9 +8,9 @@ interface LogoProps {
 
 export function Logo({ size = 'md', className = '' }: LogoProps) {
   const sizeClasses = {
-    sm: 'h-12',
-    md: 'h-24',
-    lg: 'h-32',
+    sm: 'h-16',
+    md: 'h-40',
+    lg: 'h-56',
   };
 
   return (
@@ -22,8 +22,8 @@ export function Logo({ size = 'md', className = '' }: LogoProps) {
       <Image
         src="/logo.png"
         alt="GlobalMarketHub"
-        width={400}
-        height={150}
+        width={800}
+        height={300}
         className={`${sizeClasses[size]} w-auto`}
         priority
       />
