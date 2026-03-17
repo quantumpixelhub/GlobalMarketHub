@@ -5,6 +5,8 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { Heart, Trash2 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 interface WishlistItem {
   id: string;
   product: {
