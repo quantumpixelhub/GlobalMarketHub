@@ -30,8 +30,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between gap-0 mb-1">
+      <div className="max-w-7xl mx-auto px-4 py-2">
+        <div className="flex items-center justify-between gap-0 mb-0">
           {/* Logo */}
           <Logo size="md" className="flex-shrink-0 mr-2" />
 
@@ -114,7 +114,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links */}
-        <div className="flex gap-6 overflow-x-auto pb-2">
+        <div className="flex gap-6 overflow-x-auto pb-0 mt-1">
           <Link href="/category/electronics" className="text-sm whitespace-nowrap hover:text-emerald-600">
             📱 Electronics
           </Link>
