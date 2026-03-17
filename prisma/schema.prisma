@@ -1,0 +1,566 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USERS & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String   @unique
+  password  String   // bcrypt hashed
+  
+  // Profile
+  firstName String?
+  lastName  String?
+  
+  // Status
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  isActive      Boolean   @default(true)
+  isBanned      Boolean   @default(false)
+  
+  // Role
+  role      Role      @default(CUSTOMER)
+  
+  // Preferences
+  language  String    @default("bn")
+  currency  String    @default("BDT")
+  
+  // Relations
+  addresses  UserAddress[]
+  carts      Cart[]
+  orders     Order[]
+  reviews    Review[]
+  wishlist   WishlistItem[]
+  payments   PaymentTransaction[]
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+}
+
+model UserAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Address details
+  label     String   // "Home", "Office", etc.
+  firstName String
+  lastName  String
+  phone     String
+  email     String
+  
+  division  String   // Dhaka, Chittagong, etc.
+  district  String
+  upazila   String
+  address   String   // Street address
+  postCode  String?
+  
+  isDefault Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// ============================================================================
+// CATEGORIES & PRODUCTS
+// ============================================================================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  description String?
+  image     String?
+  parentId  String?  // For subcategories
+  
+  products  Product[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([parentId])
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  
+  // Basic info
+  title     String
+  slug      String   @unique
+  sku       String   @unique
+  description String
+  
+  // Pricing
+  originalPrice    Decimal @db.Decimal(12, 2)
+  currentPrice     Decimal @db.Decimal(12, 2)
+  
+  // Images
+  mainImage String
+  images    String[]
+  
+  // Stock
+  stock     Int      @default(0)
+  lowStockThreshold Int @default(10)
+  
+  // Attributes
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  sellerId  String
+  seller    Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  // Ratings & Reviews
+  rating    Decimal  @default(0) @db.Decimal(3, 2)
+  reviewCount Int     @default(0)
+  
+  // Specifications
+  specifications Json? // Key-value pairs
+  
+  // Certifications (organic, verified, etc.)
+  certifications String[]
+  
+  // Metadata
+  isActive  Boolean  @default(true)
+  isFeatured Boolean @default(false)
+  
+  // Relations
+  variants  ProductVariant[]
+  reviews   Review[]
+  cartItems CartItem[]
+  orderItems OrderItem[]
+  priceHistory PriceHistory[]
+  comparisons ProductComparison[]
+  externalProducts ExternalProduct[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([categoryId])
+  @@index([sellerId])
+  @@index([currentPrice])
+  @@index([rating])
+  @@fulltext([title, description])
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Variant attributes (Size, Color, etc.)
+  attributes Json    // {"size": "M", "color": "Red"}
+  sku       String   @unique
+  price     Decimal  @db.Decimal(12, 2)
+  stock     Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([productId])
+}
+
+model Seller {
+  id        String   @id @default(cuid())
+  
+  // Profile
+  storeName String
+  email     String   @unique
+  phone     String
+  
+  // Business info
+  description String?
+  logo      String?
+  banner    String?
+  
+  // Location
+  location  String?
+  address   String?
+  
+  // Verification
+  isVerified Boolean @default(false)
+  verifiedAt DateTime?
+  
+  // Ratings
+  rating    Decimal @default(0) @db.Decimal(3, 2)
+  reviewCount Int    @default(0)
+  
+  // Status
+  isActive  Boolean @default(true)
+  
+  // Relations
+  products  Product[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([email])
+  @@index([isVerified])
+}
+
+// ============================================================================
+// SHOPPING CART & CHECKOUT
+// ============================================================================
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  status    CartStatus @default(ACTIVE)
+  
+  // Relations
+  items     CartItem[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  quantity  Int
+  priceSnapshot Decimal @db.Decimal(12, 2) // Price at time of adding
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([cartId])
+  @@index([productId])
+}
+
+// ============================================================================
+// ORDERS & PAYMENTS
+// ============================================================================
+
+model Order {
+  id        String   @id @default(cuid())
+  orderNumber String @unique @db.VarChar(50)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Shipping
+  shippingAddressId String
+  shippingAddress   Json // Snapshot of address
+  
+  // Amounts
+  subtotal  Decimal  @db.Decimal(12, 2)
+  tax       Decimal  @db.Decimal(10, 2)
+  shipping  Decimal  @db.Decimal(10, 2)
+  totalAmount Decimal @db.Decimal(12, 2)
+  
+  // Status
+  status    OrderStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  
+  // Payment method
+  paymentMethod String? // 'uddoktapay', 'stripe', 'bkash', 'cod'
+  
+  // Items
+  items     OrderItem[]
+  
+  // Payment
+  payment   PaymentTransaction?
+  
+  // Tracking
+  trackingNumber String?
+  estimatedDelivery DateTime?
+  
+  // Metadata
+  notes     String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  quantity  Int
+  price     Decimal  @db.Decimal(12, 2) // Price at purchase
+  
+  createdAt DateTime @default(now())
+  
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ============================================================================
+// PAYMENTS
+// ============================================================================
+
+model PaymentTransaction {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Gateway
+  gatewayName String  // 'uddoktapay', 'stripe', 'bkash', etc.
+  gatewayTransactionId String? @unique
+  
+  // Amount
+  amount    Decimal  @db.Decimal(12, 2)
+  currency  String   @default("BDT")
+  transactionFee Decimal @db.Decimal(10, 2) @default(0)
+  netAmount Decimal  @db.Decimal(12, 2)
+  
+  // Status
+  status    PaymentStatus @default(PENDING)
+  errorMessage String?
+  errorCode String?
+  
+  // Metadata
+  paymentMethod String? // 'card', 'uddoktapay', 'bkash', etc.
+  customerDetails Json?
+  gatewayResponse Json?
+  
+  createdAt DateTime @default(now())
+  initiatedAt DateTime?
+  completedAt DateTime?
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@index([gatewayTransactionId])
+}
+
+// ============================================================================
+// REVIEWS & RATINGS
+// ============================================================================
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  rating    Int      // 1-5
+  title     String
+  content   String
+  
+  // Media
+  images    String[]
+  
+  // Moderation
+  isVerifiedPurchase Boolean @default(false)
+  isFlagged Boolean @default(false)
+  isApproved Boolean @default(true)
+  
+  // Engagement
+  helpfulCount Int @default(0)
+  unhelpfulCount Int @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([productId])
+  @@index([userId])
+  @@index([rating])
+  @@index([isApproved])
+}
+
+// ============================================================================
+// WISHLIST
+// ============================================================================
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Price tracking
+  priceWhenAdded Decimal @db.Decimal(12, 2)
+  priceDropAlert Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+// ============================================================================
+// PRICE HISTORY & COMPARISON
+// ============================================================================
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  price     Decimal  @db.Decimal(12, 2)
+  source    String?  // 'daraz', 'pickaboo', 'sassystep', etc.
+  
+  createdAt DateTime @default(now())
+  
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model ProductComparison {
+  id        String   @id @default(cuid())
+  
+  product1Id String
+  product1   Product  @relation(fields: [product1Id], references: [id], onDelete: Cascade)
+  
+  product2Id String?
+  product2   Product? @relation(fields: [product2Id], references: [id], onDelete: SetNull)
+  
+  // Additional products in comparison (up to 5 total)
+  additionalProductIds String[]
+  
+  createdAt DateTime @default(now())
+  
+  @@index([product1Id])
+  @@index([product2Id])
+}
+
+// ============================================================================
+// EXTERNAL PLATFORMS
+// ============================================================================
+
+model ExternalProduct {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // External source info
+  platform  String   // 'daraz', 'pickaboo', 'sajgoj'
+  externalId String
+  externalUrl String
+  
+  // Price on external platform
+  externalPrice Decimal @db.Decimal(12, 2)
+  externalOriginalPrice Decimal? @db.Decimal(12, 2)
+  
+  // Rating on external platform
+  externalRating Decimal? @db.Decimal(3, 2)
+  externalReviewCount Int?
+  
+  // Status
+  isTracked Boolean @default(true)
+  lastSyncedAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([platform, externalId])
+  @@index([productId])
+  @@index([platform])
+}
+
+// ============================================================================
+// ADMIN & CONFIGURATION
+// ============================================================================
+
+model PaymentGatewayConfig {
+  id        String   @id @default(cuid())
+  
+  // Gateway identification
+  gatewayName String @unique // 'uddoktapay', 'stripe', 'bkash'
+  displayName String
+  
+  // Enable/Disable
+  isEnabled Boolean @default(false)
+  isPrimary Boolean @default(false)
+  priority  Int     @default(999)
+  
+  // Configuration (encrypted)
+  apiKey    String
+  apiSecret String?
+  merchantId String?
+  webhookUrl String?
+  
+  // Fees
+  transactionFee Decimal @db.Decimal(5, 2) @default(0)
+  fixedFee Decimal @db.Decimal(10, 2) @default(0)
+  
+  // Limits
+  minAmount Decimal @db.Decimal(10, 2) @default(1)
+  maxAmount Decimal @db.Decimal(10, 2) @default(999999)
+  
+  // Metadata
+  description String?
+  logoUrl String?
+  supportUrl String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  CUSTOMER
+  SELLER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum CartStatus {
+  ACTIVE
+  ABANDONED
+  CHECKED_OUT
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
