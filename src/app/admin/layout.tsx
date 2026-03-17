@@ -36,8 +36,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
-              <Logo variant="icon" size="sm" className="[&>a]:hover:opacity-100" />
-              <span className="text-sm font-bold">Admin</span>
+              <Logo variant="icon" size="sm" />
             </div>
           )}
           <button

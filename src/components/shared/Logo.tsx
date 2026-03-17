@@ -8,63 +8,62 @@ interface LogoProps {
 
 export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
   const sizeClasses = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
-  };
-
-  const iconSizeClasses = {
-    sm: 'w-6 h-6',
-    md: 'w-8 h-8',
-    lg: 'w-10 h-10',
+    sm: 'w-12',
+    md: 'w-20',
+    lg: 'w-24',
   };
 
   return (
     <Link 
       href="/" 
-      className={`flex items-center gap-2 hover:opacity-80 transition-opacity ${className}`}
+      className={`flex items-center gap-3 hover:opacity-90 transition-opacity ${className}`}
     >
       {/* Logo Icon */}
-      <div className={`${iconSizeClasses[size]} relative flex items-center justify-center`}>
-        <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Outer Globe Circle */}
-          <circle cx="50" cy="50" r="45" stroke="url(#gradient1)" strokeWidth="3" />
-          
-          {/* Globe Grid Lines */}
-          <circle cx="50" cy="50" r="35" stroke="url(#gradient1)" strokeWidth="1.5" opacity="0.6" />
-          <ellipse cx="50" cy="50" rx="35" ry="20" stroke="url(#gradient1)" strokeWidth="1.5" opacity="0.6" />
-          <path d="M50 15 Q50 50 50 85" stroke="url(#gradient1)" strokeWidth="1.5" opacity="0.6" />
-          <path d="M20 50 Q50 50 80 50" stroke="url(#gradient1)" strokeWidth="1.5" opacity="0.6" />
-          
-          {/* Center Trade/Exchange Symbol */}
-          <g transform="translate(50, 50)">
-            <circle r="8" fill="url(#gradient1)" opacity="0.2" />
-            <path d="M-6 -2 L-2 -2 L0 0 L-2 2 L-6 2" stroke="url(#gradient1)" strokeWidth="1.5" fill="none" />
-            <path d="M6 -2 L2 -2 L0 0 L2 2 L6 2" stroke="url(#gradient1)" strokeWidth="1.5" fill="none" />
+      <div className={`${sizeClasses[size]} flex-shrink-0`}>
+        <svg viewBox="0 0 400 300" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg" fill="none">
+          {/* Globe */}
+          <g>
+            {/* Globe outer circle */}
+            <circle cx="130" cy="100" r="80" fill="#E3F2FD" stroke="#1E40AF" strokeWidth="3" />
+            
+            {/* Globe grid pattern */}
+            <circle cx="130" cy="100" r="70" fill="none" stroke="#1E40AF" strokeWidth="1.5" opacity="0.5" />
+            <ellipse cx="130" cy="100" rx="70" ry="35" fill="none" stroke="#1E40AF" strokeWidth="1.5" opacity="0.5" />
+            <path d="M130 30 Q130 100 130 170" fill="none" stroke="#1E40AF" strokeWidth="1.5" opacity="0.5" />
+            <path d="M60 100 Q130 100 200 100" fill="none" stroke="#1E40AF" strokeWidth="1.5" opacity="0.5" />
+            
+            {/* Globe nodes/dots */}
+            <circle cx="120" cy="70" r="4" fill="#1E40AF" />
+            <circle cx="145" cy="75" r="4" fill="#1E40AF" />
+            <circle cx="155" cy="100" r="4" fill="#1E40AF" />
+            <circle cx="140" cy="125" r="4" fill="#1E40AF" />
+            <circle cx="110" cy="130" r="4" fill="#1E40AF" />
+            
+            {/* Orange swoosh arrow */}
+            <path d="M 70 150 Q 100 160 150 150 Q 180 145 190 120" 
+                  fill="none" stroke="#FFA500" strokeWidth="18" strokeLinecap="round" />
+            <polygon points="190,120 210,100 200,135" fill="#FFA500" />
           </g>
           
-          {/* Gradient Definition */}
-          <defs>
-            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#10b981" />
-              <stop offset="100%" stopColor="#059669" />
-            </linearGradient>
-          </defs>
+          {/* Text - GlobalMarketHub */}
+          {variant === 'full' && (
+            <g>
+              {/* "Global" in dark blue */}
+              <text x="250" y="95" fontSize="48" fontWeight="bold" fill="#1E40AF" fontFamily="system-ui, -apple-system, sans-serif">
+                Global
+              </text>
+              {/* "Market" in dark blue */}
+              <text x="250" y="145" fontSize="48" fontWeight="bold" fill="#1E40AF" fontFamily="system-ui, -apple-system, sans-serif">
+                Market
+              </text>
+              {/* "Hub" in green */}
+              <text x="250" y="190" fontSize="42" fontWeight="bold" fill="#16A34A" fontFamily="system-ui, -apple-system, sans-serif">
+                Hub
+              </text>
+            </g>
+          )}
         </svg>
       </div>
-
-      {/* Logo Text */}
-      {variant === 'full' && (
-        <div className="flex flex-col -gap-1">
-          <div className={`${sizeClasses[size]} font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent`}>
-            Global
-          </div>
-          <div className={`${sizeClasses[size]} font-bold bg-gradient-to-r from-emerald-700 to-emerald-800 bg-clip-text text-transparent`}>
-            Market
-          </div>
-          <div className="text-xs font-semibold text-emerald-600 -mt-1">HUB</div>
-        </div>
-      )}
     </Link>
   );
 }

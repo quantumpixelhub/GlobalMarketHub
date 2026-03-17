@@ -33,7 +33,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-6 mb-4">
           {/* Logo */}
-          <Logo variant="full" size="md" />
+          <Logo variant="full" size="md" className="flex-shrink-0" />
 
           {/* Search Bar */}
           <SearchBar />
