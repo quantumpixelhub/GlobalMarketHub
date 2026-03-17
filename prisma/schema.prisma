@@ -146,7 +146,9 @@ model Product {
   cartItems CartItem[]
   orderItems OrderItem[]
   priceHistory PriceHistory[]
-  comparisons ProductComparison[]
+  comparisonsAsProduct1 ProductComparison[] @relation("ProductComparison_product1")
+  comparisonsAsProduct2 ProductComparison[] @relation("ProductComparison_product2")
+  wishlistItems WishlistItem[]
   externalProducts ExternalProduct[]
   
   createdAt DateTime @default(now())
@@ -156,7 +158,7 @@ model Product {
   @@index([sellerId])
   @@index([currentPrice])
   @@index([rating])
-  @@fulltext([title, description])
+  @@index([title])
 }
 
 model ProductVariant {
@@ -444,10 +446,10 @@ model ProductComparison {
   id        String   @id @default(cuid())
   
   product1Id String
-  product1   Product  @relation(fields: [product1Id], references: [id], onDelete: Cascade)
+  product1   Product  @relation("ProductComparison_product1", fields: [product1Id], references: [id], onDelete: Cascade)
   
   product2Id String?
-  product2   Product? @relation(fields: [product2Id], references: [id], onDelete: SetNull)
+  product2   Product? @relation("ProductComparison_product2", fields: [product2Id], references: [id], onDelete: SetNull)
   
   // Additional products in comparison (up to 5 total)
   additionalProductIds String[]
