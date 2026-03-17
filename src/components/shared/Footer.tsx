@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
-import { Logo } from './Logo';
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Globe2 } from 'lucide-react';
+import { FaCcVisa, FaCcMastercard, FaCcPaypal, FaGooglePay } from 'react-icons/fa';
 
 export const Footer: React.FC = () => {
   return (
@@ -12,7 +12,15 @@ export const Footer: React.FC = () => {
           {/* About */}
           <div>
             <div className="mb-4">
-              <Logo size="lg" className="inline-flex bg-white/95 rounded-lg px-3 py-1" />
+              <Link href="/" className="inline-flex items-center gap-2">
+                <span className="rounded-full bg-emerald-600/20 p-2 ring-1 ring-emerald-400/40">
+                  <Globe2 size={22} className="text-emerald-300" />
+                </span>
+                <span className="text-3xl font-extrabold tracking-tight leading-none">
+                  <span className="text-white">GlobalMarket</span>
+                  <span className="text-amber-300">Hub</span>
+                </span>
+              </Link>
             </div>
             <p className="text-gray-400 text-sm mb-4">
               Your one-stop marketplace for products from Bangladesh's top retailers.
@@ -158,10 +166,18 @@ export const Footer: React.FC = () => {
             <p>&copy; 2026 GlobalMarketHub. All rights reserved.</p>
             <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0">
               <span className="text-xs text-gray-300 mr-1">Payment methods:</span>
-              <span className="px-2 py-1 rounded bg-white/10 border border-white/20 text-white text-xs">Visa</span>
-              <span className="px-2 py-1 rounded bg-white/10 border border-white/20 text-white text-xs">Mastercard</span>
-              <span className="px-2 py-1 rounded bg-emerald-600/20 border border-emerald-400/50 text-emerald-200 text-xs">bKash</span>
-              <span className="px-2 py-1 rounded bg-orange-500/20 border border-orange-300/50 text-orange-200 text-xs">Nagad</span>
+              <span className="inline-flex items-center justify-center rounded-md bg-white px-2 py-1 text-slate-900" aria-label="Visa">
+                <FaCcVisa size={24} />
+              </span>
+              <span className="inline-flex items-center justify-center rounded-md bg-white px-2 py-1 text-slate-900" aria-label="Mastercard">
+                <FaCcMastercard size={24} />
+              </span>
+              <span className="inline-flex items-center justify-center rounded-md bg-white px-2 py-1 text-slate-900" aria-label="PayPal">
+                <FaCcPaypal size={24} />
+              </span>
+              <span className="inline-flex items-center justify-center rounded-md bg-white px-2 py-1 text-slate-900" aria-label="Google Pay">
+                <FaGooglePay size={24} />
+              </span>
             </div>
           </div>
         </div>
