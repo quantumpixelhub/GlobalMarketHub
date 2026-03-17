@@ -10,7 +10,7 @@ export function Logo({ size = 'md', className = '' }: LogoProps) {
   const sizeClasses = {
     sm: 'h-12',
     md: 'h-20',
-    lg: 'h-28',
+    lg: 'h-24',
   };
 
   return (
