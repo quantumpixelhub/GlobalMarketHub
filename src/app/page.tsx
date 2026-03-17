@@ -17,6 +17,7 @@ interface Product {
   reviewCount: number;
   stock: number;
   seller: {
+    id: string;
     storeName: string;
   };
 }
