@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
           {/* About */}
           <div>
             <div className="mb-4">
-              <Logo variant="icon" size="md" />
+              <Logo size="md" />
             </div>
             <p className="text-gray-400 text-sm mb-4">
               Your one-stop marketplace for products from Bangladesh's top retailers.
