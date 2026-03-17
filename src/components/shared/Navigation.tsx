@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Heart, User, LogOut } from 'lucide-react';
 import { SearchBar } from '../product/SearchBar';
+import { Logo } from './Logo';
 
 interface NavigationProps {
   cartItemCount?: number;
@@ -32,9 +33,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-6 mb-4">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-emerald-600">
-            🌐 GlobalMarketHub
-          </Link>
+          <Logo variant="full" size="md" />
 
           {/* Search Bar */}
           <SearchBar />

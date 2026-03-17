@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
+import { Logo } from './Logo';
 
 export const Footer: React.FC = () => {
   return (
@@ -10,7 +11,9 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* About */}
           <div>
-            <h3 className="text-xl font-bold mb-4">🌐 GlobalMarketHub</h3>
+            <div className="mb-4">
+              <Logo variant="icon" size="md" />
+            </div>
             <p className="text-gray-400 text-sm mb-4">
               Your one-stop marketplace for products from Bangladesh's top retailers.
             </p>

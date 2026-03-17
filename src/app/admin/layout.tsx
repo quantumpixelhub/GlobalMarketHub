@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X } from 'lucide-react';
+import { Logo } from '@/components/shared/Logo';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -33,7 +34,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       >
         {/* Logo */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-          {sidebarOpen && <h1 className="text-xl font-bold">AdminHub</h1>}
+          {sidebarOpen && (
+            <div className="flex items-center gap-2">
+              <Logo variant="icon" size="sm" className="[&>a]:hover:opacity-100" />
+              <span className="text-sm font-bold">Admin</span>
+            </div>
+          )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1 hover:bg-gray-800 rounded"
