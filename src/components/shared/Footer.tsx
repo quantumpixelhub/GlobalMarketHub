@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
           {/* About */}
           <div>
             <div className="mb-4">
-              <Logo size="md" />
+              <Logo size="lg" className="inline-flex bg-white/95 rounded-lg px-3 py-1" />
             </div>
             <p className="text-gray-400 text-sm mb-4">
               Your one-stop marketplace for products from Bangladesh's top retailers.
@@ -136,17 +136,19 @@ export const Footer: React.FC = () => {
 
             {/* Social Media */}
             <div>
-              <h4 className="font-bold mb-3">Follow Us</h4>
-              <div className="flex gap-4">
-                <a href="#" className="hover:text-emerald-400 transition-colors">
+              <div className="flex items-center gap-4 mb-3">
+                <h4 className="font-bold">Follow Us</h4>
+                <div className="flex gap-4">
+                  <a href="#" className="text-gray-300 hover:text-emerald-400 transition-colors" aria-label="Follow us on Facebook">
                   <Facebook size={24} />
-                </a>
-                <a href="#" className="hover:text-emerald-400 transition-colors">
+                  </a>
+                  <a href="#" className="text-gray-300 hover:text-emerald-400 transition-colors" aria-label="Follow us on Twitter">
                   <Twitter size={24} />
-                </a>
-                <a href="#" className="hover:text-emerald-400 transition-colors">
+                  </a>
+                  <a href="#" className="text-gray-300 hover:text-emerald-400 transition-colors" aria-label="Follow us on Instagram">
                   <Instagram size={24} />
-                </a>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -154,8 +156,12 @@ export const Footer: React.FC = () => {
           {/* Copyright */}
           <div className="border-t border-gray-700 pt-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-400">
             <p>&copy; 2026 GlobalMarketHub. All rights reserved.</p>
-            <div className="flex gap-4 mt-4 md:mt-0">
-              <img src="/payment-methods.png" alt="Payment methods" className="h-8" />
+            <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0">
+              <span className="text-xs text-gray-300 mr-1">Payment methods:</span>
+              <span className="px-2 py-1 rounded bg-white/10 border border-white/20 text-white text-xs">Visa</span>
+              <span className="px-2 py-1 rounded bg-white/10 border border-white/20 text-white text-xs">Mastercard</span>
+              <span className="px-2 py-1 rounded bg-emerald-600/20 border border-emerald-400/50 text-emerald-200 text-xs">bKash</span>
+              <span className="px-2 py-1 rounded bg-orange-500/20 border border-orange-300/50 text-orange-200 text-xs">Nagad</span>
             </div>
           </div>
         </div>
