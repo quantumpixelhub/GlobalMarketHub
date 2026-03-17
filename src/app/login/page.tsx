@@ -38,9 +38,9 @@ export default function LoginPage() {
         // Store token
         localStorage.setItem('token', data.token);
         alert('Login successful!');
-        router.push('/products');
+        router.push(data.user?.role === 'ADMIN' ? '/admin/analytics' : '/products');
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.error || data.message || 'Login failed');
       }
     } catch (error) {
       setError('An error occurred. Please try again.');
@@ -145,8 +145,8 @@ export default function LoginPage() {
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-blue-800 text-xs font-semibold mb-2">Demo Credentials:</p>
             <p className="text-blue-700 text-xs">
-              Email: customer@example.com<br />
-              Password: password123
+              Admin Email: quantumpixelhub@gmail.com<br />
+              Admin Password: admin@quantumhub
             </p>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { jwtVerify, SignJWT } from 'jose';
 import { NextRequest } from 'next/server';
+import bcryptjs from 'bcryptjs';
 
 const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-chars'
@@ -55,15 +56,12 @@ export function generateRandomCode(length: number = 6): string {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  // Use bcryptjs for proper password hashing in production
-  // For now, return a placeholder
-  return `hashed_${password}`;
+  return bcryptjs.hash(password, 10);
 }
 
 export async function verifyPassword(
   password: string,
   hash: string
 ): Promise<boolean> {
-  // Use bcryptjs for proper password verification
-  return `hashed_${password}` === hash;
+  return bcryptjs.compare(password, hash);
 }

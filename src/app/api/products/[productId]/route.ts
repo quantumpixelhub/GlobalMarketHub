@@ -1,5 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { authenticate } from "@/lib/auth";
+
+async function authorizeAdmin(request: NextRequest) {
+  const auth = await authenticate(request);
+  if (!auth.success || !auth.data?.userId) {
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: auth.data.userId as string },
+    select: { role: true },
+  });
+
+  if (!user || user.role !== "ADMIN") {
+    return null;
+  }
+
+  return user;
+}
 
 export async function GET(
   _request: NextRequest,
@@ -43,5 +62,74 @@ export async function GET(
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { productId: string } }
+) {
+  try {
+    const admin = await authorizeAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const {
+      title,
+      description,
+      originalPrice,
+      currentPrice,
+      stock,
+      categoryId,
+      sellerId,
+      mainImage,
+      isActive,
+      isFeatured,
+    } = body;
+
+    const updated = await prisma.product.update({
+      where: { id: params.productId },
+      data: {
+        ...(title && { title }),
+        ...(description && { description }),
+        ...(originalPrice !== undefined && { originalPrice: Number(originalPrice) }),
+        ...(currentPrice !== undefined && { currentPrice: Number(currentPrice) }),
+        ...(stock !== undefined && { stock: Number(stock) }),
+        ...(categoryId && { categoryId }),
+        ...(sellerId && { sellerId }),
+        ...(mainImage && { mainImage }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+        ...(isFeatured !== undefined && { isFeatured: Boolean(isFeatured) }),
+      },
+    });
+
+    return NextResponse.json({ success: true, product: updated });
+  } catch (error) {
+    console.error("Update product error:", error);
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { productId: string } }
+) {
+  try {
+    const admin = await authorizeAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    await prisma.product.update({
+      where: { id: params.productId },
+      data: { isActive: false },
+    });
+
+    return NextResponse.json({ success: true, message: "Product archived" });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

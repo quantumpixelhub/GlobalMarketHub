@@ -28,42 +28,17 @@ export default function UsersPage() {
           return;
         }
 
-        // Mock data - in production this would come from an API endpoint
-        setUsers([
-          {
-            id: '1',
-            email: 'admin@example.com',
-            firstName: 'Admin',
-            lastName: 'User',
-            phone: '+88012345678',
-            role: 'ADMIN',
-            emailVerified: true,
-            phoneVerified: true,
-            createdAt: '2026-01-01T00:00:00Z',
-          },
-          {
-            id: '2',
-            email: 'customer@example.com',
-            firstName: 'John',
-            lastName: 'Customer',
-            phone: '+88087654321',
-            role: 'CUSTOMER',
-            emailVerified: true,
-            phoneVerified: false,
-            createdAt: '2026-01-15T00:00:00Z',
-          },
-          {
-            id: '3',
-            email: 'seller@example.com',
-            firstName: 'Jane',
-            lastName: 'Seller',
-            phone: '+88055555555',
-            role: 'SELLER',
-            emailVerified: true,
-            phoneVerified: true,
-            createdAt: '2026-02-01T00:00:00Z',
-          },
-        ]);
+        const res = await fetch('/api/admin/users?limit=100', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(data.users || []);
+        } else if (res.status === 403) {
+          alert('Admin access required');
+          window.location.href = '/login';
+        }
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {

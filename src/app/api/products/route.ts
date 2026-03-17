@@ -17,12 +17,19 @@ export async function GET(request: NextRequest) {
       where.category = { slug: category };
     }
 
+    const orderByMap: Record<string, any> = {
+      createdAt: { createdAt: 'desc' },
+      price: { currentPrice: 'asc' },
+      rating: { rating: 'desc' },
+      reviews: { reviewCount: 'desc' },
+    };
+
     // Fetch products
     const products = await prisma.product.findMany({
       where,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { [sortBy]: 'desc' },
+      orderBy: orderByMap[sortBy] || { createdAt: 'desc' },
       include: {
         category: true,
         seller: {
@@ -40,6 +47,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      products,
       data: products,
       pagination: {
         page,

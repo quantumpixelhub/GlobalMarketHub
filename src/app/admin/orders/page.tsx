@@ -31,13 +31,16 @@ export default function OrdersPage() {
           return;
         }
 
-        const res = await fetch('/api/orders?limit=100', {
+        const res = await fetch('/api/admin/orders?limit=100', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (res.ok) {
           const data = await res.json();
           setOrders(data.orders || []);
+        } else if (res.status === 403) {
+          alert('Admin access required');
+          window.location.href = '/login';
         }
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -51,7 +54,7 @@ export default function OrdersPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'DELIVERED':
         return 'bg-green-100 text-green-700';
       case 'PENDING':
         return 'bg-yellow-100 text-yellow-700';
@@ -66,7 +69,7 @@ export default function OrdersPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'DELIVERED':
         return <CheckCircle size={16} />;
       case 'PENDING':
         return <Clock size={16} />;

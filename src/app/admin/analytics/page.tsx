@@ -8,8 +8,8 @@ interface AnalyticsData {
   totalOrders: number;
   totalUsers: number;
   totalProducts: number;
-  revenueChange: number;
-  ordersChange: number;
+  completedOrders: number;
+  lowStockCount: number;
 }
 
 export default function AnalyticsPage() {
@@ -18,8 +18,8 @@ export default function AnalyticsPage() {
     totalOrders: 0,
     totalUsers: 0,
     totalProducts: 0,
-    revenueChange: 8.5,
-    ordersChange: 12.3,
+    completedOrders: 0,
+    lowStockCount: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -32,35 +32,23 @@ export default function AnalyticsPage() {
           return;
         }
 
-        // In production, fetch real analytics data
-        // For now, calculate from available data
-        const ordersRes = await fetch('/api/orders?limit=100', {
+        const res = await fetch('/api/admin/dashboard', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
-        const productsRes = await fetch('/api/products?limit=100', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-
-        if (ordersRes.ok && productsRes.ok) {
-          const ordersData = await ordersRes.json();
-          const productsData = await productsRes.json();
-
-          const totalOrders = ordersData.orders?.length || 0;
-          const totalProducts = productsData.products?.length || 0;
-          const totalRevenue = ordersData.orders?.reduce(
-            (sum: number, order: any) => sum + order.totalAmount,
-            0
-          ) || 0;
-
+        if (res.ok) {
+          const data = await res.json();
           setAnalytics({
-            totalRevenue,
-            totalOrders,
-            totalProducts,
-            totalUsers: 3, // From seed data
-            revenueChange: 8.5,
-            ordersChange: 12.3,
+            totalRevenue: data.totalRevenue || 0,
+            totalOrders: data.totalOrders || 0,
+            totalProducts: data.totalProducts || 0,
+            totalUsers: data.totalUsers || 0,
+            completedOrders: data.completedOrders || 0,
+            lowStockCount: data.lowStockCount || 0,
           });
+        } else if (res.status === 403) {
+          alert('Admin access required');
+          window.location.href = '/login';
         }
       } catch (error) {
         console.error('Error fetching analytics:', error);
@@ -77,28 +65,28 @@ export default function AnalyticsPage() {
       icon: TrendingUp,
       label: 'Total Revenue',
       value: `৳${analytics.totalRevenue.toLocaleString()}`,
-      change: `+${analytics.revenueChange}%`,
+      change: 'All-time total',
       color: 'bg-blue-100 text-blue-600',
     },
     {
       icon: ShoppingCart,
       label: 'Total Orders',
       value: analytics.totalOrders,
-      change: `+${analytics.ordersChange}%`,
+      change: `${analytics.completedOrders} completed`,
       color: 'bg-green-100 text-green-600',
     },
     {
       icon: Users,
       label: 'Total Users',
       value: analytics.totalUsers,
-      change: '+0%',
+      change: 'Registered accounts',
       color: 'bg-purple-100 text-purple-600',
     },
     {
       icon: Package,
       label: 'Total Products',
       value: analytics.totalProducts,
-      change: '+0%',
+      change: `${analytics.lowStockCount} low stock`,
       color: 'bg-orange-100 text-orange-600',
     },
   ];
@@ -123,7 +111,7 @@ export default function AnalyticsPage() {
                 </div>
                 <p className="text-gray-600 text-sm">{card.label}</p>
                 <p className="text-2xl font-bold text-gray-800 mt-2">{card.value}</p>
-                <p className="text-green-600 text-sm mt-2">{card.change} from last month</p>
+                <p className="text-gray-600 text-sm mt-2">{card.change}</p>
               </div>
             ))}
           </div>

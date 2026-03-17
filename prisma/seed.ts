@@ -7,6 +7,30 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Starting database seed...\n");
 
+  console.log("🧹 Clearing existing demo data...");
+  await prisma.$executeRawUnsafe(`
+    TRUNCATE TABLE
+      "PaymentTransaction",
+      "OrderItem",
+      "Order",
+      "CartItem",
+      "Cart",
+      "WishlistItem",
+      "Review",
+      "PriceHistory",
+      "ProductComparison",
+      "ExternalProduct",
+      "ProductVariant",
+      "Product",
+      "PaymentGatewayConfig",
+      "UserAddress",
+      "Seller",
+      "Category",
+      "User"
+    RESTART IDENTITY CASCADE;
+  `);
+  console.log("✓ Existing data cleared\n");
+
   // ============================================================================
   // 1. CREATE CATEGORIES
   // ============================================================================
@@ -364,6 +388,317 @@ async function main() {
         isFeatured: true,
       },
     }),
+    prisma.product.create({
+      data: {
+        title: "Wireless Earbuds Pro ANC",
+        slug: "wireless-earbuds-pro-anc",
+        sku: "EAR-ANC-001",
+        description: "Active noise cancellation earbuds with 30-hour battery life",
+        originalPrice: new Decimal("9000"),
+        currentPrice: new Decimal("7499"),
+        mainImage: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=500",
+        images: ["https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=500"],
+        stock: 75,
+        lowStockThreshold: 20,
+        categoryId: categories[0].id,
+        sellerId: sellers[0].id,
+        rating: new Decimal("4.5"),
+        reviewCount: 164,
+        specifications: {
+          battery: "30 hours",
+          anc: "Hybrid ANC",
+          charging: "USB-C",
+        },
+        certifications: ["official"],
+        isActive: true,
+        isFeatured: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Men's Casual Hoodie",
+        slug: "mens-casual-hoodie",
+        sku: "HOO-MEN-001",
+        description: "Soft fleece hoodie for everyday comfort",
+        originalPrice: new Decimal("3200"),
+        currentPrice: new Decimal("2499"),
+        mainImage: "https://images.unsplash.com/photo-1556821840-3a9fbc8b23f4?w=500",
+        images: ["https://images.unsplash.com/photo-1556821840-3a9fbc8b23f4?w=500"],
+        stock: 110,
+        lowStockThreshold: 25,
+        categoryId: categories[1].id,
+        sellerId: sellers[1].id,
+        rating: new Decimal("4.4"),
+        reviewCount: 120,
+        specifications: {
+          material: "Fleece",
+          sizes: "M, L, XL",
+          color: "Black",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: false,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Nonstick Cookware Set 10pcs",
+        slug: "nonstick-cookware-set-10pcs",
+        sku: "COOK-SET-010",
+        description: "Durable nonstick cookware set for modern kitchens",
+        originalPrice: new Decimal("12000"),
+        currentPrice: new Decimal("9499"),
+        mainImage: "https://images.unsplash.com/photo-1584990347449-a49f9f15f203?w=500",
+        images: ["https://images.unsplash.com/photo-1584990347449-a49f9f15f203?w=500"],
+        stock: 44,
+        lowStockThreshold: 10,
+        categoryId: categories[2].id,
+        sellerId: sellers[2].id,
+        rating: new Decimal("4.6"),
+        reviewCount: 211,
+        specifications: {
+          pieces: "10",
+          coating: "PFOA-free",
+          induction: "Yes",
+        },
+        certifications: ["food-safe"],
+        isActive: true,
+        isFeatured: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Adjustable Kettlebell 18kg",
+        slug: "adjustable-kettlebell-18kg",
+        sku: "KETT-18KG-001",
+        description: "Space-saving adjustable kettlebell for full-body workouts",
+        originalPrice: new Decimal("14000"),
+        currentPrice: new Decimal("11900"),
+        mainImage: "https://images.unsplash.com/photo-1599058918144-1ffabb6ab9a0?w=500",
+        images: ["https://images.unsplash.com/photo-1599058918144-1ffabb6ab9a0?w=500"],
+        stock: 28,
+        lowStockThreshold: 8,
+        categoryId: categories[3].id,
+        sellerId: sellers[3].id,
+        rating: new Decimal("4.7"),
+        reviewCount: 93,
+        specifications: {
+          weightRange: "4kg-18kg",
+          material: "Steel",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: false,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Atomic Habits (Paperback)",
+        slug: "atomic-habits-paperback",
+        sku: "BOOK-AH-001",
+        description: "Bestselling self-improvement guide by James Clear",
+        originalPrice: new Decimal("900"),
+        currentPrice: new Decimal("749"),
+        mainImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500",
+        images: ["https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500"],
+        stock: 240,
+        lowStockThreshold: 40,
+        categoryId: categories[4].id,
+        sellerId: sellers[2].id,
+        rating: new Decimal("4.9"),
+        reviewCount: 401,
+        specifications: {
+          author: "James Clear",
+          language: "English",
+          format: "Paperback",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Bengali Classic Stories Collection",
+        slug: "bengali-classic-stories-collection",
+        sku: "BOOK-BN-001",
+        description: "A curated Bengali literature collection",
+        originalPrice: new Decimal("1200"),
+        currentPrice: new Decimal("950"),
+        mainImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500",
+        images: ["https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500"],
+        stock: 190,
+        lowStockThreshold: 30,
+        categoryId: categories[4].id,
+        sellerId: sellers[2].id,
+        rating: new Decimal("4.5"),
+        reviewCount: 87,
+        specifications: {
+          language: "Bengali",
+          pages: "420",
+          format: "Hardcover",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: false,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Vitamin C Brightening Serum",
+        slug: "vitamin-c-brightening-serum",
+        sku: "BEAUTY-VC-001",
+        description: "Daily brightening serum with stable Vitamin C",
+        originalPrice: new Decimal("1800"),
+        currentPrice: new Decimal("1450"),
+        mainImage: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500",
+        images: ["https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500"],
+        stock: 130,
+        lowStockThreshold: 20,
+        categoryId: categories[5].id,
+        sellerId: sellers[1].id,
+        rating: new Decimal("4.6"),
+        reviewCount: 243,
+        specifications: {
+          volume: "30ml",
+          skinType: "All",
+          use: "AM/PM",
+        },
+        certifications: ["dermatology-tested"],
+        isActive: true,
+        isFeatured: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Herbal Protein Powder 1kg",
+        slug: "herbal-protein-powder-1kg",
+        sku: "HEALTH-PRO-001",
+        description: "Plant-based protein powder for daily nutrition",
+        originalPrice: new Decimal("3500"),
+        currentPrice: new Decimal("2899"),
+        mainImage: "https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=500",
+        images: ["https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=500"],
+        stock: 72,
+        lowStockThreshold: 12,
+        categoryId: categories[5].id,
+        sellerId: sellers[1].id,
+        rating: new Decimal("4.4"),
+        reviewCount: 116,
+        specifications: {
+          weight: "1kg",
+          flavor: "Chocolate",
+          source: "Plant Protein",
+        },
+        certifications: ["halal"],
+        isActive: true,
+        isFeatured: false,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Smartwatch AMOLED Series 6",
+        slug: "smartwatch-amoled-series-6",
+        sku: "WATCH-S6-001",
+        description: "Fitness and notifications smartwatch with AMOLED display",
+        originalPrice: new Decimal("15000"),
+        currentPrice: new Decimal("11999"),
+        mainImage: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
+        images: ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"],
+        stock: 56,
+        lowStockThreshold: 14,
+        categoryId: categories[0].id,
+        sellerId: sellers[0].id,
+        rating: new Decimal("4.5"),
+        reviewCount: 156,
+        specifications: {
+          display: "AMOLED",
+          battery: "7 days",
+          waterproof: "5ATM",
+        },
+        certifications: ["official"],
+        isActive: true,
+        isFeatured: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Women's Running Shoes",
+        slug: "womens-running-shoes",
+        sku: "SHOE-RUN-001",
+        description: "Lightweight running shoes with responsive cushioning",
+        originalPrice: new Decimal("6500"),
+        currentPrice: new Decimal("4999"),
+        mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
+        images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"],
+        stock: 98,
+        lowStockThreshold: 20,
+        categoryId: categories[1].id,
+        sellerId: sellers[1].id,
+        rating: new Decimal("4.7"),
+        reviewCount: 267,
+        specifications: {
+          sizes: "36-41",
+          sole: "Rubber",
+          weight: "250g",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Ergonomic Office Chair",
+        slug: "ergonomic-office-chair",
+        sku: "FURN-CHAIR-001",
+        description: "Ergonomic mesh office chair with lumbar support",
+        originalPrice: new Decimal("18500"),
+        currentPrice: new Decimal("14999"),
+        mainImage: "https://images.unsplash.com/photo-1505798577917-a65157d3320a?w=500",
+        images: ["https://images.unsplash.com/photo-1505798577917-a65157d3320a?w=500"],
+        stock: 36,
+        lowStockThreshold: 8,
+        categoryId: categories[2].id,
+        sellerId: sellers[2].id,
+        rating: new Decimal("4.6"),
+        reviewCount: 144,
+        specifications: {
+          material: "Mesh + Steel",
+          support: "Lumbar",
+          warranty: "1 year",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: false,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        title: "Camping Tent 4-Person",
+        slug: "camping-tent-4-person",
+        sku: "SPORT-TENT-004",
+        description: "Water-resistant 4-person tent for outdoor adventures",
+        originalPrice: new Decimal("11000"),
+        currentPrice: new Decimal("8999"),
+        mainImage: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=500",
+        images: ["https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=500"],
+        stock: 18,
+        lowStockThreshold: 5,
+        categoryId: categories[3].id,
+        sellerId: sellers[3].id,
+        rating: new Decimal("4.5"),
+        reviewCount: 76,
+        specifications: {
+          capacity: "4 person",
+          waterproof: "2000mm",
+          weight: "3.2kg",
+        },
+        certifications: [],
+        isActive: true,
+        isFeatured: false,
+      },
+    }),
   ]);
 
   console.log(`✓ Created ${products.length} products\n`);
@@ -373,17 +708,17 @@ async function main() {
   // ============================================================================
   console.log("👥 Creating users...");
 
-  const adminPassword = await bcryptjs.hash("Admin@123", 10);
+  const adminPassword = await bcryptjs.hash("admin@quantumhub", 10);
   const customerPassword = await bcryptjs.hash("Customer@123", 10);
 
   const users = await Promise.all([
     prisma.user.create({
       data: {
-        email: "admin@globalhub.com",
+        email: "quantumpixelhub@gmail.com",
         phone: "+8801700000000",
         password: adminPassword,
-        firstName: "Admin",
-        lastName: "User",
+        firstName: "Quantum",
+        lastName: "PixelHub",
         role: "ADMIN",
         emailVerified: new Date(),
         phoneVerified: new Date(),
@@ -425,7 +760,7 @@ async function main() {
   ]);
 
   console.log(`✓ Created ${users.length} test users`);
-  console.log(`  - Admin: admin@globalhub.com / Admin@123`);
+  console.log(`  - Admin: quantumpixelhub@gmail.com / admin@quantumhub`);
   console.log(`  - Customer: customer@globalhub.com / Customer@123\n`);
 
   // ============================================================================
@@ -599,7 +934,7 @@ async function main() {
   console.log(`  • 5 Payment Gateways\n`);
 
   console.log("🔑 Test Credentials:");
-  console.log(`  Admin: admin@globalhub.com / Admin@123`);
+  console.log(`  Admin: quantumpixelhub@gmail.com / admin@quantumhub`);
   console.log(`  Customer: customer@globalhub.com / Customer@123\n`);
 
   console.log("🚀 Next Steps:");

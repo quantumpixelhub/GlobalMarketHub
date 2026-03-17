@@ -16,6 +16,7 @@ interface Product {
   reviewCount: number;
   stock: number;
   isFeatured: boolean;
+  category: { id: string; slug: string; name: string };
   seller: { id: string; storeName: string };
 }
 
@@ -83,7 +84,7 @@ export default function ProductsPage() {
   };
 
   const filteredProducts = products.filter((p) => {
-    if (selectedCategory && p.id !== selectedCategory) return true; // Simple filter for MVP
+    if (selectedCategory && p.category?.slug !== selectedCategory) return false;
     if (p.currentPrice < minPrice || p.currentPrice > maxPrice) return false;
     return true;
   });
