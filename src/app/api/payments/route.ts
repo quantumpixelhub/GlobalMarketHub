@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
     const { orderId, paymentMethod } = await request.json();
 
     if (!orderId || !paymentMethod) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Get order
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId as string },
     });
 
     if (!order || order.userId !== userId) {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Get payment gateway config
     const gateway = await prisma.paymentGatewayConfig.findUnique({
-      where: { gatewayName: paymentMethod },
+      where: { gatewayName: paymentMethod as string },
     });
 
     if (!gateway || !gateway.isEnabled) {
@@ -44,14 +44,15 @@ export async function POST(request: NextRequest) {
     // Create payment transaction
     const transaction = await prisma.paymentTransaction.create({
       data: {
-        orderId,
+        orderId: orderId as string,
         userId,
-        gatewayName: paymentMethod,
-        amount: Number(order.totalAmount),
+        gatewayName: paymentMethod as string,
+        amount: order.totalAmount,
         currency: "BDT",
         status: "PENDING",
-        transactionFee: Number(gateway.transactionFee),
-        paymentMethod,
+        transactionFee: gateway.transactionFee,
+        netAmount: (order.totalAmount as any) - (gateway.transactionFee as any),
+        paymentMethod: paymentMethod as string,
         customerDetails: {
           email: (await prisma.user.findUnique({ where: { id: userId } }))
             ?.email,

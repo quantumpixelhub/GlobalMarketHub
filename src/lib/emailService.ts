@@ -2,12 +2,6 @@
 // Uses EmailJS for sending emails without backend SMTP server
 // Free tier: 200 emails/month
 
-interface EmailTemplate {
-  to: string;
-  subject: string;
-  html: string;
-}
-
 /**
  * Send order confirmation email
  */

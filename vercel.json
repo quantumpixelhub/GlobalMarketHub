@@ -3,27 +3,13 @@
   "installCommand": "npm ci",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "nodejs": "18.x",
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "JWT_SECRET": "@jwt_secret",
-    "UDDOKTAPAY_API_KEY": "@uddoktapay_api_key",
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "EMAILJS_SERVICE_ID": "@emailjs_service_id",
-    "EMAILJS_TEMPLATE_ID": "@emailjs_template_id",
-    "EMAILJS_PUBLIC_KEY": "@emailjs_public_key",
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-    "NEXT_PUBLIC_SITE_URL": "@next_public_site_url",
-    "NEXT_PUBLIC_STRIPE_PUBLIC_KEY": "@next_public_stripe_public_key"
-  },
   "functions": {
     "src/app/api/**/*.ts": {
       "memory": 256,
       "maxDuration": 30
     }
   },
-  "regions": ["dhk1"],
+  "regions": ["iad1"],
   "git": {
     "deploymentEnabled": true
   }

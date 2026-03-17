@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
 
     // Get or create active cart
     let cart = await prisma.cart.findFirst({
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate totals
     const subtotal = cart.items.reduce(
-      (sum, item) => sum + item.priceSnapshot * item.quantity,
+      (sum, item) => sum + (Number(item.priceSnapshot) * item.quantity),
       0
     );
 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
     const { productId, quantity } = await request.json();
 
     if (!productId || !quantity || quantity < 1) {

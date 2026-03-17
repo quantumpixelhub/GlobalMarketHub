@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: user.role,
       },
-      "24h"
+      24 * 60 * 60
     );
 
     // Return user data and token

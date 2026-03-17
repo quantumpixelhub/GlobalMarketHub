@@ -30,6 +30,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   rating,
   reviewCount,
   stock,
+  isFeatured,
   seller,
   onAddToCart,
   onAddToWishlist,

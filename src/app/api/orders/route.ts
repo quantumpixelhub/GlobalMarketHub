@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
     const { cartId, shippingAddressId } = await request.json();
 
     if (!cartId || !shippingAddressId) {
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate totals
     const subtotal = cart.items.reduce(
-      (sum, item) => sum + item.priceSnapshot * item.quantity,
+      (sum, item) => sum + (Number(item.priceSnapshot) * item.quantity),
       0
     );
     const tax = subtotal * 0.05; // 5% tax

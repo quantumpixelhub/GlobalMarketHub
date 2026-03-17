@@ -27,9 +27,25 @@ export async function authenticate(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.replace('Bearer ', '');
 
-  if (!token) return null;
+  if (!token) {
+    return {
+      success: false,
+      data: null,
+    };
+  }
 
-  return verifyToken(token);
+  const payload = await verifyToken(token);
+  if (!payload) {
+    return {
+      success: false,
+      data: null,
+    };
+  }
+
+  return {
+    success: true,
+    data: payload,
+  };
 }
 
 export function generateRandomCode(length: number = 6): string {

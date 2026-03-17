@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, ThumbsUp, Flag } from 'lucide-react';
+import { Star, ThumbsUp } from 'lucide-react';
 
 interface Review {
   id: string;

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
 
     const wishlist = await prisma.wishlistItem.findMany({
       where: { userId },
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
     const { productId } = await request.json();
 
     if (!productId) {
@@ -118,7 +118,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = auth.data?.userId as string;
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
 

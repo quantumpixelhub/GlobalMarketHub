@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.data?.userId;
+    const userId = (auth as any)?.userId;
     const { rating, title, content, images } = await request.json();
 
     if (!rating || !title || !content) {

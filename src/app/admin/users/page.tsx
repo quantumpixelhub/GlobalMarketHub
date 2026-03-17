@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Shield, User, Mail, Phone, Calendar } from 'lucide-react';
+import { User, Mail, Phone, Calendar } from 'lucide-react';
 
 interface User {
   id: string;

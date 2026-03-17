@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
-import { ProductGrid } from '@/components/product/ProductGrid';
 import { Heart, Trash2 } from 'lucide-react';
 
 interface WishlistItem {
@@ -28,15 +27,20 @@ interface WishlistItem {
 export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+    setIsClient(true);
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
 
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchWishlist = async () => {
       try {
         const res = await fetch('/api/users/wishlist', {
           headers: { 'Authorization': `Bearer ${token}` },
@@ -105,7 +109,19 @@ export default function WishlistPage() {
     }
   };
 
-  if (!localStorage.getItem('token')) {
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navigation />
+        <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+          <p>Loading...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation />

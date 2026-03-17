@@ -140,8 +140,6 @@ export async function initiateStripePayment(config: PaymentConfig): Promise<Paym
  * Popular in Bangladesh
  */
 export async function initiatebKashPayment(config: PaymentConfig): Promise<PaymentResponse> {
-  const apiKey = process.env.BKASH_API_KEY;
-
   // Mock implementation
   return {
     success: true,
@@ -156,8 +154,6 @@ export async function initiatebKashPayment(config: PaymentConfig): Promise<Payme
  * Popular in Bangladesh
  */
 export async function initiateNagadPayment(config: PaymentConfig): Promise<PaymentResponse> {
-  const apiKey = process.env.NAGAD_API_KEY;
-
   // Mock implementation
   return {
     success: true,
@@ -212,8 +208,8 @@ export async function initiatePayment(
  * Verify payment status with gateway
  */
 export async function verifyPaymentStatus(
-  gateway: string,
-  transactionId: string
+  _gateway: string,
+  _transactionId: string
 ): Promise<{ success: boolean; status: string; message: string }> {
   // In production, verify with actual payment gateway API
   // This is a mock implementation
