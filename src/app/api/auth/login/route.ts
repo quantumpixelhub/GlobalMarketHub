@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create access token
-    const token = createToken(
+    const token = await createToken(
       {
         userId: user.id,
         email: user.email,
