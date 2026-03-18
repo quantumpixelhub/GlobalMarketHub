@@ -103,18 +103,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white border-b px-6 py-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">Welcome Back!</h2>
+            <p className="text-xs text-gray-500">Manage your store and track performance</p>
+          </div>
           <div className="flex items-center gap-4">
-            <span className="text-gray-600">Admin User</span>
-            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-800">Admin User</p>
+              <p className="text-xs text-gray-500">Administrator</p>
+            </div>
+            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow">
               A
             </div>
           </div>
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-6">{children}</div>
+        <div className="flex-1 overflow-auto p-6 bg-gray-50">{children}</div>
       </div>
     </div>
   );
