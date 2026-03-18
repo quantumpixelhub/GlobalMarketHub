@@ -87,7 +87,63 @@ async function main() {
     }),
   ]);
 
-  console.log(`✓ Created ${categories.length} categories\n`);
+  const marketplaceCategoryNames = [
+    "Apparel & Accessories",
+    "Consumer Electronics",
+    "Sports & Entertainment",
+    "Beauty",
+    "Luggage, Bags & Cases",
+    "Home & Garden",
+    "Sportswear & Outdoor Apparel",
+    "Jewelry, Eyewear & Watches",
+    "Shoes & Accessories",
+    "Packaging & Printing",
+    "Parents, Kids & Toys",
+    "Personal Care & Home Care",
+    "Health & Medical",
+    "Gifts & Crafts",
+    "Pet Supplies",
+    "School & Office Supplies",
+    "Industrial Machinery",
+    "Commercial Equipment & Machinery",
+    "Construction & Building Machinery",
+    "Construction & Real Estate",
+    "Furniture",
+    "Lights & Lighting",
+    "Home Appliances",
+    "Automotive Supplies & Tools",
+    "Vehicle Parts & Accessories",
+    "Tools & Hardware",
+    "Renewable Energy",
+    "Electrical Equipment & Supplies",
+    "Safety & Security",
+    "Material Handling",
+    "Testing Instrument & Equipment",
+    "Power Transmission",
+    "Electronic Components",
+    "Vehicles & Transportation",
+    "Agriculture, Food & Beverage",
+  ];
+
+  const marketplaceCategories = await Promise.all(
+    marketplaceCategoryNames.map((name, index) =>
+      prisma.category.create({
+        data: {
+          name,
+          slug: `${name
+            .toLowerCase()
+            .replace(/&/g, 'and')
+            .replace(/,/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')}-${index + 1}`,
+          description: `${name} marketplace products and supplies`,
+          image: `https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=500&sig=${index + 11}`,
+        },
+      })
+    )
+  );
+
+  console.log(`✓ Created ${categories.length + marketplaceCategories.length} categories\n`);
 
   // ============================================================================
   // 2. CREATE SELLERS
@@ -701,7 +757,51 @@ async function main() {
     }),
   ]);
 
-  console.log(`✓ Created ${products.length} products\n`);
+  const demoProductImages = [
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
+    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500",
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500",
+    "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=500",
+    "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=500",
+  ];
+
+  const additionalProducts = await Promise.all(
+    marketplaceCategories.slice(0, 20).map((category, index) => {
+      const seller = sellers[index % sellers.length];
+      const basePrice = 1500 + index * 450;
+      const currentPrice = Math.round(basePrice * 0.87);
+      const slugBase = category.slug.replace(/-\d+$/, '');
+
+      return prisma.product.create({
+        data: {
+          title: `${category.name} Demo Product ${index + 1}`,
+          slug: `${slugBase}-demo-product-${index + 1}`,
+          sku: `DEMO-${String(index + 1).padStart(3, '0')}`,
+          description: `Demo product for ${category.name} category with realistic catalog values for testing.`,
+          originalPrice: new Decimal(basePrice),
+          currentPrice: new Decimal(currentPrice),
+          mainImage: demoProductImages[index % demoProductImages.length],
+          images: [demoProductImages[index % demoProductImages.length]],
+          stock: 20 + index * 2,
+          lowStockThreshold: 5,
+          categoryId: category.id,
+          sellerId: seller.id,
+          rating: new Decimal((4.2 + (index % 6) * 0.1).toFixed(1)),
+          reviewCount: 40 + index * 7,
+          specifications: {
+            model: `GMH-${index + 1}`,
+            segment: category.name,
+            quality: "Standard",
+          },
+          certifications: ["demo-data"],
+          isActive: true,
+          isFeatured: index % 4 === 0,
+        },
+      });
+    })
+  );
+
+  console.log(`✓ Created ${products.length + additionalProducts.length} products\n`);
 
   // ============================================================================
   // 4. CREATE TEST USERS
@@ -926,9 +1026,9 @@ async function main() {
   console.log("═══════════════════════════════════════════════════════════\n");
 
   console.log("📊 Data Summary:");
-  console.log(`  • ${categories.length} Categories`);
+  console.log(`  • ${categories.length + marketplaceCategories.length} Categories`);
   console.log(`  • ${sellers.length} Sellers`);
-  console.log(`  • ${products.length} Products`);
+  console.log(`  • ${products.length + additionalProducts.length} Products`);
   console.log(`  • ${users.length} Users`);
   console.log(`  • 2 User Addresses`);
   console.log(`  • 5 Payment Gateways\n`);

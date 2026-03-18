@@ -6,6 +6,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { addToGuestCart } from '@/lib/guestCart';
+import { useToast } from '@/components/ui/ToastProvider';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -13,6 +14,7 @@ function SearchContent() {
   
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -46,7 +48,7 @@ function SearchContent() {
           mainImage: product.mainImage,
           currentPrice: Number(product.currentPrice),
         });
-        alert('Added to cart as guest. Login for faster checkout next time.');
+        showToast('Added to cart as guest. Login for easier checkout next time.', 'success');
         return;
       }
 
@@ -60,7 +62,7 @@ function SearchContent() {
       });
 
       if (res.ok) {
-        alert('Product added to cart!');
+        showToast('Product added to cart.', 'success');
         window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {

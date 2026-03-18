@@ -7,6 +7,7 @@ import { Footer } from '@/components/shared/Footer';
 import { ReviewSection } from '@/components/product/ReviewSection';
 import { Heart } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface Product {
   id: string;
@@ -39,6 +40,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -74,7 +76,7 @@ export default function ProductDetailPage() {
         },
         quantity
       );
-      alert(`Added ${quantity} item(s) to cart as guest. Login for faster checkout next time.`);
+      showToast(`Added ${quantity} item(s) to cart as guest.`, 'success');
       setQuantity(1);
       return;
     }
@@ -94,7 +96,7 @@ export default function ProductDetailPage() {
       });
 
       if (res.ok) {
-        alert(`Added ${quantity} item(s) to cart!`);
+        showToast(`Added ${quantity} item(s) to cart.`, 'success');
         setQuantity(1);
         window.dispatchEvent(new Event('cart-updated'));
       }
@@ -106,7 +108,7 @@ export default function ProductDetailPage() {
   const handleAddToWishlist = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login to add to wishlist');
+      showToast('Please login to add to wishlist.', 'info');
       window.location.href = '/login';
       return;
     }
@@ -125,7 +127,7 @@ export default function ProductDetailPage() {
 
       if (res.ok) {
         setIsWishlisted(true);
-        alert('Added to wishlist!');
+        showToast('Added to wishlist.', 'success');
       }
     } catch (error) {
       console.error('Error adding to wishlist:', error);

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus } from 'lucide-react';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface Product {
   id: string;
@@ -49,6 +50,7 @@ export default function ProductsPage() {
     sellerId: '',
     mainImage: '',
   });
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -76,7 +78,7 @@ export default function ProductsPage() {
           }));
           setProducts(normalized);
         } else if (res.status === 403) {
-          alert('Admin access required');
+          showToast('Admin access required', 'error');
           window.location.href = '/login';
         }
       } catch (error) {
@@ -152,7 +154,7 @@ export default function ProductsPage() {
       setSaving(true);
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Please login as admin');
+        showToast('Please login as admin', 'error');
         return;
       }
 
@@ -181,11 +183,11 @@ export default function ProductsPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        alert(errorData.error || 'Failed to save product');
+        showToast(errorData.error || 'Failed to save product', 'error');
         return;
       }
 
-      alert(editingProduct ? 'Product updated successfully' : 'Product created successfully');
+      showToast(editingProduct ? 'Product updated successfully' : 'Product created successfully', 'success');
       setShowModal(false);
 
       const refreshed = await fetch('/api/products?limit=100', {
@@ -206,7 +208,7 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Error saving product');
+      showToast('Error saving product', 'error');
     } finally {
       setSaving(false);
     }
@@ -223,11 +225,11 @@ export default function ProductsPage() {
 
         if (res.ok) {
           setProducts(products.filter(p => p.id !== productId));
-          alert('Product deleted successfully');
+          showToast('Product deleted successfully', 'success');
         }
       } catch (error) {
         console.error('Error deleting product:', error);
-        alert('Error deleting product');
+        showToast('Error deleting product', 'error');
       }
     }
   };

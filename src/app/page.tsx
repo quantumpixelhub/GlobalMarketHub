@@ -7,6 +7,7 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import Link from 'next/link';
 import { Zap, Shield, Truck, HeadphonesIcon } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface Product {
   id: string;
@@ -26,6 +27,7 @@ interface Product {
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -57,7 +59,7 @@ export default function HomePage() {
         mainImage: product.mainImage,
         currentPrice: product.currentPrice,
       });
-      alert('Added to cart as guest. Login for faster checkout next time.');
+      showToast('Added to cart as guest. Login for easier checkout next time.', 'success');
       return;
     }
 
@@ -76,7 +78,7 @@ export default function HomePage() {
       });
 
       if (res.ok) {
-        alert('Added to cart!');
+        showToast('Added to cart.', 'success');
         window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {

@@ -6,6 +6,7 @@ import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { CategoryFilter } from '@/components/product/CategoryFilter';
 import { addToGuestCart } from '@/lib/guestCart';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface Product {
   id: string;
@@ -35,6 +36,7 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(500000);
   const [sortBy, setSortBy] = useState('createdAt');
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,7 +74,7 @@ export default function ProductsPage() {
           mainImage: product.mainImage,
           currentPrice: product.currentPrice,
         });
-        alert('Added to cart as guest. Login for faster checkout next time.');
+        showToast('Added to cart as guest. Login for easier checkout next time.', 'success');
         return;
       }
 
@@ -86,7 +88,7 @@ export default function ProductsPage() {
       });
 
       if (res.ok) {
-        alert('Product added to cart!');
+        showToast('Product added to cart.', 'success');
         window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {

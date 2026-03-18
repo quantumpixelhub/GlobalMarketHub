@@ -5,6 +5,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { CheckoutForm } from '@/components/cart/CheckoutForm';
 import { clearGuestCart, getGuestCartSummary } from '@/lib/guestCart';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface UserAddress {
   id: string;
@@ -44,6 +45,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
   const [guestCreateAccount, setGuestCreateAccount] = useState(true);
+  const { showToast } = useToast();
 
   const [guestData, setGuestData] = useState<GuestCheckoutData>({
     firstName: '',
@@ -127,7 +129,7 @@ export default function CheckoutPage() {
 
       if (!orderRes.ok) {
         const errorData = await orderRes.json();
-        alert(errorData.error || 'Failed to create order');
+        showToast(errorData.error || 'Failed to create order', 'error');
         return;
       }
 
@@ -147,7 +149,7 @@ export default function CheckoutPage() {
 
       if (!paymentRes.ok) {
         const errorData = await paymentRes.json();
-        alert(errorData.error || 'Failed to initiate payment');
+        showToast(errorData.error || 'Failed to initiate payment', 'error');
         return;
       }
 
@@ -155,7 +157,7 @@ export default function CheckoutPage() {
       window.location.href = paymentData.paymentUrl;
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert('Error processing order');
+      showToast('Error processing order', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -165,7 +167,7 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (!cart || cart.items.length === 0) {
-      alert('Your cart is empty');
+      showToast('Your cart is empty', 'error');
       return;
     }
 
@@ -194,7 +196,7 @@ export default function CheckoutPage() {
 
       if (!orderRes.ok) {
         const errorData = await orderRes.json();
-        alert(errorData.error || 'Failed to create guest order');
+        showToast(errorData.error || 'Failed to create guest order', 'error');
         return;
       }
 
@@ -219,7 +221,7 @@ export default function CheckoutPage() {
 
       if (!paymentRes.ok) {
         const errorData = await paymentRes.json();
-        alert(errorData.error || 'Failed to initiate payment');
+        showToast(errorData.error || 'Failed to initiate payment', 'error');
         return;
       }
 
@@ -228,7 +230,7 @@ export default function CheckoutPage() {
       window.location.href = paymentData.paymentUrl;
     } catch (error) {
       console.error('Error during guest checkout:', error);
-      alert('Error processing guest checkout');
+      showToast('Error processing guest checkout', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -255,7 +257,7 @@ export default function CheckoutPage() {
 
       if (!addressRes.ok) {
         const errorData = await addressRes.json();
-        alert(errorData.error || 'Failed to save address');
+        showToast(errorData.error || 'Failed to save address', 'error');
         return;
       }
 
@@ -269,7 +271,7 @@ export default function CheckoutPage() {
       });
     } catch (error) {
       console.error('Error creating address:', error);
-      alert('Failed to create address');
+      showToast('Failed to create address', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -1,6 +1,8 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 
 interface ProductCardProps {
@@ -35,23 +37,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   onAddToWishlist,
 }) => {
+  const router = useRouter();
   const discount = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
   const isOutOfStock = stock === 0;
 
+  const goToProduct = () => {
+    router.push(`/product/${id}`);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
+    <div
+      className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
+      onClick={goToProduct}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          goToProduct();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${title}`}
+    >
       {/* Product Image */}
       <div className="relative bg-gray-100 overflow-hidden group">
-        <Link href={`/product/${id}`}>
-          <div className="relative h-56 w-full">
-            <Image
-              src={mainImage}
-              alt={title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform"
-            />
-          </div>
-        </Link>
+        <div className="relative h-56 w-full">
+          <Image
+            src={mainImage}
+            alt={title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform"
+          />
+        </div>
 
         {/* Discount Badge */}
         {discount > 0 && (
@@ -77,7 +94,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Action Buttons */}
         <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            onClick={() => onAddToWishlist?.(id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToWishlist?.(id);
+            }}
             className="bg-white p-2 rounded-full hover:bg-red-50"
             title="Add to wishlist"
           >
@@ -92,11 +112,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <p className="text-xs text-gray-500 mb-1">{seller.storeName}</p>
 
         {/* Title */}
-        <Link href={`/product/${id}`}>
-          <h3 className="font-semibold text-sm line-clamp-2 hover:text-emerald-600 cursor-pointer">
-            {title}
-          </h3>
-        </Link>
+        <h3 className="font-semibold text-sm line-clamp-2 hover:text-emerald-600">
+          {title}
+        </h3>
 
         {/* Rating */}
         <div className="flex items-center gap-1 mt-2">
@@ -122,7 +140,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Add to Cart Button */}
         <button
-          onClick={() => onAddToCart?.(id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToCart?.(id);
+          }}
           disabled={isOutOfStock}
           className="w-full mt-3 bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
         >
