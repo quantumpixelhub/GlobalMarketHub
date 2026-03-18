@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authenticate } from "@/lib/auth";
+import { authenticate, createToken, hashPassword } from "@/lib/auth";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
@@ -26,6 +26,25 @@ async function getOrCreateGuestUserId() {
   });
 
   return created.id;
+}
+
+async function getUniquePhone(preferredPhone?: string) {
+  if (preferredPhone) {
+    const existingByPhone = await prisma.user.findUnique({
+      where: { phone: preferredPhone },
+      select: { id: true },
+    });
+    if (!existingByPhone) return preferredPhone;
+  }
+
+  const generated = `9${Date.now().toString().slice(-10)}`;
+  const exists = await prisma.user.findUnique({
+    where: { phone: generated },
+    select: { id: true },
+  });
+
+  if (!exists) return generated;
+  return `8${Date.now().toString().slice(-10)}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -91,7 +110,14 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await authenticate(request);
     const body = await request.json();
-    const { cartId, shippingAddressId, isGuestCheckout, guestInfo, guestCartItems } = body;
+    const {
+      cartId,
+      shippingAddressId,
+      isGuestCheckout,
+      guestInfo,
+      guestCartItems,
+      createAccount,
+    } = body;
 
     if (!auth.success && !isGuestCheckout) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -106,7 +132,60 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const guestUserId = await getOrCreateGuestUserId();
+      let guestUserId = await getOrCreateGuestUserId();
+      let accountToken: string | null = null;
+      let accountCreated = false;
+
+      if (createAccount && guestInfo?.email) {
+        const existingByEmail = await prisma.user.findUnique({
+          where: { email: guestInfo.email },
+          select: { id: true },
+        });
+
+        if (!existingByEmail) {
+          const uniquePhone = await getUniquePhone(guestInfo.phone);
+          const password = await hashPassword(`Guest@${Date.now().toString().slice(-6)}`);
+
+          const createdUser = await prisma.user.create({
+            data: {
+              email: guestInfo.email,
+              phone: uniquePhone,
+              password,
+              role: "CUSTOMER",
+              firstName: guestInfo.firstName || "Guest",
+              lastName: guestInfo.lastName || "Customer",
+            },
+          });
+
+          await prisma.userAddress.create({
+            data: {
+              userId: createdUser.id,
+              label: guestInfo.label || "Home",
+              firstName: guestInfo.firstName || "Guest",
+              lastName: guestInfo.lastName || "Customer",
+              phone: guestInfo.phone || uniquePhone,
+              email: guestInfo.email,
+              division: guestInfo.division,
+              district: guestInfo.district,
+              upazila: guestInfo.upazila,
+              address: guestInfo.address,
+              postCode: guestInfo.postCode || null,
+              isDefault: true,
+            },
+          });
+
+          guestUserId = createdUser.id;
+          accountCreated = true;
+          accountToken = await createToken(
+            {
+              userId: createdUser.id,
+              email: createdUser.email,
+              role: createdUser.role,
+            },
+            24 * 60 * 60
+          );
+        }
+      }
 
       const subtotal = guestCartItems.reduce(
         (sum: number, item: any) => sum + Number(item.priceSnapshot) * Number(item.quantity || 1),
@@ -160,6 +239,8 @@ export async function POST(request: NextRequest) {
         {
           message: "Guest order created successfully",
           order,
+          accountCreated,
+          token: accountToken,
         },
         { status: 201 }
       );

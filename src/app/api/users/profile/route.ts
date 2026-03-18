@@ -96,3 +96,66 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const auth = await authenticate(request);
+    if (!auth.success) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = auth.data?.userId as string;
+    const {
+      label,
+      firstName,
+      lastName,
+      phone,
+      email,
+      division,
+      district,
+      upazila,
+      address,
+      postCode,
+      isDefault,
+    } = await request.json();
+
+    if (!firstName || !lastName || !phone || !email || !division || !district || !upazila || !address) {
+      return NextResponse.json(
+        { error: "Missing required address fields" },
+        { status: 400 }
+      );
+    }
+
+    if (isDefault) {
+      await prisma.userAddress.updateMany({
+        where: { userId },
+        data: { isDefault: false },
+      });
+    }
+
+    const created = await prisma.userAddress.create({
+      data: {
+        userId,
+        label: label || "Home",
+        firstName,
+        lastName,
+        phone,
+        email,
+        division,
+        district,
+        upazila,
+        address,
+        postCode: postCode || null,
+        isDefault: Boolean(isDefault),
+      },
+    });
+
+    return NextResponse.json({ message: "Address created", address: created }, { status: 201 });
+  } catch (error) {
+    console.error("Create address error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

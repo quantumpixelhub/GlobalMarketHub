@@ -2,6 +2,19 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { authenticate } from '@/lib/auth';
+
+async function authorizeAdmin(request: NextRequest) {
+  const auth = await authenticate(request);
+  if (!auth.success || !auth.data?.userId) return false;
+
+  const user = await prisma.user.findUnique({
+    where: { id: auth.data.userId as string },
+    select: { role: true },
+  });
+
+  return user?.role === 'ADMIN';
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,28 +80,43 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // This would be protected (admin only)
+    const isAdmin = await authorizeAdmin(request);
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const {
       title,
       description,
       originalPrice,
       currentPrice,
+      stock,
       categoryId,
       sellerId,
       mainImage,
     } = await request.json();
 
+    if (!title || !description || !originalPrice || !currentPrice || !categoryId || !sellerId || !mainImage) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const baseSlug = title
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+
+    const slug = `${baseSlug}-${Date.now().toString().slice(-6)}`;
+
     const product = await prisma.product.create({
       data: {
         title,
-        slug: title
-          .toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace(/[^a-z0-9-]/g, ''),
+        slug,
         sku: `SKU-${Date.now()}`,
         description,
         originalPrice: parseFloat(originalPrice),
         currentPrice: parseFloat(currentPrice),
+        stock: Number(stock || 0),
         categoryId,
         sellerId,
         mainImage,

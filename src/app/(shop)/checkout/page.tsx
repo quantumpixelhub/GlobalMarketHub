@@ -43,8 +43,23 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
+  const [guestCreateAccount, setGuestCreateAccount] = useState(true);
 
   const [guestData, setGuestData] = useState<GuestCheckoutData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    division: '',
+    district: '',
+    upazila: '',
+    address: '',
+    postCode: '',
+    paymentMethod: 'uddoktapay',
+  });
+
+  const [newAddressData, setNewAddressData] = useState({
+    label: 'Home',
     firstName: '',
     lastName: '',
     email: '',
@@ -164,6 +179,7 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           isGuestCheckout: true,
+          createAccount: guestCreateAccount,
           guestInfo: {
             ...guestData,
             label: 'Guest Address',
@@ -184,10 +200,15 @@ export default function CheckoutPage() {
 
       const orderData = await orderRes.json();
 
+      if (orderData?.token) {
+        localStorage.setItem('token', orderData.token);
+      }
+
       const paymentRes = await fetch('/api/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(orderData?.token ? { Authorization: `Bearer ${orderData.token}` } : {}),
         },
         body: JSON.stringify({
           isGuestCheckout: true,
@@ -208,6 +229,47 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error('Error during guest checkout:', error);
       alert('Error processing guest checkout');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateAddressAndCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const addressRes = await fetch('/api/users/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...newAddressData,
+          isDefault: true,
+        }),
+      });
+
+      if (!addressRes.ok) {
+        const errorData = await addressRes.json();
+        alert(errorData.error || 'Failed to save address');
+        return;
+      }
+
+      const createdAddressData = await addressRes.json();
+      const createdAddress = createdAddressData.address;
+      setAddresses((prev) => [...prev, createdAddress]);
+
+      await handleSubmit({
+        addressId: createdAddress.id,
+        paymentMethod: newAddressData.paymentMethod,
+      });
+    } catch (error) {
+      console.error('Error creating address:', error);
+      alert('Failed to create address');
     } finally {
       setSubmitting(false);
     }
@@ -244,11 +306,51 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {!isGuestCheckout ? (
-              <CheckoutForm
-                addresses={addresses}
-                loading={submitting}
-                onSubmit={handleSubmit}
-              />
+              addresses.length > 0 ? (
+                <CheckoutForm
+                  addresses={addresses}
+                  loading={submitting}
+                  onSubmit={handleSubmit}
+                />
+              ) : (
+                <form onSubmit={handleCreateAddressAndCheckout} className="bg-white rounded-lg p-6 space-y-5">
+                  <h2 className="text-xl font-bold">Add Shipping Address</h2>
+                  <p className="text-sm text-gray-600">No saved shipping address found. Add one to continue your order.</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input required placeholder="First Name" value={newAddressData.firstName} onChange={(e) => setNewAddressData((prev) => ({ ...prev, firstName: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                    <input required placeholder="Last Name" value={newAddressData.lastName} onChange={(e) => setNewAddressData((prev) => ({ ...prev, lastName: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input required type="email" placeholder="Email" value={newAddressData.email} onChange={(e) => setNewAddressData((prev) => ({ ...prev, email: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                    <input required placeholder="Phone" value={newAddressData.phone} onChange={(e) => setNewAddressData((prev) => ({ ...prev, phone: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+
+                  <input required placeholder="Street Address" value={newAddressData.address} onChange={(e) => setNewAddressData((prev) => ({ ...prev, address: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input required placeholder="Division" value={newAddressData.division} onChange={(e) => setNewAddressData((prev) => ({ ...prev, division: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                    <input required placeholder="District" value={newAddressData.district} onChange={(e) => setNewAddressData((prev) => ({ ...prev, district: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                    <input required placeholder="Upazila" value={newAddressData.upazila} onChange={(e) => setNewAddressData((prev) => ({ ...prev, upazila: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                    <input placeholder="Post Code" value={newAddressData.postCode} onChange={(e) => setNewAddressData((prev) => ({ ...prev, postCode: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Payment Method</label>
+                    <select value={newAddressData.paymentMethod} onChange={(e) => setNewAddressData((prev) => ({ ...prev, paymentMethod: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                      <option value="uddoktapay">UddoktaPay</option>
+                      <option value="bkash">bKash</option>
+                      <option value="nagad">Nagad</option>
+                      <option value="stripe">Credit/Debit Card</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" disabled={submitting || !cart?.items?.length} className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold">
+                    {submitting ? 'Processing...' : 'Save Address and Continue to Payment'}
+                  </button>
+                </form>
+              )
             ) : (
               <form onSubmit={handleGuestCheckout} className="bg-white rounded-lg p-6 space-y-5">
                 <h2 className="text-xl font-bold">Delivery Information</h2>
@@ -339,6 +441,15 @@ export default function CheckoutPage() {
                     <option value="stripe">Credit/Debit Card</option>
                   </select>
                 </div>
+
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={guestCreateAccount}
+                    onChange={(e) => setGuestCreateAccount(e.target.checked)}
+                  />
+                  Create an account automatically for easier next orders
+                </label>
 
                 <button
                   type="submit"

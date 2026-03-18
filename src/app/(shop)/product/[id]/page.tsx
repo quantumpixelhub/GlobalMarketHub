@@ -96,6 +96,7 @@ export default function ProductDetailPage() {
       if (res.ok) {
         alert(`Added ${quantity} item(s) to cart!`);
         setQuantity(1);
+        window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {
       console.error('Error adding to cart:', error);

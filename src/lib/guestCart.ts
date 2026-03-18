@@ -23,6 +23,11 @@ export interface GuestCartSummary {
 
 const GUEST_CART_KEY = 'guest_cart_v1';
 
+function emitCartUpdated() {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event('cart-updated'));
+}
+
 function readGuestCartItems(): GuestCartItem[] {
   if (typeof window === 'undefined') return [];
 
@@ -39,6 +44,7 @@ function readGuestCartItems(): GuestCartItem[] {
 function writeGuestCartItems(items: GuestCartItem[]) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+  emitCartUpdated();
 }
 
 export function getGuestCartSummary(): GuestCartSummary {
@@ -93,4 +99,5 @@ export function removeFromGuestCart(cartItemId: string): GuestCartSummary {
 export function clearGuestCart() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(GUEST_CART_KEY);
+  emitCartUpdated();
 }

@@ -64,6 +64,7 @@ export default function CartPage() {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      window.dispatchEvent(new Event('cart-updated'));
       // Refetch cart
       if (cart) {
         setCart({
@@ -92,6 +93,7 @@ export default function CartPage() {
         },
         body: JSON.stringify({ quantity }),
       });
+      window.dispatchEvent(new Event('cart-updated'));
       // Update local state
       if (cart) {
         setCart({

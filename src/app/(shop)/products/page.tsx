@@ -87,6 +87,7 @@ export default function ProductsPage() {
 
       if (res.ok) {
         alert('Product added to cart!');
+        window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {
       console.error('Error adding to cart:', error);

@@ -61,6 +61,7 @@ function SearchContent() {
 
       if (res.ok) {
         alert('Product added to cart!');
+        window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {
       console.error('Error:', error);

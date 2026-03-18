@@ -1,8 +1,12 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShoppingCart, Heart, User, LogOut } from 'lucide-react';
 import { SearchBar } from '../product/SearchBar';
 import { Logo } from './Logo';
+import { getGuestCartSummary } from '@/lib/guestCart';
 
 interface NavigationProps {
   cartItemCount?: number;
@@ -13,12 +17,61 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
-  cartItemCount = 0,
+  cartItemCount,
   wishlistCount = 0,
-  isAuthenticated = false,
+  isAuthenticated,
   userName = '',
   onLogout,
 }) => {
+  const pathname = usePathname();
+  const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
+  const [resolvedAuth, setResolvedAuth] = React.useState(Boolean(isAuthenticated));
+
+  const syncCartAndAuthState = React.useCallback(async () => {
+    if (typeof window === 'undefined') return;
+
+    const token = localStorage.getItem('token');
+    const signedIn = Boolean(token);
+    setResolvedAuth(isAuthenticated ?? signedIn);
+
+    if (cartItemCount !== undefined) {
+      setResolvedCartCount(cartItemCount);
+      return;
+    }
+
+    if (!token) {
+      setResolvedCartCount(getGuestCartSummary().totalQuantity);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/cart', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setResolvedCartCount(data.totalQuantity || data.itemCount || 0);
+      }
+    } catch {
+      setResolvedCartCount(0);
+    }
+  }, [cartItemCount, isAuthenticated]);
+
+  React.useEffect(() => {
+    syncCartAndAuthState();
+
+    const onStorage = () => syncCartAndAuthState();
+    const onCartUpdated = () => syncCartAndAuthState();
+
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('cart-updated', onCartUpdated);
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('cart-updated', onCartUpdated);
+    };
+  }, [pathname, syncCartAndAuthState]);
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       {/* Top Bar */}
@@ -64,9 +117,9 @@ export const Navigation: React.FC<NavigationProps> = ({
               title="Shopping Cart"
             >
               <ShoppingCart size={24} />
-              {cartItemCount > 0 && (
+              {resolvedCartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartItemCount}
+                  {resolvedCartCount}
                 </span>
               )}
               <span className="absolute left-0 -bottom-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100">
@@ -75,7 +128,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             </Link>
 
             {/* Auth */}
-            {isAuthenticated ? (
+            {resolvedAuth ? (
               <div className="flex items-center gap-4 pl-4 border-l">
                 <Link
                   href="/account"
