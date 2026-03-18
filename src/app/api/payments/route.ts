@@ -73,8 +73,9 @@ export async function POST(request: NextRequest) {
     });
 
     // TODO: Integrate with actual payment gateway
-    // For MVP, return mock response
-    const mockPaymentUrl = `https://payment.${paymentMethod}.com/checkout?transactionId=${transaction.id}&amount=${order.totalAmount}`;
+    // For MVP, route to internal payment mock page instead of invalid external domains.
+    const origin = new URL(request.url).origin;
+    const mockPaymentUrl = `${origin}/payment/mock?transactionId=${transaction.id}&gateway=${paymentMethod}&amount=${order.totalAmount}`;
 
     return NextResponse.json(
       {
