@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 
 // DELETE: Remove item from cart
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { cartItemId: string } }
+) {
   try {
     // Authenticate user
     const auth = await authenticate(request);
@@ -12,7 +15,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const cartItemId = searchParams.get("cartItemId");
+    const cartItemId = params.cartItemId || searchParams.get("cartItemId");
 
     if (!cartItemId) {
       return NextResponse.json(
@@ -53,7 +56,10 @@ export async function DELETE(request: NextRequest) {
 }
 
 // PUT: Update cart item quantity
-export async function PUT(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { cartItemId: string } }
+) {
   try {
     // Authenticate user
     const auth = await authenticate(request);
@@ -61,7 +67,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { cartItemId, quantity } = await request.json();
+    const body = await request.json();
+    const cartItemId = params.cartItemId || body.cartItemId;
+    const quantity = body.quantity;
 
     if (!cartItemId || !quantity || quantity < 1) {
       return NextResponse.json(

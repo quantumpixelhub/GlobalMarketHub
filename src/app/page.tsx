@@ -6,6 +6,7 @@ import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import Link from 'next/link';
 import { Zap, Shield, Truck, HeadphonesIcon } from 'lucide-react';
+import { addToGuestCart } from '@/lib/guestCart';
 
 interface Product {
   id: string;
@@ -47,8 +48,16 @@ export default function HomePage() {
   const handleAddToCart = async (productId: string) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login to add items to cart');
-      window.location.href = '/login';
+      const product = featuredProducts.find((p) => p.id === productId);
+      if (!product) return;
+
+      addToGuestCart({
+        id: product.id,
+        title: product.title,
+        mainImage: product.mainImage,
+        currentPrice: product.currentPrice,
+      });
+      alert('Added to cart as guest. Login for faster checkout next time.');
       return;
     }
 

@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 
+const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
+const GUEST_CUSTOMER_PHONE = "00000000000";
+
+async function getOrCreateGuestUserId() {
+  const existing = await prisma.user.findUnique({
+    where: { email: GUEST_CUSTOMER_EMAIL },
+    select: { id: true },
+  });
+
+  if (existing) return existing.id;
+
+  const created = await prisma.user.create({
+    data: {
+      email: GUEST_CUSTOMER_EMAIL,
+      phone: GUEST_CUSTOMER_PHONE,
+      password: "guest-checkout-no-login",
+      role: "CUSTOMER",
+      firstName: "Guest",
+      lastName: "Customer",
+    },
+    select: { id: true },
+  });
+
+  return created.id;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
@@ -63,14 +89,83 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
     const auth = await authenticate(request);
-    if (!auth.success) {
+    const body = await request.json();
+    const { cartId, shippingAddressId, isGuestCheckout, guestInfo, guestCartItems } = body;
+
+    if (!auth.success && !isGuestCheckout) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Guest checkout flow
+    if (!auth.success && isGuestCheckout) {
+      if (!guestInfo || !Array.isArray(guestCartItems) || guestCartItems.length === 0) {
+        return NextResponse.json(
+          { error: "Guest info and cart items are required" },
+          { status: 400 }
+        );
+      }
+
+      const guestUserId = await getOrCreateGuestUserId();
+
+      const subtotal = guestCartItems.reduce(
+        (sum: number, item: any) => sum + Number(item.priceSnapshot) * Number(item.quantity || 1),
+        0
+      );
+      const tax = subtotal * 0.05;
+      const shipping = 100;
+      const totalAmount = subtotal + tax + shipping;
+
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+      const order = await prisma.order.create({
+        data: {
+          orderNumber,
+          userId: guestUserId,
+          shippingAddressId: `GUEST-${Date.now()}`,
+          shippingAddress: {
+            firstName: guestInfo.firstName,
+            lastName: guestInfo.lastName,
+            phone: guestInfo.phone,
+            email: guestInfo.email,
+            address: guestInfo.address,
+            division: guestInfo.division,
+            district: guestInfo.district,
+            upazila: guestInfo.upazila,
+            postCode: guestInfo.postCode || "",
+            label: guestInfo.label || "Guest Address",
+          },
+          subtotal: Number(subtotal),
+          tax: Number(tax),
+          shipping: Number(shipping),
+          totalAmount: Number(totalAmount),
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          paymentMethod: "PENDING",
+          items: {
+            createMany: {
+              data: guestCartItems.map((item: any) => ({
+                productId: item.productId,
+                quantity: Number(item.quantity || 1),
+                price: Number(item.priceSnapshot),
+              })),
+            },
+          },
+          notes: "Guest checkout order",
+        },
+        include: { items: true },
+      });
+
+      return NextResponse.json(
+        {
+          message: "Guest order created successfully",
+          order,
+        },
+        { status: 201 }
+      );
+    }
+
     const userId = auth.data?.userId as string;
-    const { cartId, shippingAddressId } = await request.json();
 
     if (!cartId || !shippingAddressId) {
       return NextResponse.json(

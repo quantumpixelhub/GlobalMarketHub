@@ -4,14 +4,8 @@ import { authenticate } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
     const auth = await authenticate(request);
-    if (!auth.success) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = auth.data?.userId as string;
-    const { orderId, paymentMethod } = await request.json();
+    const { orderId, paymentMethod, isGuestCheckout } = await request.json();
 
     if (!orderId || !paymentMethod) {
       return NextResponse.json(
@@ -20,13 +14,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get order
+    // Get order with owner
     const order = await prisma.order.findUnique({
       where: { id: orderId as string },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
     });
 
-    if (!order || order.userId !== userId) {
+    if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    if (auth.success) {
+      const userId = auth.data?.userId as string;
+      if (order.userId !== userId) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      }
+    } else if (!isGuestCheckout) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get payment gateway config
@@ -45,7 +57,7 @@ export async function POST(request: NextRequest) {
     const transaction = await prisma.paymentTransaction.create({
       data: {
         orderId: orderId as string,
-        userId,
+        userId: order.userId,
         gatewayName: paymentMethod as string,
         amount: order.totalAmount,
         currency: "BDT",
@@ -54,10 +66,8 @@ export async function POST(request: NextRequest) {
         netAmount: (order.totalAmount as any) - (gateway.transactionFee as any),
         paymentMethod: paymentMethod as string,
         customerDetails: {
-          email: (await prisma.user.findUnique({ where: { id: userId } }))
-            ?.email,
-          phone: (await prisma.user.findUnique({ where: { id: userId } }))
-            ?.phone,
+          email: order.user?.email,
+          phone: order.user?.phone,
         },
       },
     });

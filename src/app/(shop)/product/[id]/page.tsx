@@ -6,6 +6,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ReviewSection } from '@/components/product/ReviewSection';
 import { Heart } from 'lucide-react';
+import { addToGuestCart } from '@/lib/guestCart';
 
 interface Product {
   id: string;
@@ -62,8 +63,19 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login to add items to cart');
-      window.location.href = '/login';
+      if (!product) return;
+
+      addToGuestCart(
+        {
+          id: product.id,
+          title: product.title,
+          mainImage: product.mainImage,
+          currentPrice: product.currentPrice,
+        },
+        quantity
+      );
+      alert(`Added ${quantity} item(s) to cart as guest. Login for faster checkout next time.`);
+      setQuantity(1);
       return;
     }
 

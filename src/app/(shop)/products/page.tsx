@@ -5,6 +5,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { CategoryFilter } from '@/components/product/CategoryFilter';
+import { addToGuestCart } from '@/lib/guestCart';
 
 interface Product {
   id: string;
@@ -62,7 +63,16 @@ export default function ProductsPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Please login to add items to cart');
+        const product = products.find((p) => p.id === productId);
+        if (!product) return;
+
+        addToGuestCart({
+          id: product.id,
+          title: product.title,
+          mainImage: product.mainImage,
+          currentPrice: product.currentPrice,
+        });
+        alert('Added to cart as guest. Login for faster checkout next time.');
         return;
       }
 

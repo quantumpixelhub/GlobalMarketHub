@@ -6,6 +6,11 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { CartSummary } from '@/components/cart/CartSummary';
 import { ArrowLeft } from 'lucide-react';
+import {
+  getGuestCartSummary,
+  removeFromGuestCart,
+  updateGuestCartItemQuantity,
+} from '@/lib/guestCart';
 
 interface CartData {
   cartId: string;
@@ -17,6 +22,7 @@ interface CartData {
 export default function CartPage() {
   const [cart, setCart] = useState<CartData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuestCheckout, setIsGuestCheckout] = useState(false);
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -24,8 +30,12 @@ export default function CartPage() {
         setLoading(true);
         const token = localStorage.getItem('token');
         if (!token) {
+          setIsGuestCheckout(true);
+          setCart(getGuestCartSummary());
           return;
         }
+
+        setIsGuestCheckout(false);
 
         const res = await fetch('/api/cart', {
           headers: { 'Authorization': `Bearer ${token}` },
@@ -45,6 +55,11 @@ export default function CartPage() {
   const handleRemoveItem = async (cartItemId: string) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setCart(removeFromGuestCart(cartItemId));
+        return;
+      }
+
       await fetch(`/api/cart/${cartItemId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -64,6 +79,11 @@ export default function CartPage() {
   const handleUpdateQuantity = async (cartItemId: string, quantity: number) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setCart(updateGuestCartItemQuantity(cartItemId, quantity));
+        return;
+      }
+
       await fetch(`/api/cart/${cartItemId}`, {
         method: 'PUT',
         headers: {
@@ -107,6 +127,15 @@ export default function CartPage() {
           <ArrowLeft size={20} />
           <span>Continue Shopping</span>
         </Link>
+
+        {isGuestCheckout && (
+          <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="font-semibold text-blue-900">You are shopping as a guest</p>
+            <p className="text-sm text-blue-800 mt-1">
+              You can checkout and pay now. Registering an account lets you save addresses, track orders, and reorder faster.
+            </p>
+          </div>
+        )}
 
         <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
 

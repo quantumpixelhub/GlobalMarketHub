@@ -75,7 +75,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => (
             <Link
               key={item.href}
@@ -93,7 +93,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="m-4 flex items-center gap-3 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition w-full justify-center"
+          className="mx-4 mb-4 mt-2 flex items-center gap-3 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition w-auto justify-center"
         >
           <LogOut size={20} />
           {sidebarOpen && <span>Logout</span>}

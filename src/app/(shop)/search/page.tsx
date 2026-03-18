@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { addToGuestCart } from '@/lib/guestCart';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -36,7 +37,16 @@ function SearchContent() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Please login to add items to cart');
+        const product = (products as any[]).find((p: any) => p.id === productId);
+        if (!product) return;
+
+        addToGuestCart({
+          id: product.id,
+          title: product.title,
+          mainImage: product.mainImage,
+          currentPrice: Number(product.currentPrice),
+        });
+        alert('Added to cart as guest. Login for faster checkout next time.');
         return;
       }
 
