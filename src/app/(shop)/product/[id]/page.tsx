@@ -31,6 +31,11 @@ interface Product {
   };
 }
 
+const asNumber = (value: unknown, fallback = 0): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string;
@@ -48,7 +53,21 @@ export default function ProductDetailPage() {
         const res = await fetch(`/api/products/${productId}`);
         if (res.ok) {
           const data = await res.json();
-          setProduct(data.product);
+          const normalized: Product = {
+            ...data.product,
+            originalPrice: asNumber(data.product.originalPrice),
+            currentPrice: asNumber(data.product.currentPrice),
+            rating: asNumber(data.product.rating),
+            reviewCount: asNumber(data.product.reviewCount),
+            stock: asNumber(data.product.stock),
+            seller: {
+              ...data.product.seller,
+              email: data.product.seller?.email || '',
+              rating: asNumber(data.product.seller?.rating),
+              reviewCount: asNumber(data.product.seller?.reviewCount),
+            },
+          };
+          setProduct(normalized);
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -158,7 +177,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  const discount = Math.round(((product.originalPrice - product.currentPrice) / product.originalPrice) * 100);
+  const discount = product.originalPrice > 0
+    ? Math.round(((product.originalPrice - product.currentPrice) / product.originalPrice) * 100)
+    : 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

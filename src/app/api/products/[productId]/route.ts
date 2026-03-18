@@ -29,7 +29,7 @@ export async function GET(
       where: { id: params.productId },
       include: {
         category: { select: { id: true, name: true, slug: true } },
-        seller: { select: { id: true, storeName: true, rating: true } },
+        seller: { select: { id: true, storeName: true, rating: true, email: true, reviewCount: true } },
         variants: true,
         reviews: {
           where: { isApproved: true },
