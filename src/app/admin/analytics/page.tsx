@@ -6,6 +6,7 @@ import {
   BarChart,
   Bar,
   PieChart as RechartsPie,
+  Pie,
   Cell,
   XAxis,
   YAxis,
@@ -173,17 +174,19 @@ export default function AnalyticsPage() {
             <h3 className="text-lg font-bold text-gray-900">Orders by Status</h3>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <RechartsPie
-              data={orderStatusData}
-              cx="50%"
-              cy="50%"
-              innerRadius={70}
-              outerRadius={100}
-              dataKey="value"
-            >
-              {orderStatusData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
+            <RechartsPie>
+              <Pie
+                data={orderStatusData}
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={100}
+                dataKey="value"
+              >
+                {orderStatusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
             </RechartsPie>
           </ResponsiveContainer>
           <div className="mt-6 space-y-2">

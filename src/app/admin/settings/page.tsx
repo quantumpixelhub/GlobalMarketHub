@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings, Save } from 'lucide-react';
+import { Settings, Save, Upload } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 
 export default function SettingsPage() {
@@ -105,14 +105,22 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Store Logo</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="w-16 h-16 bg-gray-200 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                  📦
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+                    <Upload size={24} />
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      <Upload size={16} />
+                      Upload Logo
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">Recommended: 200x200px, PNG or SVG</p>
+                  </div>
                 </div>
-                <button type="button" className="cursor-pointer">
-                  <span className="font-medium text-orange-500">Upload Logo</span>
-                </button>
-                <p className="text-xs text-gray-500 mt-2">Recommended: 200×200px, PNG or SVG</p>
               </div>
             </div>
 
