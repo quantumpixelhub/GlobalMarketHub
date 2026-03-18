@@ -12,6 +12,15 @@ export async function GET(request: NextRequest) {
 
     const userId = auth.data?.userId as string;
 
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Get or create active cart
     let cart = await prisma.cart.findFirst({
       where: {
@@ -95,6 +104,16 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = auth.data?.userId as string;
+
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { productId, quantity } = await request.json();
 
     if (!productId || !quantity || quantity < 1) {
