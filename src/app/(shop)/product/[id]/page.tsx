@@ -82,16 +82,17 @@ export default function ProductDetailPage() {
   }, [productId]);
 
   const handleAddToCart = async () => {
+    const currentProduct = product;
+    if (!currentProduct) return;
+
     const token = localStorage.getItem('token');
     if (!token) {
-      if (!product) return;
-
       addToGuestCart(
         {
-          id: product.id,
-          title: product.title,
-          mainImage: product.mainImage,
-          currentPrice: product.currentPrice,
+          id: currentProduct.id,
+          title: currentProduct.title,
+          mainImage: currentProduct.mainImage,
+          currentPrice: currentProduct.currentPrice,
         },
         quantity
       );
@@ -108,9 +109,9 @@ export default function ProductDetailPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          productId: product?.id,
+          productId: currentProduct.id,
           quantity: quantity,
-          priceSnapshot: product?.currentPrice,
+          priceSnapshot: currentProduct.currentPrice,
         }),
       });
 
@@ -118,9 +119,34 @@ export default function ProductDetailPage() {
         showToast(`Added ${quantity} item(s) to cart.`, 'success');
         setQuantity(1);
         window.dispatchEvent(new Event('cart-updated'));
+      } else if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        addToGuestCart(
+          {
+            id: currentProduct.id,
+            title: currentProduct.title,
+            mainImage: currentProduct.mainImage,
+            currentPrice: currentProduct.currentPrice,
+          },
+          quantity
+        );
+        showToast('Session expired. Added to guest cart instead.', 'info');
+      } else {
+        const data = await res.json().catch(() => null);
+        showToast(data?.error || 'Failed to add to cart.', 'error');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
+      addToGuestCart(
+        {
+          id: currentProduct.id,
+          title: currentProduct.title,
+          mainImage: currentProduct.mainImage,
+          currentPrice: currentProduct.currentPrice,
+        },
+        quantity
+      );
+      showToast('Network issue. Added to guest cart instead.', 'info');
     }
   };
 

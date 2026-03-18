@@ -48,11 +48,11 @@ export default function HomePage() {
   }, []);
 
   const handleAddToCart = async (productId: string) => {
+    const product = featuredProducts.find((p) => p.id === productId);
+    if (!product) return;
+
     const token = localStorage.getItem('token');
     if (!token) {
-      const product = featuredProducts.find((p) => p.id === productId);
-      if (!product) return;
-
       addToGuestCart({
         id: product.id,
         title: product.title,
@@ -80,9 +80,28 @@ export default function HomePage() {
       if (res.ok) {
         showToast('Added to cart.', 'success');
         window.dispatchEvent(new Event('cart-updated'));
+      } else if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        addToGuestCart({
+          id: product.id,
+          title: product.title,
+          mainImage: product.mainImage,
+          currentPrice: product.currentPrice,
+        });
+        showToast('Session expired. Added to guest cart instead.', 'info');
+      } else {
+        const data = await res.json().catch(() => null);
+        showToast(data?.error || 'Failed to add to cart.', 'error');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
+      addToGuestCart({
+        id: product.id,
+        title: product.title,
+        mainImage: product.mainImage,
+        currentPrice: product.currentPrice,
+      });
+      showToast('Network issue. Added to guest cart instead.', 'info');
     }
   };
 
