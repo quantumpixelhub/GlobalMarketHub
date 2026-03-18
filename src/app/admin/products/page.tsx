@@ -16,6 +16,11 @@ interface Product {
   };
 }
 
+const asNumber = (value: unknown, fallback = 0): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +42,19 @@ export default function ProductsPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setProducts(data.products || []);
+          const normalized = (data.products || []).map((product: any) => ({
+            ...product,
+            currentPrice: asNumber(product.currentPrice),
+            originalPrice: asNumber(product.originalPrice),
+            stock: asNumber(product.stock),
+            rating: asNumber(product.rating),
+            reviewCount: asNumber(product.reviewCount),
+            seller: product.seller || { storeName: 'N/A' },
+          }));
+          setProducts(normalized);
+        } else if (res.status === 403) {
+          alert('Admin access required');
+          window.location.href = '/login';
         }
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -118,7 +135,7 @@ export default function ProductsPage() {
                       ⭐ {product.rating.toFixed(1)} ({product.reviewCount})
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{product.seller.storeName}</td>
+                  <td className="px-6 py-4 text-gray-600">{product.seller?.storeName || 'N/A'}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       <button

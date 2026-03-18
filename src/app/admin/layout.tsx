@@ -2,7 +2,23 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  LogOut,
+  Menu,
+  X,
+  FolderTree,
+  Tag,
+  Star,
+  Image,
+  Bell,
+  CreditCard,
+  Settings,
+} from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
 interface AdminLayoutProps {
@@ -11,6 +27,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -18,10 +35,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Analytics', href: '/admin/analytics' },
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/analytics' },
     { icon: Package, label: 'Products', href: '/admin/products' },
     { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
+    { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
+    { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
     { icon: Users, label: 'Users', href: '/admin/users' },
+    { icon: Star, label: 'Reviews', href: '/admin/reviews' },
+    { icon: Image, label: 'Media', href: '/admin/media' },
+    { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
+    { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
+    { icon: Settings, label: 'Settings', href: '/admin/settings' },
   ];
 
   return (
@@ -35,8 +59,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logo */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           {sidebarOpen && (
-            <div className="flex items-center gap-2">
-              <Logo size="sm" />
+            <div>
+              <div className="flex items-center gap-2">
+                <Logo size="sm" />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
             </div>
           )}
           <button
@@ -53,7 +80,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                pathname === item.href ? 'bg-orange-500 text-white' : 'hover:bg-gray-800 text-gray-100'
+              }`}
             >
               <item.icon size={20} />
               {sidebarOpen && <span>{item.label}</span>}
