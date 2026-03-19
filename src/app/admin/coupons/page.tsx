@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tag, Plus } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import DataTable from '@/components/admin/DataTable';
@@ -17,29 +17,9 @@ interface Coupon {
   status: 'Active' | 'Expired' | 'Inactive';
 }
 
-const initialCoupons: Coupon[] = [
-  {
-    id: '1',
-    code: 'SAVE10',
-    discount: 10,
-    minOrder: 500,
-    usage: { used: 0, total: 100 },
-    expires: '12/31/2026',
-    status: 'Active',
-  },
-  {
-    id: '2',
-    code: 'WELCOME20',
-    discount: 20,
-    minOrder: 1000,
-    usage: { used: 5, total: 50 },
-    expires: '11/30/2026',
-    status: 'Active',
-  },
-];
-
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [formData, setFormData] = useState({
@@ -47,11 +27,45 @@ export default function CouponsPage() {
     discount: '',
     minOrder: '',
     totalUsage: '',
+    expires: '',
+    status: 'Active' as Coupon['status'],
   });
+
+  const fetchCoupons = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch('/api/admin/coupons', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons(data.coupons || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch coupons:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
 
   const handleCreateClick = () => {
     setEditingCoupon(null);
-    setFormData({ code: '', discount: '', minOrder: '', totalUsage: '' });
+    setFormData({
+      code: '',
+      discount: '',
+      minOrder: '',
+      totalUsage: '',
+      expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+      status: 'Active',
+    });
     setIsModalOpen(true);
   };
 
@@ -62,45 +76,72 @@ export default function CouponsPage() {
       discount: coupon.discount.toString(),
       minOrder: coupon.minOrder.toString(),
       totalUsage: coupon.usage.total.toString(),
+      expires: coupon.expires,
+      status: coupon.status,
     });
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (coupon: Coupon) => {
+  const handleDeleteClick = async (coupon: Coupon) => {
     if (confirm(`Delete coupon "${coupon.code}"?`)) {
-      setCoupons(coupons.filter((c) => c.id !== coupon.id));
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`/api/admin/coupons/${coupon.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        setCoupons(coupons.filter((c) => c.id !== coupon.id));
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.code.trim() || !formData.discount || !formData.minOrder) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const payload = {
+      code: formData.code,
+      discount: parseFloat(formData.discount),
+      minOrder: parseFloat(formData.minOrder),
+      totalUsage: parseFloat(formData.totalUsage) || 100,
+      expires: formData.expires,
+      status: formData.status,
+    };
+
     if (editingCoupon) {
-      setCoupons(
-        coupons.map((c) =>
-          c.id === editingCoupon.id
-            ? {
-                ...c,
-                code: formData.code,
-                discount: parseFloat(formData.discount),
-                minOrder: parseFloat(formData.minOrder),
-                usage: { ...c.usage, total: parseFloat(formData.totalUsage) || c.usage.total },
-              }
-            : c
-        )
-      );
+      const res = await fetch(`/api/admin/coupons/${editingCoupon.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons(coupons.map((c) => (c.id === editingCoupon.id ? data.coupon : c)));
+      }
     } else {
-      const newCoupon: Coupon = {
-        id: Date.now().toString(),
-        code: formData.code,
-        discount: parseFloat(formData.discount),
-        minOrder: parseFloat(formData.minOrder),
-        usage: { used: 0, total: parseFloat(formData.totalUsage) || 100 },
-        expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        status: 'Active',
-      };
-      setCoupons([...coupons, newCoupon]);
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons([data.coupon, ...coupons]);
+      }
     }
 
     setIsModalOpen(false);
@@ -161,6 +202,7 @@ export default function CouponsPage() {
         data={coupons}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        loading={loading}
       />
 
       <FormModal
@@ -179,6 +221,31 @@ export default function CouponsPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             placeholder="e.g., SAVE10"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Expires</label>
+            <input
+              type="text"
+              value={formData.expires}
+              onChange={(e) => setFormData({ ...formData, expires: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="12/31/2026"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as Coupon['status'] })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Expired">Expired</option>
+            </select>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

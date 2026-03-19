@@ -29,6 +29,26 @@ interface Product {
   };
 }
 
+interface ActiveCoupon {
+  id: string;
+  code: string;
+  discount: number;
+  minOrder: number;
+  expires: string;
+  status: 'Active' | 'Inactive' | 'Expired';
+}
+
+interface ActiveCampaign {
+  id: string;
+  name: string;
+  description: string;
+  badge: string;
+  discountText: string;
+  startsAt: string;
+  endsAt: string;
+  status: 'Active' | 'Inactive' | 'Scheduled' | 'Ended';
+}
+
 const formatBdt = (value: number) => `BDT ${value.toLocaleString()}`;
 
 const computeMoq = (stock: number) => {
@@ -45,6 +65,8 @@ export default function HomePage() {
   const [activeBanner, setActiveBanner] = useState<'topSell' | 'topRanking' | 'topReviews' | 'random'>('topSell');
   const [randomBannerProducts, setRandomBannerProducts] = useState<Product[]>([]);
   const [isBannerPaused, setIsBannerPaused] = useState(false);
+  const [activeCoupon, setActiveCoupon] = useState<ActiveCoupon | null>(null);
+  const [activeCampaigns, setActiveCampaigns] = useState<ActiveCampaign[]>([]);
   const [bannerPage, setBannerPage] = useState(0);
   const [bannerPages, setBannerPages] = useState(1);
   const bannerTrackRef = useRef<HTMLDivElement | null>(null);
@@ -67,6 +89,23 @@ export default function HomePage() {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchMarketing = async () => {
+      try {
+        const res = await fetch('/api/marketing/active');
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setActiveCoupon(data.coupon || null);
+        setActiveCampaigns(data.campaigns || []);
+      } catch (error) {
+        console.error('Error fetching marketing data:', error);
+      }
+    };
+
+    fetchMarketing();
   }, []);
 
   useEffect(() => {
@@ -108,7 +147,6 @@ export default function HomePage() {
   };
 
   const newArrivals = featuredProducts.slice(6, 9);
-  const campaignProducts = featuredProducts.slice(0, 2);
 
   const getBannerPageStep = (container: HTMLDivElement) => {
     const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
@@ -485,12 +523,24 @@ export default function HomePage() {
             </div>
             <p className="text-sm text-cyan-50 mb-3">Limited-time category promotions running this week.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {campaignProducts.map((product, idx) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="bg-white/15 rounded-lg p-2 border border-white/25 hover:bg-white/20 transition">
-                  <p className="text-xs uppercase tracking-wide text-cyan-100 mb-1">Campaign {idx + 1}</p>
-                  <p className="font-semibold line-clamp-1">{product.title}</p>
-                  <p className="text-sm text-cyan-100">Up to {12 + idx * 3}% off</p>
-                </Link>
+              {(activeCampaigns.length > 0
+                ? activeCampaigns.slice(0, 2)
+                : [
+                    {
+                      id: 'fallback-1',
+                      name: 'Set campaigns in Admin',
+                      description: 'Create an active campaign from Admin > Campaigns.',
+                      badge: 'Setup',
+                      discountText: 'Offer text will appear here',
+                    },
+                  ]
+              ).map((campaign) => (
+                <div key={campaign.id} className="bg-white/15 rounded-lg p-2 border border-white/25">
+                  <p className="text-xs uppercase tracking-wide text-cyan-100 mb-1">{campaign.badge}</p>
+                  <p className="font-semibold line-clamp-1">{campaign.name}</p>
+                  <p className="text-sm text-cyan-100 line-clamp-1">{campaign.description}</p>
+                  <p className="text-sm text-cyan-50 mt-1">{campaign.discountText}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -500,20 +550,18 @@ export default function HomePage() {
               <Ticket size={20} />
               <h3 className="text-xl font-bold text-gray-900">Coupon Center</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-3">Apply these coupon codes at checkout to save more.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {[
-                { code: 'GLOBAL10', text: '10% off above BDT 5,000' },
-                { code: 'FREESHIP', text: 'Free shipping on eligible orders' },
-                { code: 'NEWMEMBER', text: 'BDT 300 off for new users' },
-                { code: 'BULKBUY', text: 'Extra 8% off on bulk items' },
-              ].map((coupon) => (
-                <div key={coupon.code} className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
-                  <p className="font-bold text-sm text-amber-800">{coupon.code}</p>
-                  <p className="text-xs text-gray-700">{coupon.text}</p>
-                </div>
-              ))}
-            </div>
+            <p className="text-sm text-gray-600 mb-3">Showing currently active coupon from Admin panel.</p>
+            {activeCoupon ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <p className="font-bold text-base text-amber-800">{activeCoupon.code}</p>
+                <p className="text-sm text-gray-700 mt-1">{activeCoupon.discount}% off on orders above BDT {activeCoupon.minOrder.toLocaleString()}</p>
+                <p className="text-xs text-gray-600 mt-1">Expires: {activeCoupon.expires}</p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <p className="text-sm text-gray-600">No active coupon found. Activate one in Admin &gt; Coupons.</p>
+              </div>
+            )}
           </div>
         </section>
       </div>

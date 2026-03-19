@@ -18,6 +18,7 @@ import {
   Bell,
   CreditCard,
   Settings,
+  Megaphone,
 } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
@@ -39,6 +40,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Package, label: 'Products', href: '/admin/products' },
     { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
     { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
+    { icon: Megaphone, label: 'Campaigns', href: '/admin/campaigns' },
     { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
     { icon: Users, label: 'Users', href: '/admin/users' },
     { icon: Star, label: 'Reviews', href: '/admin/reviews' },
