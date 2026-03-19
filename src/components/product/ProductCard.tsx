@@ -191,7 +191,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Price */}
         <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-base font-bold text-emerald-600">৳{currentPrice.toLocaleString()}</span>
+          <span className="text-sm font-bold text-emerald-600">৳{currentPrice.toLocaleString()}</span>
           {originalPrice > currentPrice && (
             <span className="text-xs text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
           )}
