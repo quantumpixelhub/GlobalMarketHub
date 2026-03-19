@@ -50,7 +50,7 @@ export default function WishlistPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setWishlistItems(data.wishlist || []);
+          setWishlistItems(data.items || []);
         }
       } catch (error) {
         console.error('Error fetching wishlist:', error);
@@ -60,6 +60,17 @@ export default function WishlistPage() {
     };
 
     fetchWishlist();
+
+    // Listen for wishlist updates and refresh
+    const handleWishlistUpdate = () => {
+      fetchWishlist();
+    };
+
+    window.addEventListener('wishlist-updated', handleWishlistUpdate);
+
+    return () => {
+      window.removeEventListener('wishlist-updated', handleWishlistUpdate);
+    };
   }, []);
 
   const handleRemove = async (wishlistItemId: string) => {
