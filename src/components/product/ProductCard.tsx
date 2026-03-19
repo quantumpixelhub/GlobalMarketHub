@@ -166,17 +166,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
+      <div className="p-3">
         {/* Seller */}
-        <p className="text-xs text-gray-500 mb-1">{seller.storeName}</p>
+        <p className="text-xs text-gray-500 mb-0.5 truncate">{seller.storeName}</p>
 
         {/* Title */}
-        <h3 className="font-semibold text-sm line-clamp-2 hover:text-emerald-600">
+        <h3 className="font-semibold text-xs line-clamp-2 hover:text-emerald-600">
           {title}
         </h3>
 
         {/* Rating */}
-        <div className="flex items-center gap-1 mt-2">
+        <div className="flex items-center gap-1 mt-1">
           <div className="flex">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -190,10 +190,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Price */}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-lg font-bold text-emerald-600">৳{currentPrice.toLocaleString()}</span>
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="text-base font-bold text-emerald-600">৳{currentPrice.toLocaleString()}</span>
           {originalPrice > currentPrice && (
-            <span className="text-sm text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
+            <span className="text-xs text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
           )}
         </div>
 
@@ -204,9 +204,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onAddToCart?.(id);
           }}
           disabled={isOutOfStock}
-          className="w-full mt-3 bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          className="w-full mt-2 bg-emerald-600 text-white py-1.5 rounded text-sm hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
         >
-          <ShoppingCart size={18} />
+          <ShoppingCart size={16} />
           <span>Add to Cart</span>
         </button>
       </div>
