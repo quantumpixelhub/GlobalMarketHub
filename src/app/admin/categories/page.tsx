@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FolderTree, Plus } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import DataTable from '@/components/admin/DataTable';
@@ -10,63 +10,154 @@ import Badge from '@/components/admin/Badge';
 interface Category {
   id: string;
   name: string;
-  products: number;
+  slug: string;
+  parentId?: string | null;
+  parent?: { id: string; name: string } | null;
+  _count?: { products: number; children: number };
   status: 'Active' | 'Inactive';
   description?: string;
+  image?: string;
 }
 
-const initialCategories: Category[] = [
-  { id: '1', name: 'Electronics', products: 4, status: 'Active', description: 'Electronic devices and gadgets' },
-  { id: '2', name: 'Clothing', products: 3, status: 'Active', description: 'Apparel and fashion items' },
-  { id: '3', name: 'Home & Kitchen', products: 3, status: 'Active', description: 'Home and kitchen products' },
-  { id: '4', name: 'Sports & Outdoors', products: 3, status: 'Active', description: 'Sports equipment and outdoor gear' },
-  { id: '5', name: 'Books & Media', products: 3, status: 'Active', description: 'Books, magazines, and media' },
-  { id: '6', name: 'Health & Beauty', products: 4, status: 'Active', description: 'Health and beauty products' },
-];
-
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', image: '', parentId: '' });
+
+  const fetchCategories = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch('/api/admin/categories', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = (data.categories || []).map((category: any) => ({
+          ...category,
+          status: 'Active' as const,
+        }));
+        setCategories(mapped);
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const parentOptions = useMemo(
+    () => categories.filter((category) => !category.parentId && category.id !== editingCategory?.id),
+    [categories, editingCategory]
+  );
 
   const handleCreateClick = () => {
     setEditingCategory(null);
-    setFormData({ name: '', description: '' });
+    setFormData({ name: '', description: '', image: '', parentId: '' });
     setIsModalOpen(true);
   };
 
   const handleEditClick = (category: Category) => {
     setEditingCategory(category);
-    setFormData({ name: category.name, description: category.description || '' });
+    setFormData({
+      name: category.name,
+      description: category.description || '',
+      image: category.image || '',
+      parentId: category.parentId || '',
+    });
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (category: Category) => {
+  const handleDeleteClick = async (category: Category) => {
     if (confirm(`Delete category "${category.name}"?`)) {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`/api/admin/categories/${category.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || 'Failed to delete category');
+        return;
+      }
+
       setCategories(categories.filter((c) => c.id !== category.id));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
 
+    const normalizedName = formData.name.trim().toLowerCase();
+    const isDuplicate = categories.some(
+      (category) =>
+        category.name.trim().toLowerCase() === normalizedName &&
+        category.id !== editingCategory?.id
+    );
+
+    if (isDuplicate) {
+      alert('Duplicate category name is not allowed.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      image: formData.image,
+      parentId: formData.parentId || null,
+    };
+
     if (editingCategory) {
-      setCategories(
-        categories.map((c) =>
-          c.id === editingCategory.id ? { ...c, name: formData.name, description: formData.description } : c
-        )
-      );
+      const res = await fetch(`/api/admin/categories/${editingCategory.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || 'Failed to update category');
+        return;
+      }
+
+      const updated = { ...data.category, status: 'Active' as const };
+      setCategories(categories.map((c) => (c.id === editingCategory.id ? updated : c)));
     } else {
-      const newCategory: Category = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        products: 0,
-        status: 'Active',
-      };
-      setCategories([...categories, newCategory]);
+      const res = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || 'Failed to create category');
+        return;
+      }
+
+      setCategories([{ ...data.category, status: 'Active' as const }, ...categories]);
     }
 
     setIsModalOpen(false);
@@ -79,9 +170,15 @@ export default function CategoriesPage() {
       sortable: true,
     },
     {
-      key: 'products',
+      key: '_count.products',
       label: 'Products',
-      sortable: true,
+      render: (_: unknown, item: Category) => item._count?.products ?? 0,
+      sortable: false,
+    },
+    {
+      key: 'parent',
+      label: 'Parent',
+      render: (_: unknown, item: Category) => item.parent?.name || 'Main Category',
     },
     {
       key: 'status',
@@ -108,6 +205,7 @@ export default function CategoriesPage() {
         data={categories}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        loading={loading}
       />
 
       <FormModal
@@ -128,6 +226,22 @@ export default function CategoriesPage() {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Parent Category</label>
+          <select
+            value={formData.parentId}
+            onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="">Main Category</option>
+            {parentOptions.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
           <textarea
             value={formData.description}
@@ -135,6 +249,17 @@ export default function CategoriesPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
             placeholder="Enter category description"
             rows={3}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL (optional)</label>
+          <input
+            type="url"
+            value={formData.image}
+            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="https://..."
           />
         </div>
       </FormModal>

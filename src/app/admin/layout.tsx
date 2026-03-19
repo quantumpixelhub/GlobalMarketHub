@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   const menuItems = [
@@ -62,9 +62,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           {sidebarOpen && (
             <div>
-              <div className="inline-flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 shadow-sm">
-                <Logo size="sm" className="max-w-[180px]" />
-              </div>
+              <Logo size="sm" className="max-w-[180px]" />
               <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
             </div>
           )}
