@@ -39,12 +39,16 @@ const computeMoq = (stock: number) => {
 };
 
 export default function HomePage() {
+  const BANNER_CARD_STEP = 236;
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeBanner, setActiveBanner] = useState<'topSell' | 'topRanking' | 'topReviews' | 'random'>('topSell');
   const [randomBannerProducts, setRandomBannerProducts] = useState<Product[]>([]);
   const [isBannerPaused, setIsBannerPaused] = useState(false);
+  const [bannerPage, setBannerPage] = useState(0);
+  const [bannerPages, setBannerPages] = useState(1);
   const bannerTrackRef = useRef<HTMLDivElement | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -104,11 +108,40 @@ export default function HomePage() {
 
   const newArrivals = featuredProducts.slice(6, 9);
 
+  const getBannerPageStep = (container: HTMLDivElement) => {
+    const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
+    return cardsPerPage * BANNER_CARD_STEP;
+  };
+
+  const updateBannerPagination = () => {
+    const container = bannerTrackRef.current;
+    if (!container) return;
+
+    const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
+    const totalPages = Math.max(1, Math.ceil(bannerProducts.length / cardsPerPage));
+    const pageStep = getBannerPageStep(container);
+    const currentPage = Math.min(totalPages - 1, Math.round(container.scrollLeft / pageStep));
+
+    setBannerPages(totalPages);
+    setBannerPage(currentPage);
+  };
+
+  const goToBannerPage = (pageIndex: number) => {
+    const container = bannerTrackRef.current;
+    if (!container) return;
+
+    const pageStep = getBannerPageStep(container);
+    container.scrollTo({
+      left: Math.max(0, pageIndex) * pageStep,
+      behavior: 'smooth',
+    });
+  };
+
   const scrollBanner = (direction: 'left' | 'right') => {
     const container = bannerTrackRef.current;
     if (!container) return;
 
-    const step = 236;
+    const step = getBannerPageStep(container);
     const delta = direction === 'left' ? -step : step;
     container.scrollBy({ left: delta, behavior: 'smooth' });
   };
@@ -118,20 +151,40 @@ export default function HomePage() {
     if (!container) return;
 
     container.scrollTo({ left: 0, behavior: 'smooth' });
+    setBannerPage(0);
+    updateBannerPagination();
   }, [activeBanner]);
+
+  useEffect(() => {
+    const container = bannerTrackRef.current;
+    if (!container) return;
+
+    const onScroll = () => updateBannerPagination();
+    const onResize = () => updateBannerPagination();
+
+    updateBannerPagination();
+    container.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      container.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [bannerProducts.length]);
 
   useEffect(() => {
     const container = bannerTrackRef.current;
     if (!container || isBannerPaused || bannerProducts.length === 0) return;
 
     const interval = window.setInterval(() => {
+      const step = getBannerPageStep(container);
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
-      const nextLeft = container.scrollLeft + 236;
+      const nextLeft = container.scrollLeft + step;
 
       if (nextLeft >= maxScrollLeft - 2) {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        container.scrollBy({ left: 236, behavior: 'smooth' });
+        container.scrollBy({ left: step, behavior: 'smooth' });
       }
     }, 2800);
 
@@ -267,7 +320,26 @@ export default function HomePage() {
             ref={bannerTrackRef}
             onMouseEnter={() => setIsBannerPaused(true)}
             onMouseLeave={() => setIsBannerPaused(false)}
+            onTouchStart={(e) => {
+              setIsBannerPaused(true);
+              touchStartXRef.current = e.touches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(e) => {
+              const startX = touchStartXRef.current;
+              const endX = e.changedTouches[0]?.clientX;
+
+              if (startX !== null && typeof endX === 'number') {
+                const deltaX = endX - startX;
+                if (Math.abs(deltaX) > 45) {
+                  scrollBanner(deltaX > 0 ? 'left' : 'right');
+                }
+              }
+
+              touchStartXRef.current = null;
+              setIsBannerPaused(false);
+            }}
             className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {bannerProducts.map((product) => (
               <Link
@@ -284,6 +356,18 @@ export default function HomePage() {
                 <p className="text-sm font-semibold text-gray-900 line-clamp-1 mb-1">{product.title}</p>
                 <p className="text-base font-bold text-gray-900">{formatBdt(product.currentPrice)}</p>
               </Link>
+            ))}
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            {Array.from({ length: bannerPages }).map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => goToBannerPage(index)}
+                className={`h-2.5 rounded-full transition-all ${bannerPage === index ? 'w-6 bg-white' : 'w-2.5 bg-white/50 hover:bg-white/80'}`}
+                aria-label={`Go to carousel page ${index + 1}`}
+              />
             ))}
           </div>
         </section>
