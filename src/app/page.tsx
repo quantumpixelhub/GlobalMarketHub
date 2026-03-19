@@ -445,7 +445,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:items-stretch">
+        <section className="grid grid-cols-1 gap-3">
           <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200 h-full flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -467,9 +467,9 @@ export default function HomePage() {
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
                   </div>
-                  <div className="min-h-[62px]">
-                    <p className="font-semibold text-lg md:text-xl text-gray-900 truncate underline">{product.title}</p>
-                    <p className="text-gray-600 underline text-lg md:text-xl leading-tight">Hot selling</p>
+                  <div className="min-h-[56px]">
+                    <p className="font-semibold text-sm md:text-base text-gray-900 truncate underline">{product.title}</p>
+                    <p className="text-gray-600 underline text-sm md:text-base leading-tight">Hot selling</p>
                   </div>
                 </Link>
               ))}
@@ -502,9 +502,9 @@ export default function HomePage() {
                       <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
-                  <div className="min-h-[62px]">
-                    <p className="font-bold text-xl md:text-2xl text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
-                    <p className="text-base md:text-lg text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
+                  <div className="min-h-[56px]">
+                    <p className="font-bold text-sm md:text-base text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
+                    <p className="text-sm md:text-base text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
                   </div>
                 </Link>
               ))}
