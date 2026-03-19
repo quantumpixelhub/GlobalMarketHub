@@ -152,8 +152,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-2 md:mb-3">
+      <div className="max-w-7xl mx-auto px-4 py-5 md:py-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-3 md:mb-4">
           {/* Logo */}
           <div className="w-full lg:w-[280px] flex-shrink-0">
             <Logo size="lg" className="origin-left scale-[1.12] md:scale-[1.2]" />
@@ -246,7 +246,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links with Subcategories */}
-        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 mt-1 scrollbar-hide">
+        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 mt-2 scrollbar-hide border-b-2 border-blue-600">
           {categories
             .filter((cat) => !cat.parentId) // Only main categories
             .slice(0, 6)
@@ -258,7 +258,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <div key={category.id} className="relative group">
                   <Link
                     href={`/products?category=${category.slug}`}
-                    className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-2"
+                    className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-2 border-b-2 border-transparent hover:border-blue-600"
                   >
                     {category.name}
                   </Link>
@@ -283,7 +283,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           {categories.filter((cat) => !cat.parentId).length > 6 && (
             <Link
               href="/products"
-              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold py-3 px-2"
+              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold py-3 px-2 border-b-2 border-transparent hover:border-blue-600"
             >
               See All →
             </Link>
