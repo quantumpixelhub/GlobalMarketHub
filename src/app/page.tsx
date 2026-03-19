@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import Link from 'next/link';
-import { Zap, Shield, Truck, HeadphonesIcon, ChevronRight, TrendingUp, Sparkles, Flame } from 'lucide-react';
+import { Zap, Shield, Truck, HeadphonesIcon, ChevronRight, ChevronLeft, TrendingUp, Sparkles, Flame } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
@@ -42,6 +42,9 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeBanner, setActiveBanner] = useState<'topSell' | 'topRanking' | 'topReviews' | 'random'>('topSell');
+  const [randomBannerProducts, setRandomBannerProducts] = useState<Product[]>([]);
+  const [isBannerPaused, setIsBannerPaused] = useState(false);
+  const bannerTrackRef = useRef<HTMLDivElement | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -62,6 +65,10 @@ export default function HomePage() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    setRandomBannerProducts([...featuredProducts].sort(() => Math.random() - 0.5).slice(0, 12));
+  }, [featuredProducts]);
+
   const topDeals = featuredProducts.slice(0, 6);
   const topSell = [...featuredProducts]
     .sort((a, b) => b.stock - a.stock)
@@ -72,15 +79,11 @@ export default function HomePage() {
   const topReviews = [...featuredProducts]
     .sort((a, b) => b.reviewCount - a.reviewCount)
     .slice(0, 12);
-  const randomProducts = [...featuredProducts]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 12);
-
   const bannerProductsMap = {
     topSell,
     topRanking,
     topReviews,
-    random: randomProducts,
+    random: randomBannerProducts,
   };
 
   const bannerProducts = bannerProductsMap[activeBanner] || [];
@@ -100,6 +103,40 @@ export default function HomePage() {
   };
 
   const newArrivals = featuredProducts.slice(6, 9);
+
+  const scrollBanner = (direction: 'left' | 'right') => {
+    const container = bannerTrackRef.current;
+    if (!container) return;
+
+    const step = 236;
+    const delta = direction === 'left' ? -step : step;
+    container.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const container = bannerTrackRef.current;
+    if (!container) return;
+
+    container.scrollTo({ left: 0, behavior: 'smooth' });
+  }, [activeBanner]);
+
+  useEffect(() => {
+    const container = bannerTrackRef.current;
+    if (!container || isBannerPaused || bannerProducts.length === 0) return;
+
+    const interval = window.setInterval(() => {
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      const nextLeft = container.scrollLeft + 236;
+
+      if (nextLeft >= maxScrollLeft - 2) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: 236, behavior: 'smooth' });
+      }
+    }, 2800);
+
+    return () => window.clearInterval(interval);
+  }, [bannerProducts, isBannerPaused]);
 
   const handleAddToCart = async (productId: string) => {
     const product = featuredProducts.find((p) => p.id === productId);
@@ -204,7 +241,34 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-orange-100">Autoplay is on. Hover to pause.</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollBanner('left')}
+                className="w-8 h-8 rounded-full border border-white/60 bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
+                aria-label="Scroll banner left"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollBanner('right')}
+                className="w-8 h-8 rounded-full border border-white/60 bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
+                aria-label="Scroll banner right"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div
+            ref={bannerTrackRef}
+            onMouseEnter={() => setIsBannerPaused(true)}
+            onMouseLeave={() => setIsBannerPaused(false)}
+            className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
+          >
             {bannerProducts.map((product) => (
               <Link
                 key={product.id}
