@@ -163,7 +163,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <SearchBar />
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4 md:gap-5 self-end lg:self-auto">
+          <div className="flex items-center gap-6 md:gap-7 self-end lg:self-auto">
             {/* Wishlist */}
             <Link
               href="/wishlist"
