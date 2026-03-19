@@ -5,7 +5,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import Link from 'next/link';
-import { Zap, Shield, Truck, HeadphonesIcon } from 'lucide-react';
+import { Zap, Shield, Truck, HeadphonesIcon, ChevronRight, TrendingUp, Sparkles, Flame } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
@@ -24,6 +24,15 @@ interface Product {
   };
 }
 
+const formatBdt = (value: number) => `BDT ${value.toLocaleString()}`;
+
+const computeMoq = (stock: number) => {
+  if (stock >= 500) return 10;
+  if (stock >= 200) return 5;
+  if (stock >= 80) return 2;
+  return 1;
+};
+
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +41,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products?limit=8');
+        const res = await fetch('/api/products?limit=24');
         if (res.ok) {
           const data = await res.json();
           setFeaturedProducts(data.products || []);
@@ -46,6 +55,12 @@ export default function HomePage() {
 
     fetchProducts();
   }, []);
+
+  const topDeals = featuredProducts.slice(0, 6);
+  const topRanking = [...featuredProducts]
+    .sort((a, b) => (Number(b.rating) - Number(a.rating)) || (b.reviewCount - a.reviewCount))
+    .slice(0, 3);
+  const newArrivals = featuredProducts.slice(6, 9);
 
   const handleAddToCart = async (productId: string) => {
     const product = featuredProducts.find((p) => p.id === productId);
@@ -110,31 +125,129 @@ export default function HomePage() {
       <Navigation />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-4">🌍 Welcome to GlobalMarketHub</h1>
-          <p className="text-xl mb-8">Your one-stop shop for global products and best deals</p>
-          <div className="flex gap-4 justify-center">
+      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 text-white py-14">
+        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_20%_20%,white,transparent_30%),radial-gradient(circle_at_80%_80%,white,transparent_35%)]" />
+        <div className="relative max-w-7xl mx-auto px-4 text-center">
+          <p className="uppercase tracking-[0.24em] text-xs font-semibold text-emerald-100 mb-3">Global Sourcing Marketplace</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Trade smarter with verified products and better prices</h1>
+          <p className="text-lg text-emerald-50 mb-8">Discover trend-driven deals, supplier-ready catalogs, and cross-border inventory in one place.</p>
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/products"
-              className="bg-white text-emerald-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100"
+              className="bg-white text-emerald-700 px-8 py-3 rounded-full font-bold hover:bg-emerald-50 transition"
             >
               Shop Now
             </Link>
             <button
               onClick={() => document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' })}
-              className="border-2 border-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700"
+              className="border-2 border-white px-8 py-3 rounded-full font-bold hover:bg-white/15 transition"
             >
-              Featured Products
+              Explore Showcase
             </button>
           </div>
         </div>
       </div>
 
+      {/* Showcase Blocks */}
+      <div className="max-w-7xl mx-auto px-4 py-8 w-full" id="featured">
+        <section className="bg-white border-2 border-emerald-600/80 rounded-2xl p-5 md:p-6 shadow-sm mb-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-4xl font-bold text-gray-900 leading-none mb-2">Top Deals</h2>
+              <p className="text-gray-600 text-lg">Score the lowest prices on GlobalMarketHub</p>
+            </div>
+            <Link href="/products" className="font-bold text-gray-900 text-2xl hover:text-emerald-700 transition inline-flex items-center gap-2">
+              View more <ChevronRight size={26} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {topDeals.map((product) => (
+              <Link key={product.id} href={`/product/${product.id}`} className="group rounded-2xl bg-gray-50 border border-transparent hover:border-emerald-200 transition p-2">
+                <div className="aspect-[4/5] bg-white rounded-xl overflow-hidden mb-3">
+                  <img
+                    src={product.mainImage}
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                </div>
+                <div className="rounded-full bg-rose-100 text-red-700 font-bold text-2xl px-3 py-1 mb-2 inline-flex items-center gap-2 max-w-full">
+                  <span className="text-red-400 text-lg">▼</span>
+                  <span className="truncate">{formatBdt(product.currentPrice)}</span>
+                </div>
+                <p className="underline text-2xl text-gray-800">MOQ: {computeMoq(product.stock)}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl p-5 md:p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-4xl font-bold text-gray-900 leading-none mb-2 inline-flex items-center gap-2">
+                  <TrendingUp size={30} className="text-emerald-600" />
+                  Top Ranking
+                </h2>
+                <p className="text-gray-600 text-lg">Navigate trends with data-driven rankings</p>
+              </div>
+              <Link href="/products?sort=rating" className="font-bold text-gray-900 text-2xl hover:text-emerald-700 transition inline-flex items-center gap-2">
+                View more <ChevronRight size={26} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {topRanking.map((product) => (
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-2xl p-2 border border-transparent hover:border-emerald-200 transition">
+                  <div className="aspect-square rounded-xl overflow-hidden bg-white mb-3 relative">
+                    <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
+                  </div>
+                  <p className="font-semibold text-2xl text-gray-900 truncate underline">{product.title}</p>
+                  <p className="text-gray-600 underline text-2xl">Hot selling</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 md:p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-4xl font-bold text-gray-900 leading-none mb-2 inline-flex items-center gap-2">
+                  <Sparkles size={30} className="text-emerald-600" />
+                  New Arrivals
+                </h2>
+                <p className="text-gray-600 text-lg">Stay ahead with the latest product offerings</p>
+              </div>
+              <Link href="/products?sort=createdAt" className="font-bold text-gray-900 text-2xl hover:text-emerald-700 transition inline-flex items-center gap-2">
+                View more <ChevronRight size={26} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {newArrivals.map((product, index) => (
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-2xl p-2 border border-transparent hover:border-emerald-200 transition">
+                  <div className="aspect-square rounded-xl overflow-hidden bg-white mb-3 relative">
+                    <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    {index === 0 && (
+                      <span className="absolute top-2 left-2 text-sm bg-violet-600 text-white px-2 py-1 rounded-full">Fresh</span>
+                    )}
+                    {index === 2 && (
+                      <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
+                    )}
+                  </div>
+                  <p className="font-bold text-5xl text-gray-900 underline mb-1">{formatBdt(product.currentPrice)}</p>
+                  <p className="text-2xl text-gray-800 underline">MOQ: {computeMoq(product.stock)}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
       {/* Features Section */}
       <div className="bg-white py-12 border-b">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             <div className="text-center">
               <Truck className="mx-auto mb-4 text-emerald-600" size={32} />
               <h3 className="font-bold mb-2">Fast Shipping</h3>
@@ -151,6 +264,11 @@ export default function HomePage() {
               <p className="text-gray-600 text-sm">Competitive pricing and regular discounts</p>
             </div>
             <div className="text-center">
+              <Flame className="mx-auto mb-4 text-emerald-600" size={32} />
+              <h3 className="font-bold mb-2">Trending Picks</h3>
+              <p className="text-gray-600 text-sm">Curated products based on demand and conversion</p>
+            </div>
+            <div className="text-center">
               <HeadphonesIcon className="mx-auto mb-4 text-emerald-600" size={32} />
               <h3 className="font-bold mb-2">24/7 Support</h3>
               <p className="text-gray-600 text-sm">Our team is always ready to help</p>
@@ -160,7 +278,7 @@ export default function HomePage() {
       </div>
 
       {/* Featured Products */}
-      <div className="max-w-7xl mx-auto px-4 py-12 w-full" id="featured">
+      <div className="max-w-7xl mx-auto px-4 py-12 w-full" id="featured-products">
         <h2 className="text-3xl font-bold mb-8">Featured Products</h2>
         <ProductGrid
           products={featuredProducts}
