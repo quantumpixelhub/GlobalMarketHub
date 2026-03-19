@@ -2,7 +2,20 @@ import { PrismaClient } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import bcryptjs from "bcryptjs";
 
-const prisma = new PrismaClient();
+const baseDbUrl = process.env.DATABASE_URL || "";
+const seedDbUrl = baseDbUrl
+  ? `${baseDbUrl}${baseDbUrl.includes("?") ? "&" : "?"}connection_limit=1&pool_timeout=60`
+  : undefined;
+
+const prisma = new PrismaClient(
+  seedDbUrl
+    ? {
+        datasources: {
+          db: { url: seedDbUrl },
+        },
+      }
+    : undefined
+);
 
 async function main() {
   console.log("🌱 Starting database seed...\n");
@@ -10,6 +23,8 @@ async function main() {
   console.log("🧹 Clearing existing demo data...");
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "MarketingCampaign",
+      "MarketingCoupon",
       "PaymentTransaction",
       "OrderItem",
       "Order",
@@ -30,6 +45,59 @@ async function main() {
     RESTART IDENTITY CASCADE;
   `);
   console.log("✓ Existing data cleared\n");
+
+  // ============================================================================
+  // 0. CREATE MARKETING DATA
+  // ============================================================================
+  console.log("🎯 Creating marketing coupons and campaigns...");
+
+  await prisma.marketingCoupon.createMany({
+    data: [
+      {
+        code: "SAVE10",
+        discount: new Decimal(10),
+        minOrder: new Decimal(500),
+        usedCount: 0,
+        totalUsage: 100,
+        expiresAt: new Date("2026-12-31"),
+        status: "ACTIVE",
+      },
+      {
+        code: "WELCOME20",
+        discount: new Decimal(20),
+        minOrder: new Decimal(1000),
+        usedCount: 5,
+        totalUsage: 50,
+        expiresAt: new Date("2026-11-30"),
+        status: "INACTIVE",
+      },
+    ],
+  });
+
+  await prisma.marketingCampaign.createMany({
+    data: [
+      {
+        name: "Eid Mega Deals",
+        description: "Festival picks with big markdowns across categories.",
+        badge: "Seasonal",
+        discountText: "Up to 18% off",
+        startsAt: new Date("2026-03-01"),
+        endsAt: new Date("2026-04-15"),
+        status: "ACTIVE",
+      },
+      {
+        name: "Electronics Sprint",
+        description: "Fast-moving gadgets with limited stock discounts.",
+        badge: "Electronics",
+        discountText: "Extra 12% off",
+        startsAt: new Date("2026-03-10"),
+        endsAt: new Date("2026-05-01"),
+        status: "INACTIVE",
+      },
+    ],
+  });
+
+  console.log("✓ Marketing data created\n");
 
   // ============================================================================
   // 1. CREATE MAIN CATEGORIES WITH SUBCATEGORIES

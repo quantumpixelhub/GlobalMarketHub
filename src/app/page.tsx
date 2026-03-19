@@ -295,39 +295,39 @@ export default function HomePage() {
 
       {/* Scrollable Marketplace Banner */}
       <div className="max-w-7xl mx-auto px-4 pt-4 pb-2 w-full">
-        <section className="bg-gradient-to-r from-orange-500 via-orange-500 to-orange-400 rounded-2xl p-4 md:p-5 text-white">
+        <section className="bg-gradient-to-r from-emerald-50 via-white to-cyan-50 rounded-2xl p-4 md:p-5 text-gray-900 border border-emerald-100 shadow-sm">
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-orange-100 mb-1">Featured Marketplace Stream</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700 mb-1">Featured Marketplace Stream</p>
               <h2 className="text-2xl md:text-3xl font-bold leading-tight">{bannerTitleMap[activeBanner]}</h2>
-              <p className="text-sm md:text-base text-orange-50 mt-1">{bannerSubtitleMap[activeBanner]}</p>
+              <p className="text-sm md:text-base text-gray-600 mt-1">{bannerSubtitleMap[activeBanner]}</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => setActiveBanner('topSell')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topSell' ? 'bg-white text-orange-600' : 'bg-white/20 text-white hover:bg-white/30'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topSell' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
               >
                 Top Sell
               </button>
               <button
                 type="button"
                 onClick={() => setActiveBanner('topRanking')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topRanking' ? 'bg-white text-orange-600' : 'bg-white/20 text-white hover:bg-white/30'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topRanking' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
               >
                 Top Ranking
               </button>
               <button
                 type="button"
                 onClick={() => setActiveBanner('topReviews')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topReviews' ? 'bg-white text-orange-600' : 'bg-white/20 text-white hover:bg-white/30'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topReviews' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
               >
                 Top Reviews
               </button>
               <button
                 type="button"
                 onClick={() => setActiveBanner('random')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'random' ? 'bg-white text-orange-600' : 'bg-white/20 text-white hover:bg-white/30'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'random' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
               >
                 Random
               </button>
@@ -335,12 +335,12 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-orange-100">Autoplay is on. Hover to pause.</p>
+            <p className="text-xs text-gray-500">Autoplay is on. Hover to pause.</p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => scrollBanner('left')}
-                className="w-8 h-8 rounded-full border border-white/60 bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
+                className="w-8 h-8 rounded-full border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 transition flex items-center justify-center"
                 aria-label="Scroll banner left"
               >
                 <ChevronLeft size={18} />
@@ -348,7 +348,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => scrollBanner('right')}
-                className="w-8 h-8 rounded-full border border-white/60 bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
+                className="w-8 h-8 rounded-full border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 transition flex items-center justify-center"
                 aria-label="Scroll banner right"
               >
                 <ChevronRight size={18} />
@@ -385,12 +385,12 @@ export default function HomePage() {
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="snap-start min-w-[220px] max-w-[220px] bg-white text-gray-900 rounded-xl p-2.5 border border-orange-200 hover:border-orange-300 transition"
+                className="snap-start min-w-[220px] max-w-[220px] bg-white text-gray-900 rounded-xl p-2.5 border border-emerald-100 hover:border-emerald-300 transition"
               >
                 <div className="h-28 rounded-lg overflow-hidden bg-gray-100 mb-2">
                   <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover" />
                 </div>
-                <p className="text-xs uppercase tracking-wide text-orange-600 font-semibold mb-1 truncate">
+                <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-1 truncate">
                   {product.category?.name || 'General Category'}
                 </p>
                 <p className="text-sm font-semibold text-gray-900 line-clamp-1 mb-1">{product.title}</p>
@@ -405,7 +405,7 @@ export default function HomePage() {
                 key={index}
                 type="button"
                 onClick={() => goToBannerPage(index)}
-                className={`h-2.5 rounded-full transition-all ${bannerPage === index ? 'w-6 bg-white' : 'w-2.5 bg-white/50 hover:bg-white/80'}`}
+                className={`h-2.5 rounded-full transition-all ${bannerPage === index ? 'w-6 bg-emerald-600' : 'w-2.5 bg-emerald-300 hover:bg-emerald-400'}`}
                 aria-label={`Go to carousel page ${index + 1}`}
               />
             ))}

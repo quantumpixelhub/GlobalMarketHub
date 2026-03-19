@@ -536,6 +536,36 @@ model PaymentGatewayConfig {
   updatedAt DateTime @updatedAt
 }
 
+model MarketingCoupon {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  discount  Decimal      @db.Decimal(5, 2)
+  minOrder  Decimal      @db.Decimal(12, 2)
+  usedCount Int          @default(0)
+  totalUsage Int         @default(100)
+  expiresAt DateTime
+  status    CouponStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([status])
+}
+
+model MarketingCampaign {
+  id           String         @id @default(cuid())
+  name         String
+  description  String
+  badge        String
+  discountText String
+  startsAt     DateTime
+  endsAt       DateTime
+  status       CampaignStatus @default(ACTIVE)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([status])
+}
+
 // ============================================================================
 // ENUMS
 // ============================================================================
@@ -568,4 +598,17 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   REFUNDED
+}
+
+enum CouponStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum CampaignStatus {
+  ACTIVE
+  INACTIVE
+  SCHEDULED
+  ENDED
 }

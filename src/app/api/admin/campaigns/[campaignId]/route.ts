@@ -1,7 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
-import { deleteCampaign, updateCampaign } from '@/lib/marketingData';
+
+const campaignStatusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'ENDED'> = {
+  Active: 'ACTIVE',
+  Inactive: 'INACTIVE',
+  Scheduled: 'SCHEDULED',
+  Ended: 'ENDED',
+};
+
+const reverseCampaignStatusMap: Record<string, 'Active' | 'Inactive' | 'Scheduled' | 'Ended'> = {
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+  SCHEDULED: 'Scheduled',
+  ENDED: 'Ended',
+};
+
+const formatCampaign = (campaign: any) => ({
+  id: campaign.id,
+  name: campaign.name,
+  description: campaign.description,
+  badge: campaign.badge,
+  discountText: campaign.discountText,
+  startsAt: new Date(campaign.startsAt).toLocaleDateString(),
+  endsAt: new Date(campaign.endsAt).toLocaleDateString(),
+  status: reverseCampaignStatusMap[campaign.status] || 'Inactive',
+});
 
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
@@ -29,22 +53,24 @@ export async function PUT(
 
     const { campaignId } = await params;
     const body = await request.json();
-    const updated = updateCampaign(campaignId, {
-      name: body.name,
-      description: body.description,
-      badge: body.badge,
-      discountText: body.discountText,
-      startsAt: body.startsAt,
-      endsAt: body.endsAt,
-      status: body.status,
+    const updated = await prisma.marketingCampaign.update({
+      where: { id: campaignId },
+      data: {
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.description !== undefined && { description: body.description }),
+        ...(body.badge !== undefined && { badge: body.badge }),
+        ...(body.discountText !== undefined && { discountText: body.discountText }),
+        ...(body.startsAt !== undefined && { startsAt: new Date(body.startsAt) }),
+        ...(body.endsAt !== undefined && { endsAt: new Date(body.endsAt) }),
+        ...(body.status !== undefined && { status: campaignStatusMap[body.status] || 'ACTIVE' }),
+      },
     });
 
-    if (!updated) {
+    return NextResponse.json({ campaign: formatCampaign(updated) });
+  } catch (error) {
+    if ((error as any)?.code === 'P2025') {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
-
-    return NextResponse.json({ campaign: updated });
-  } catch (error) {
     console.error('Admin campaigns PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -61,13 +87,13 @@ export async function DELETE(
     }
 
     const { campaignId } = await params;
-    const deleted = deleteCampaign(campaignId);
-    if (!deleted) {
-      return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
-    }
+    await prisma.marketingCampaign.delete({ where: { id: campaignId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if ((error as any)?.code === 'P2025') {
+      return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
+    }
     console.error('Admin campaigns DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

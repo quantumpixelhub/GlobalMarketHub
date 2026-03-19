@@ -1,7 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
-import { createCampaign, listCampaigns } from '@/lib/marketingData';
+
+const campaignStatusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'ENDED'> = {
+  Active: 'ACTIVE',
+  Inactive: 'INACTIVE',
+  Scheduled: 'SCHEDULED',
+  Ended: 'ENDED',
+};
+
+const reverseCampaignStatusMap: Record<string, 'Active' | 'Inactive' | 'Scheduled' | 'Ended'> = {
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+  SCHEDULED: 'Scheduled',
+  ENDED: 'Ended',
+};
+
+const formatCampaign = (campaign: any) => ({
+  id: campaign.id,
+  name: campaign.name,
+  description: campaign.description,
+  badge: campaign.badge,
+  discountText: campaign.discountText,
+  startsAt: new Date(campaign.startsAt).toLocaleDateString(),
+  endsAt: new Date(campaign.endsAt).toLocaleDateString(),
+  status: reverseCampaignStatusMap[campaign.status] || 'Inactive',
+});
 
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
@@ -24,7 +48,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    return NextResponse.json({ campaigns: listCampaigns() });
+    const campaigns = await prisma.marketingCampaign.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ campaigns: campaigns.map(formatCampaign) });
   } catch (error) {
     console.error('Admin campaigns GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -39,17 +67,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const campaign = createCampaign({
-      name: String(body.name || '').trim(),
-      description: String(body.description || '').trim(),
-      badge: String(body.badge || 'Campaign').trim(),
-      discountText: String(body.discountText || 'Special offer').trim(),
-      startsAt: String(body.startsAt || new Date().toLocaleDateString()),
-      endsAt: String(body.endsAt || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()),
-      status: body.status || 'Active',
+    const campaign = await prisma.marketingCampaign.create({
+      data: {
+        name: String(body.name || '').trim(),
+        description: String(body.description || '').trim(),
+        badge: String(body.badge || 'Campaign').trim(),
+        discountText: String(body.discountText || 'Special offer').trim(),
+        startsAt: body.startsAt ? new Date(body.startsAt) : new Date(),
+        endsAt: body.endsAt ? new Date(body.endsAt) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        status: campaignStatusMap[body.status] || 'ACTIVE',
+      },
     });
 
-    return NextResponse.json({ campaign }, { status: 201 });
+    return NextResponse.json({ campaign: formatCampaign(campaign) }, { status: 201 });
   } catch (error) {
     console.error('Admin campaigns POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
-import { deleteCoupon, updateCoupon } from '@/lib/marketingData';
+
+const couponStatusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'EXPIRED'> = {
+  Active: 'ACTIVE',
+  Inactive: 'INACTIVE',
+  Expired: 'EXPIRED',
+};
+
+const reverseCouponStatusMap: Record<string, 'Active' | 'Inactive' | 'Expired'> = {
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+  EXPIRED: 'Expired',
+};
+
+const formatCoupon = (coupon: any) => ({
+  id: coupon.id,
+  code: coupon.code,
+  discount: Number(coupon.discount),
+  minOrder: Number(coupon.minOrder),
+  usage: { used: coupon.usedCount, total: coupon.totalUsage },
+  expires: new Date(coupon.expiresAt).toLocaleDateString(),
+  status: reverseCouponStatusMap[coupon.status] || 'Inactive',
+});
 
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
@@ -29,21 +50,23 @@ export async function PUT(
 
     const { couponId } = await params;
     const body = await request.json();
-    const updated = updateCoupon(couponId, {
-      code: body.code ? String(body.code).toUpperCase() : undefined,
-      discount: body.discount !== undefined ? Number(body.discount) : undefined,
-      minOrder: body.minOrder !== undefined ? Number(body.minOrder) : undefined,
-      totalUsage: body.totalUsage !== undefined ? Number(body.totalUsage) : undefined,
-      expires: body.expires,
-      status: body.status,
+    const updated = await prisma.marketingCoupon.update({
+      where: { id: couponId },
+      data: {
+        ...(body.code !== undefined && { code: String(body.code).toUpperCase() }),
+        ...(body.discount !== undefined && { discount: Number(body.discount) }),
+        ...(body.minOrder !== undefined && { minOrder: Number(body.minOrder) }),
+        ...(body.totalUsage !== undefined && { totalUsage: Number(body.totalUsage) }),
+        ...(body.expires !== undefined && { expiresAt: new Date(body.expires) }),
+        ...(body.status !== undefined && { status: couponStatusMap[body.status] || 'ACTIVE' }),
+      },
     });
 
-    if (!updated) {
+    return NextResponse.json({ coupon: formatCoupon(updated) });
+  } catch (error) {
+    if ((error as any)?.code === 'P2025') {
       return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
     }
-
-    return NextResponse.json({ coupon: updated });
-  } catch (error) {
     console.error('Admin coupons PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -60,13 +83,13 @@ export async function DELETE(
     }
 
     const { couponId } = await params;
-    const deleted = deleteCoupon(couponId);
-    if (!deleted) {
-      return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
-    }
+    await prisma.marketingCoupon.delete({ where: { id: couponId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if ((error as any)?.code === 'P2025') {
+      return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
+    }
     console.error('Admin coupons DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
