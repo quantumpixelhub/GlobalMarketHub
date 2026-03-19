@@ -45,6 +45,36 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     router.push(`/product/${id}`);
   };
 
+  const handleWishlistClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    if (onAddToWishlist) {
+      onAddToWishlist(id);
+      return;
+    }
+
+    if (typeof window === 'undefined') return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      await fetch('/api/users/wishlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ productId: id }),
+      });
+    } catch {
+      // Silent fallback to avoid interrupting product browsing if wishlist API fails.
+    }
+  };
+
   return (
     <div
       className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
@@ -92,12 +122,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="absolute top-3 right-3 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-3 right-3 z-10 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToWishlist?.(id);
-            }}
+            onClick={handleWishlistClick}
             className="bg-white/95 border border-gray-200 p-2 rounded-full shadow-sm hover:bg-red-50"
             title="Add to wishlist"
           >

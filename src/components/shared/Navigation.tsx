@@ -24,6 +24,13 @@ interface Category {
   children?: Category[];
 }
 
+interface ProfileSummary {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profileImage?: string;
+}
+
 export const Navigation: React.FC<NavigationProps> = ({
   cartItemCount,
   wishlistCount = 0,
@@ -34,7 +41,26 @@ export const Navigation: React.FC<NavigationProps> = ({
   const pathname = usePathname();
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
   const [resolvedAuth, setResolvedAuth] = React.useState(Boolean(isAuthenticated));
+  const [resolvedUserName, setResolvedUserName] = React.useState(userName);
+  const [profileImage, setProfileImage] = React.useState<string | null>(null);
   const [categories, setCategories] = React.useState<Category[]>([]);
+
+  const resolveProfile = React.useCallback(async (token: string) => {
+    try {
+      const res = await fetch('/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const user: ProfileSummary = data.user || {};
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      setResolvedUserName(fullName || user.email?.split('@')[0] || userName || 'Account');
+      setProfileImage(user.profileImage || null);
+    } catch {
+      setProfileImage(null);
+    }
+  }, [userName]);
 
   const syncCartAndAuthState = React.useCallback(async () => {
     if (typeof window === 'undefined') return;
@@ -43,28 +69,49 @@ export const Navigation: React.FC<NavigationProps> = ({
     const signedIn = Boolean(token);
     setResolvedAuth(isAuthenticated ?? signedIn);
 
+    if (!signedIn) {
+      setResolvedUserName(userName);
+      setProfileImage(null);
+    }
+
     if (cartItemCount !== undefined) {
       setResolvedCartCount(cartItemCount);
-      return;
-    }
-
-    if (!token) {
+    } else if (!token) {
       setResolvedCartCount(getGuestCartSummary().totalQuantity);
+    } else {
+      try {
+        const res = await fetch('/api/cart', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setResolvedCartCount(data.totalQuantity || data.itemCount || 0);
+        }
+      } catch {
+        setResolvedCartCount(0);
+      }
+    }
+
+    if (token) {
+      await resolveProfile(token);
+    }
+  }, [cartItemCount, isAuthenticated, resolveProfile, userName]);
+
+  const handleLogout = React.useCallback(() => {
+    if (onLogout) {
+      onLogout();
       return;
     }
 
-    try {
-      const res = await fetch('/api/cart', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setResolvedCartCount(data.totalQuantity || data.itemCount || 0);
-      }
-    } catch {
-      setResolvedCartCount(0);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      setResolvedAuth(false);
+      setProfileImage(null);
+      setResolvedUserName('');
+      window.dispatchEvent(new Event('cart-updated'));
+      window.location.href = '/login';
     }
-  }, [cartItemCount, isAuthenticated]);
+  }, [onLogout]);
 
   const fetchCategories = React.useCallback(async () => {
     try {
@@ -108,20 +155,20 @@ export const Navigation: React.FC<NavigationProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-1">
         <div className="flex items-center justify-between gap-0 mb-0">
           {/* Logo */}
-          <Logo size="lg" className="flex-shrink-0 mr-4 origin-left scale-[1.8]" />
+          <Logo size="lg" className="flex-shrink-0 mr-4 origin-left scale-[1.45]" />
 
           {/* Search Bar */}
           <SearchBar />
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Wishlist */}
             <Link
               href="/wishlist"
               className="relative hover:text-emerald-600 transition-colors group"
               title="Wishlist"
             >
-              <Heart size={24} />
+              <Heart size={22} />
               {wishlistCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {wishlistCount}
@@ -138,7 +185,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               className="relative hover:text-emerald-600 transition-colors group"
               title="Shopping Cart"
             >
-              <ShoppingCart size={24} />
+              <ShoppingCart size={22} />
               {resolvedCartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {resolvedCartCount}
@@ -151,21 +198,29 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             {/* Auth */}
             {resolvedAuth ? (
-              <div className="flex items-center gap-4 pl-4 border-l">
+              <div className="flex items-center gap-3 pl-3 border-l">
                 <Link
                   href="/account"
                   className="flex items-center gap-2 hover:text-emerald-600 transition-colors"
                   title="My Account"
                 >
-                  <User size={24} />
-                  <span className="hidden sm:inline text-sm">{userName}</span>
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <User size={22} />
+                  )}
+                  <span className="hidden sm:inline text-sm">{resolvedUserName}</span>
                 </Link>
                 <button
-                  onClick={onLogout}
+                  onClick={handleLogout}
                   className="hover:text-red-600 transition-colors"
                   title="Logout"
                 >
-                  <LogOut size={24} />
+                  <LogOut size={22} />
                 </button>
               </div>
             ) : (

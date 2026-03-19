@@ -18,6 +18,11 @@ interface Product {
   rating: number;
   reviewCount: number;
   stock: number;
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
   seller: {
     id: string;
     storeName: string;
@@ -61,6 +66,9 @@ export default function HomePage() {
     .sort((a, b) => (Number(b.rating) - Number(a.rating)) || (b.reviewCount - a.reviewCount))
     .slice(0, 3);
   const newArrivals = featuredProducts.slice(6, 9);
+  const topRankBanner = [...featuredProducts]
+    .sort((a, b) => (Number(b.rating) - Number(a.rating)) || (b.reviewCount - a.reviewCount))
+    .slice(0, 10);
 
   const handleAddToCart = async (productId: string) => {
     const product = featuredProducts.find((p) => p.id === productId);
@@ -125,26 +133,54 @@ export default function HomePage() {
       <Navigation />
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 text-white py-14">
+      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 text-white py-12">
         <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_20%_20%,white,transparent_30%),radial-gradient(circle_at_80%_80%,white,transparent_35%)]" />
         <div className="relative max-w-7xl mx-auto px-4 text-center">
           <p className="uppercase tracking-[0.24em] text-xs font-semibold text-emerald-100 mb-3">Global Sourcing Marketplace</p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Trade smarter with verified products and better prices</h1>
-          <p className="text-lg text-emerald-50 mb-8">Discover trend-driven deals, supplier-ready catalogs, and cross-border inventory in one place.</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-3">Trade smarter with verified products and better prices</h1>
+          <p className="text-base md:text-lg text-emerald-50 mb-7">Discover trend-driven deals, supplier-ready catalogs, and cross-border inventory in one place.</p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/products"
-              className="bg-white text-emerald-700 px-8 py-3 rounded-full font-bold hover:bg-emerald-50 transition"
+              className="bg-white text-emerald-700 px-7 py-2.5 rounded-full font-bold hover:bg-emerald-50 transition"
             >
               Shop Now
             </Link>
             <button
               onClick={() => document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' })}
-              className="border-2 border-white px-8 py-3 rounded-full font-bold hover:bg-white/15 transition"
+              className="border-2 border-white px-7 py-2.5 rounded-full font-bold hover:bg-white/15 transition"
             >
               Explore Showcase
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Scrollable Top-Rank Banner */}
+      <div className="max-w-7xl mx-auto px-4 pt-4 pb-1 w-full">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-bold text-gray-900">Top Ranked Products</h2>
+          <Link href="/products?sort=rating" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+            Explore all
+          </Link>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+          {topRankBanner.map((product) => (
+            <Link
+              key={product.id}
+              href={`/product/${product.id}`}
+              className="snap-start min-w-[220px] max-w-[220px] bg-white border border-gray-200 rounded-xl p-2.5 hover:border-emerald-300 transition"
+            >
+              <div className="h-28 rounded-lg overflow-hidden bg-gray-100 mb-2">
+                <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover" />
+              </div>
+              <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-1 truncate">
+                {product.category?.name || 'Top Category'}
+              </p>
+              <p className="text-sm font-semibold text-gray-900 line-clamp-1 mb-1">{product.title}</p>
+              <p className="text-base font-bold text-gray-900">{formatBdt(product.currentPrice)}</p>
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -235,8 +271,8 @@ export default function HomePage() {
                       <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
-                  <p className="font-bold text-2xl md:text-[2rem] text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
-                  <p className="text-lg md:text-xl text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
+                  <p className="font-bold text-xl md:text-2xl text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
+                  <p className="text-base md:text-lg text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
                 </Link>
               ))}
             </div>
