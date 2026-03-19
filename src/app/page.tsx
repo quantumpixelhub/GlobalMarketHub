@@ -119,7 +119,7 @@ export default function HomePage() {
   const topRanking = [...featuredProducts]
     .sort((a, b) => (Number(b.rating) - Number(a.rating)) || (b.reviewCount - a.reviewCount))
     .slice(0, 12);
-  const topRankingShowcase = topRanking.slice(0, 3);
+  const topRankingShowcase = topRanking.slice(0, 6);
   const topReviews = [...featuredProducts]
     .sort((a, b) => b.reviewCount - a.reviewCount)
     .slice(0, 12);
@@ -146,7 +146,7 @@ export default function HomePage() {
     random: 'A rotating mix of products across categories',
   };
 
-  const newArrivals = featuredProducts.slice(6, 9);
+  const newArrivals = featuredProducts.slice(6, 12);
 
   const getBannerPageStep = (container: HTMLDivElement) => {
     const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
@@ -460,16 +460,21 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 flex-1">
               {topRankingShowcase.map((product) => (
                 <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition h-full flex flex-col">
-                  <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-36 md:h-40">
+                  <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-32 md:h-36">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
                   </div>
-                  <div className="min-h-[56px]">
-                    <p className="font-semibold text-sm md:text-base text-gray-900 truncate underline">{product.title}</p>
-                    <p className="text-gray-600 underline text-sm md:text-base leading-tight">Hot selling</p>
+                  <div className="min-h-[62px]">
+                    <p className="font-semibold text-xs text-gray-900 truncate underline">{product.title}</p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <p className="text-sm font-bold text-emerald-600 leading-none">{formatBdt(product.currentPrice)}</p>
+                      {product.originalPrice > product.currentPrice && (
+                        <p className="text-xs text-gray-400 line-through leading-none">{formatBdt(product.originalPrice)}</p>
+                      )}
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -490,10 +495,10 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 flex-1">
               {newArrivals.map((product, index) => (
                 <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition h-full flex flex-col">
-                  <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-36 md:h-40">
+                  <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-32 md:h-36">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     {index === 0 && (
                       <span className="absolute top-2 left-2 text-sm bg-violet-600 text-white px-2 py-1 rounded-full">Fresh</span>
@@ -502,9 +507,15 @@ export default function HomePage() {
                       <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
-                  <div className="min-h-[56px]">
-                    <p className="font-bold text-sm md:text-base text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
-                    <p className="text-sm md:text-base text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
+                  <div className="min-h-[62px]">
+                    <p className="font-semibold text-xs text-gray-900 truncate underline">{product.title}</p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <p className="text-sm font-bold text-emerald-600 leading-none">{formatBdt(product.currentPrice)}</p>
+                      {product.originalPrice > product.currentPrice && (
+                        <p className="text-xs text-gray-400 line-through leading-none">{formatBdt(product.originalPrice)}</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-700 underline leading-tight mt-1">MOQ: {computeMoq(product.stock)}</p>
                   </div>
                 </Link>
               ))}
