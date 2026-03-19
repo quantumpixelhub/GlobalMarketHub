@@ -163,7 +163,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <SearchBar />
 
           {/* Right Actions */}
-          <div className="flex items-center gap-3 self-end lg:self-auto">
+          <div className="flex items-center gap-4 md:gap-5 self-end lg:self-auto">
             {/* Wishlist */}
             <Link
               href="/wishlist"
@@ -226,7 +226,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 pl-3 border-l">
+              <div className="flex items-center gap-3 md:gap-4 pl-3 border-l">
                 <Link
                   href="/login"
                   className="text-sm hover:text-emerald-600 transition-colors"
@@ -246,10 +246,9 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links with Subcategories */}
-        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 mt-2 scrollbar-hide border-b-2 border-blue-600">
+        <div className="flex gap-2 md:gap-4 flex-wrap pb-2 mt-5 md:mt-6 scrollbar-hide border-b-2 border-blue-600">
           {categories
             .filter((cat) => !cat.parentId) // Only main categories
-            .slice(0, 6)
             .map((category) => {
               const subcategories = categories.filter((cat) => cat.parentId === category.id);
               const hasSubcategories = subcategories.length > 0;
@@ -280,14 +279,12 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </div>
               );
             })}
-          {categories.filter((cat) => !cat.parentId).length > 6 && (
-            <Link
-              href="/products"
-              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold py-3 px-2 border-b-2 border-transparent hover:border-blue-600"
-            >
-              See All →
-            </Link>
-          )}
+          <Link
+            href="/products"
+            className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold py-3 px-2 border-b-2 border-transparent hover:border-blue-600 ml-auto"
+          >
+            See All →
+          </Link>
         </div>
       </div>
     </nav>
