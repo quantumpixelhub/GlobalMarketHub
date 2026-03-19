@@ -153,17 +153,19 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Main Navigation */}
       <div className="max-w-7xl mx-auto px-4 py-5 md:py-6">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-3 md:mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6 mb-3 md:mb-4">
           {/* Logo */}
           <div className="w-full lg:w-[280px] flex-shrink-0">
             <Logo size="lg" className="origin-left scale-[1.12] md:scale-[1.2]" />
           </div>
 
           {/* Search Bar */}
-          <SearchBar />
+          <div className="flex-1">
+            <SearchBar />
+          </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-6 md:gap-7 self-end lg:self-auto">
+          <div className="flex items-center gap-6 md:gap-7 self-end lg:self-auto flex-shrink-0">
             {/* Wishlist */}
             <Link
               href="/wishlist"
@@ -246,7 +248,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links with Subcategories */}
-        <div className="flex gap-2 md:gap-4 flex-wrap pb-2 mt-5 md:mt-6 scrollbar-hide border-b-2 border-blue-600">
+        <div className="flex gap-2 md:gap-3 flex-wrap pb-2 mt-5 md:mt-6 scrollbar-hide border-b-2 border-blue-600">
           {categories
             .filter((cat) => !cat.parentId) // Only main categories
             .map((category) => {
@@ -254,7 +256,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               const hasSubcategories = subcategories.length > 0;
 
               return (
-                <div key={category.id} className="relative group">
+                <div key={category.id} className="relative group flex-shrink-0">
                   <Link
                     href={`/products?category=${category.slug}`}
                     className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-2 border-b-2 border-transparent hover:border-blue-600"
