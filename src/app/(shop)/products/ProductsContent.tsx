@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { CategoryFilter } from '@/components/product/CategoryFilter';
 import { addToGuestCart } from '@/lib/guestCart';
@@ -33,19 +33,65 @@ interface ProductsContentProps {
 }
 
 function ProductsContentInner({ initialProducts, initialCategories }: ProductsContentProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const categoryFromUrl = searchParams.get('category') || '';
 
-  const [products] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [categories] = useState<Category[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(500000);
   const [sortBy, setSortBy] = useState('createdAt');
+  const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
+  const handleCategoryChange = (slug: string) => {
+    if (slug === '') {
+      router.push('/products');
+    } else {
+      router.push(`/products?category=${encodeURIComponent(slug)}`);
+    }
+  };
+
+  // Fetch products when category changes
   useEffect(() => {
     setSelectedCategory(categoryFromUrl);
+    
+    const fetchProductsByCategory = async () => {
+      if (!categoryFromUrl) {
+        // No category selected - fetch all products
+        setLoading(true);
+        try {
+          const res = await fetch('/api/products?limit=100');
+          if (res.ok) {
+            const data = await res.json();
+            setProducts(data.products || data.data || []);
+          }
+        } catch (error) {
+          console.error('Error fetching products:', error);
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+      
+      // Category selected - fetch products from that category
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/products?category=${encodeURIComponent(categoryFromUrl)}&limit=100`);
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data.products || data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProductsByCategory();
   }, [categoryFromUrl]);
 
   const handleAddToCart = async (productId: string) => {
@@ -87,8 +133,8 @@ function ProductsContentInner({ initialProducts, initialCategories }: ProductsCo
     }
   };
 
+  // API already filters by category, so just apply price and sort filters
   const filteredProducts = products.filter((p) => {
-    if (selectedCategory && p.category?.slug !== selectedCategory) return false;
     if (p.currentPrice < minPrice || p.currentPrice > maxPrice) return false;
     return true;
   });
@@ -114,7 +160,7 @@ function ProductsContentInner({ initialProducts, initialCategories }: ProductsCo
         <CategoryFilter
           categories={categories}
           selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
+          onCategoryChange={handleCategoryChange}
           minPrice={minPrice}
           maxPrice={maxPrice}
           onPriceChange={(min, max) => {
@@ -126,28 +172,36 @@ function ProductsContentInner({ initialProducts, initialCategories }: ProductsCo
 
       {/* Products Area */}
       <main className="lg:col-span-3">
-        {/* Sort Options */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-gray-600">{sortedAndFilteredProducts.length} products found</p>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="createdAt">Newest First</option>
-            <option value="price">Price: Low to High</option>
-            <option value="rating">Highest Rated</option>
-            <option value="reviews">Most Reviewed</option>
-          </select>
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="text-lg text-gray-600">Loading products...</div>
+          </div>
+        ) : (
+          <>
+            {/* Sort Options */}
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-gray-600">{sortedAndFilteredProducts.length} products found</p>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="createdAt">Newest First</option>
+                <option value="price">Price: Low to High</option>
+                <option value="rating">Highest Rated</option>
+                <option value="reviews">Most Reviewed</option>
+              </select>
+            </div>
 
-        {/* Products Grid */}
-        <ProductGrid
-          products={sortedAndFilteredProducts}
-          loading={false}
-          onAddToCart={handleAddToCart}
-          columns={3}
-        />
+            {/* Products Grid */}
+            <ProductGrid
+              products={sortedAndFilteredProducts}
+              loading={false}
+              onAddToCart={handleAddToCart}
+              columns={3}
+            />
+          </>
+        )}
       </main>
     </div>
   );
