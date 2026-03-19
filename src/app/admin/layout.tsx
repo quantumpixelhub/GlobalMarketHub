@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           {sidebarOpen && (
             <div>
-              <Logo size="sm" className="max-w-[220px] origin-left scale-[1.6]" />
+              <Logo size="sm" tone="light" className="max-w-[220px] origin-left scale-[1.35]" />
               <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
             </div>
           )}
