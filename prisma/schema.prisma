@@ -22,6 +22,7 @@ model User {
   // Profile
   firstName String?
   lastName  String?
+  profileImage String? // URL to user's profile picture
   
   // Status
   emailVerified DateTime?

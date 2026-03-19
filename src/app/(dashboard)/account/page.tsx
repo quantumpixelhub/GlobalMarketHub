@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
-import { User, MapPin, Package, LogOut } from 'lucide-react';
+import { User, MapPin, Package, LogOut, Camera } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastProvider';
 
 interface UserProfile {
@@ -12,6 +12,7 @@ interface UserProfile {
   firstName: string;
   lastName: string;
   phone: string;
+  profileImage?: string;
   addresses: any[];
 }
 
@@ -39,6 +40,7 @@ export default function AccountPage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressSaving, setAddressSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [addressForm, setAddressForm] = useState({
     label: 'Home',
     firstName: '',
@@ -167,9 +169,50 @@ export default function AccountPage() {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Upload file
+    try {
+      setImageUploading(true);
+      const token = localStorage.getItem('token');
+      if (!token || !profile) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/users/profile-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        showToast(errorData.error || 'Failed to upload image', 'error');
+        return;
+      }
+
+      const data = await res.json();
+      setProfile({
+        ...profile,
+        profileImage: data.user.profileImage,
+      });
+      showToast('Profile picture updated successfully', 'success');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      showToast('Failed to upload profile picture', 'error');
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   if (loading) {
@@ -205,13 +248,35 @@ export default function AccountPage() {
           {/* Sidebar */}
           <div>
             <div className="bg-white rounded-lg p-6 mb-6">
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b">
-                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <User className="text-emerald-600" size={24} />
+              <div className="flex flex-col items-center gap-4 mb-6 pb-6 border-b">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center overflow-hidden">
+                    {profile?.profileImage ? (
+                      <img
+                        src={profile.profileImage}
+                        alt={`${profile.firstName} ${profile.lastName}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="text-emerald-600" size={40} />
+                    )}
+                  </div>
+                  <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 bg-emerald-600 text-white rounded-full p-2 cursor-pointer hover:bg-emerald-700 shadow-lg">
+                    <Camera size={16} />
+                  </label>
+                  <input
+                    id="profile-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImageChange}
+                    disabled={imageUploading}
+                    className="hidden"
+                  />
                 </div>
-                <div>
-                  <p className="font-bold">{profile.firstName} {profile.lastName}</p>
-                  <p className="text-sm text-gray-600">{profile.email}</p>
+                <div className="text-center">
+                  <p className="font-bold">{profile?.firstName} {profile?.lastName}</p>
+                  <p className="text-sm text-gray-600">{profile?.email}</p>
+                  {imageUploading && <p className="text-xs text-emerald-600 mt-1">Uploading...</p>}
                 </div>
               </div>
 
