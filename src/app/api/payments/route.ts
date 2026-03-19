@@ -7,11 +7,29 @@ function buildGatewayPaymentUrl(
   gatewayName: string,
   transactionId: string,
   amount: number | string,
-  orderId: string
+  orderId: string,
+  merchantNumber?: string | null,
+  gatewayDisplayName?: string
 ) {
   const origin = new URL(request.url).origin;
   const method = gatewayName.toLowerCase();
   const fallbackInternalUrl = `${origin}/payment/mock?transactionId=${encodeURIComponent(transactionId)}&gateway=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(amount))}`;
+
+  // For mobile wallet methods, always keep user in our hosted payment flow and
+  // present the merchant wallet number + amount + transaction reference.
+  if (["bkash", "nagad", "rocket"].includes(method)) {
+    const merchantPaymentUrl = new URL(`${origin}/payment/mock`);
+    merchantPaymentUrl.searchParams.set("mode", "wallet");
+    merchantPaymentUrl.searchParams.set("transactionId", transactionId);
+    merchantPaymentUrl.searchParams.set("gateway", method);
+    merchantPaymentUrl.searchParams.set("gatewayDisplay", gatewayDisplayName || gatewayName);
+    merchantPaymentUrl.searchParams.set("amount", String(amount));
+    merchantPaymentUrl.searchParams.set("orderId", orderId);
+    if (merchantNumber) {
+      merchantPaymentUrl.searchParams.set("merchantNumber", merchantNumber);
+    }
+    return merchantPaymentUrl.toString();
+  }
 
   const gatewayMap: Record<string, string | undefined> = {
     bkash: process.env.BKASH_PAYMENT_URL,
@@ -125,7 +143,9 @@ export async function POST(request: NextRequest) {
       paymentMethod as string,
       transaction.id,
       order.totalAmount as unknown as number,
-      order.id
+      order.id,
+      gateway.merchantId,
+      gateway.displayName
     );
 
     return NextResponse.json(
