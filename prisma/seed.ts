@@ -765,41 +765,56 @@ async function main() {
     "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=500",
   ];
 
-  const additionalProducts = await Promise.all(
-    marketplaceCategories.slice(0, 20).map((category, index) => {
-      const seller = sellers[index % sellers.length];
-      const basePrice = 1500 + index * 450;
-      const currentPrice = Math.round(basePrice * 0.87);
-      const slugBase = category.slug.replace(/-\d+$/, '');
+  // Create 20 dummy products for each category with sequential batching to avoid connection exhaustion
+  const allCategories = [...categories, ...marketplaceCategories];
+  const additionalProducts = [];
 
-      return prisma.product.create({
-        data: {
-          title: `${category.name} Demo Product ${index + 1}`,
-          slug: `${slugBase}-demo-product-${index + 1}`,
-          sku: `DEMO-${String(index + 1).padStart(3, '0')}`,
-          description: `Demo product for ${category.name} category with realistic catalog values for testing.`,
-          originalPrice: new Decimal(basePrice),
-          currentPrice: new Decimal(currentPrice),
-          mainImage: demoProductImages[index % demoProductImages.length],
-          images: [demoProductImages[index % demoProductImages.length]],
-          stock: 20 + index * 2,
-          lowStockThreshold: 5,
-          categoryId: category.id,
-          sellerId: seller.id,
-          rating: new Decimal((4.2 + (index % 6) * 0.1).toFixed(1)),
-          reviewCount: 40 + index * 7,
-          specifications: {
-            model: `GMH-${index + 1}`,
-            segment: category.name,
-            quality: "Standard",
+  for (let catBatch = 0; catBatch < allCategories.length; catBatch += 2) {
+    const endCatIndex = Math.min(catBatch + 2, allCategories.length);
+    const batchCategories = allCategories.slice(catBatch, endCatIndex);
+    
+    const batchPromises = batchCategories.flatMap((category, batchCatIndex) => {
+      const categoryIndex = catBatch + batchCatIndex;
+      return Array.from({ length: 20 }).map((_, productIndex) => {
+        const seller = sellers[categoryIndex % sellers.length];
+        const globalIndex = categoryIndex * 20 + productIndex;
+        const basePrice = Math.round(1000 + Math.random() * 50000);
+        const currentPrice = Math.round(basePrice * (0.75 + Math.random() * 0.25));
+        const slugBase = category.slug.replace(/-\d+$/, '');
+
+        return prisma.product.create({
+          data: {
+            title: `${category.name} Product ${String(productIndex + 1).padStart(2, '0')}`,
+            slug: `${slugBase}-prod-${String(productIndex + 1).padStart(2, '0')}`,
+            sku: `SKU-${String(globalIndex + 1).padStart(4, '0')}`,
+            description: `Premium ${category.name} product ${productIndex + 1} with high quality standards and excellent customer reviews.`,
+            originalPrice: new Decimal(basePrice),
+            currentPrice: new Decimal(currentPrice),
+            mainImage: demoProductImages[globalIndex % demoProductImages.length],
+            images: [demoProductImages[globalIndex % demoProductImages.length]],
+            stock: Math.max(1, Math.round(50 + Math.random() * 200)),
+            lowStockThreshold: 10,
+            categoryId: category.id,
+            sellerId: seller.id,
+            rating: new Decimal((3.5 + Math.random() * 1.5).toFixed(1)),
+            reviewCount: Math.floor(Math.random() * 500) + 10,
+            specifications: {
+              category: category.name,
+              sku: `${category.slug.substring(0, 3).toUpperCase()}-${String(productIndex + 1).padStart(2, '0')}`,
+              inStock: Math.random() > 0.2 ? "Yes" : "Low Stock",
+            },
+            certifications: Math.random() > 0.5 ? ["verified"] : [],
+            isActive: true,
+            isFeatured: Math.random() > 0.8,
           },
-          certifications: ["demo-data"],
-          isActive: true,
-          isFeatured: index % 4 === 0,
-        },
+        });
       });
-    })
-  );
+    });
+
+    const batchResults = await Promise.all(batchPromises);
+    additionalProducts.push(...batchResults);
+    console.log(`  ✓ Created batch ${Math.floor(catBatch / 2) + 1} of ${Math.ceil(allCategories.length / 2)}`);
+  }
 
   console.log(`✓ Created ${products.length + additionalProducts.length} products\n`);
 
