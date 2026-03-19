@@ -152,8 +152,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-0">
+      <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-2 md:mb-3">
           {/* Logo */}
           <div className="w-full lg:w-[280px] flex-shrink-0">
             <Logo size="lg" className="origin-left scale-[1.12] md:scale-[1.2]" />
@@ -246,7 +246,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links with Subcategories */}
-        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-0 mt-0 scrollbar-hide">
+        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 mt-1 scrollbar-hide">
           {categories
             .filter((cat) => !cat.parentId) // Only main categories
             .slice(0, 6)
