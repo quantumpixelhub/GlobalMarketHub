@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 interface WishlistItem {
   id: string;
+  productId: string;
   product: {
     id: string;
     title: string;
@@ -16,14 +17,10 @@ interface WishlistItem {
     originalPrice: number;
     mainImage: string;
     rating: number;
-    reviewCount: number;
     stock: number;
-    seller: {
-      storeName: string;
-    };
   };
-  addedAt: string;
-  priceSnapshot: number;
+  createdAt: string;
+  priceWhenAdded: number;
 }
 
 export default function WishlistPage() {
@@ -44,8 +41,11 @@ export default function WishlistPage() {
 
     const fetchWishlist = async () => {
       try {
+        const currentToken = localStorage.getItem('token');
+        if (!currentToken) return;
+
         const res = await fetch('/api/users/wishlist', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { 'Authorization': `Bearer ${currentToken}` },
         });
 
         if (res.ok) {
@@ -63,6 +63,7 @@ export default function WishlistPage() {
 
     // Listen for wishlist updates and refresh
     const handleWishlistUpdate = () => {
+      setLoading(true);
       fetchWishlist();
     };
 
@@ -73,19 +74,19 @@ export default function WishlistPage() {
     };
   }, []);
 
-  const handleRemove = async (wishlistItemId: string) => {
+  const handleRemove = async (wishlistItemId: string, productId: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/users/wishlist?productId=${wishlistItemId}`, {
+      const res = await fetch(`/api/users/wishlist?productId=${encodeURIComponent(productId)}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (res.ok) {
         setWishlistItems(items => items.filter(item => item.id !== wishlistItemId));
-        alert('Removed from wishlist');
+        window.dispatchEvent(new Event('wishlist-updated'));
       }
     } catch (error) {
       console.error('Error removing from wishlist:', error);
@@ -208,9 +209,6 @@ export default function WishlistPage() {
                           >
                             {item.product.title}
                           </a>
-                          <p className="text-sm text-gray-600">
-                            by {item.product.seller.storeName}
-                          </p>
                         </div>
                       </div>
                     </td>
@@ -230,7 +228,7 @@ export default function WishlistPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(item.addedAt).toLocaleDateString()}
+                      {new Date(item.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
@@ -242,7 +240,7 @@ export default function WishlistPage() {
                           Add to Cart
                         </button>
                         <button
-                          onClick={() => handleRemove(item.product.id)}
+                          onClick={() => handleRemove(item.id, item.productId)}
                           className="px-3 py-1 text-red-600 border border-red-600 rounded hover:bg-red-50"
                         >
                           <Trash2 size={16} />
