@@ -260,7 +260,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <div key={category.id} className="relative group flex-shrink-0">
                   <Link
                     href={`/products?category=${category.slug}`}
-                    className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-2 border-b-2 border-transparent hover:border-blue-600"
+                    className="text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
                   >
                     {category.name}
                   </Link>
@@ -284,7 +284,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             })}
           <Link
             href="/products"
-            className="text-sm whitespace-nowrap font-semibold py-2 px-4 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors ml-auto"
+            className="text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors ml-auto"
           >
             See All →
           </Link>

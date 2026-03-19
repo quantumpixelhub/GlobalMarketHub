@@ -154,8 +154,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Action Buttons */}
         <div className="absolute bottom-3 right-3 z-10 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button
-            onClick={handleWishlistClick}
-            className="bg-white/95 border border-gray-200 p-2 rounded-full shadow-sm hover:bg-red-50"
+            type="button"
+            onClick={(e) => handleWishlistClick(e as any)}
+            className="bg-white/95 border border-gray-200 p-2 rounded-full shadow-sm hover:bg-red-50 cursor-pointer"
             title="Add to wishlist"
             disabled={wishlistLoading}
           >
