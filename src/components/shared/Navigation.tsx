@@ -156,7 +156,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-0">
           {/* Logo */}
           <div className="w-full lg:w-[280px] flex-shrink-0">
-            <Logo size="lg" className="origin-left" />
+            <Logo size="lg" className="origin-left scale-[1.45] md:scale-[1.55]" />
           </div>
 
           {/* Search Bar */}
