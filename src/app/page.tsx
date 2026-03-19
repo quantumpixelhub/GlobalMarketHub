@@ -428,18 +428,23 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
             {topDeals.map((product) => (
               <Link key={product.id} href={`/product/${product.id}`} className="group rounded-xl bg-gray-50 border border-transparent hover:border-emerald-200 transition p-1.5 md:p-2">
-                <div className="bg-white rounded-lg overflow-hidden mb-2 h-36 md:h-40">
+                <div className="bg-white rounded-lg overflow-hidden mb-2 h-32 md:h-36">
                   <img
                     src={product.mainImage}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
                 </div>
-                <div className="rounded-full bg-rose-100 text-red-700 font-bold text-lg md:text-xl px-2.5 py-1 mb-1.5 inline-flex items-center gap-1.5 max-w-full">
-                  <span className="text-red-400 text-base">▼</span>
-                  <span className="truncate">{formatBdt(product.currentPrice)}</span>
+                <div className="min-h-[62px]">
+                  <p className="font-semibold text-xs text-gray-900 truncate underline">{product.title}</p>
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-emerald-600 leading-none">{formatBdt(product.currentPrice)}</p>
+                    {product.originalPrice > product.currentPrice && (
+                      <p className="text-xs text-gray-400 line-through leading-none">{formatBdt(product.originalPrice)}</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-700 underline leading-tight mt-1">MOQ: {computeMoq(product.stock)}</p>
                 </div>
-                <p className="underline text-xl text-gray-800">MOQ: {computeMoq(product.stock)}</p>
               </Link>
             ))}
           </div>
