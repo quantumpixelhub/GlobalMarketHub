@@ -149,84 +149,84 @@ export default function HomePage() {
       </div>
 
       {/* Showcase Blocks */}
-      <div className="max-w-7xl mx-auto px-4 py-8 w-full" id="featured">
-        <section className="bg-white border-2 border-emerald-600/80 rounded-2xl p-5 md:p-6 shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-5">
+      <div className="max-w-7xl mx-auto px-4 py-5 w-full" id="featured">
+        <section className="bg-white border-2 border-emerald-600/80 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 leading-none mb-2">Top Deals</h2>
-              <p className="text-gray-600 text-lg">Score the lowest prices on GlobalMarketHub</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1">Top Deals</h2>
+              <p className="text-gray-600 text-base">Score the lowest prices on GlobalMarketHub</p>
             </div>
-            <Link href="/products" className="font-bold text-gray-900 text-2xl hover:text-emerald-700 transition inline-flex items-center gap-2">
-              View more <ChevronRight size={26} />
+            <Link href="/products" className="font-bold text-gray-900 text-xl hover:text-emerald-700 transition inline-flex items-center gap-1.5">
+              View more <ChevronRight size={22} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
             {topDeals.map((product) => (
-              <Link key={product.id} href={`/product/${product.id}`} className="group rounded-2xl bg-gray-50 border border-transparent hover:border-emerald-200 transition p-2">
-                <div className="aspect-[4/5] bg-white rounded-xl overflow-hidden mb-3">
+              <Link key={product.id} href={`/product/${product.id}`} className="group rounded-xl bg-gray-50 border border-transparent hover:border-emerald-200 transition p-1.5 md:p-2">
+                <div className="bg-white rounded-lg overflow-hidden mb-2 h-36 md:h-40">
                   <img
                     src={product.mainImage}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
                 </div>
-                <div className="rounded-full bg-rose-100 text-red-700 font-bold text-2xl px-3 py-1 mb-2 inline-flex items-center gap-2 max-w-full">
-                  <span className="text-red-400 text-lg">▼</span>
+                <div className="rounded-full bg-rose-100 text-red-700 font-bold text-lg md:text-xl px-2.5 py-1 mb-1.5 inline-flex items-center gap-1.5 max-w-full">
+                  <span className="text-red-400 text-base">▼</span>
                   <span className="truncate">{formatBdt(product.currentPrice)}</span>
                 </div>
-                <p className="underline text-2xl text-gray-800">MOQ: {computeMoq(product.stock)}</p>
+                <p className="underline text-xl text-gray-800">MOQ: {computeMoq(product.stock)}</p>
               </Link>
             ))}
           </div>
         </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl p-5 md:p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-5">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="text-4xl font-bold text-gray-900 leading-none mb-2 inline-flex items-center gap-2">
-                  <TrendingUp size={30} className="text-emerald-600" />
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1 inline-flex items-center gap-2">
+                  <TrendingUp size={24} className="text-emerald-600" />
                   Top Ranking
                 </h2>
-                <p className="text-gray-600 text-lg">Navigate trends with data-driven rankings</p>
+                <p className="text-gray-600 text-base">Navigate trends with data-driven rankings</p>
               </div>
-              <Link href="/products?sort=rating" className="font-bold text-gray-900 text-2xl hover:text-emerald-700 transition inline-flex items-center gap-2">
-                View more <ChevronRight size={26} />
+              <Link href="/products?sort=rating" className="font-bold text-gray-900 text-xl hover:text-emerald-700 transition inline-flex items-center gap-1.5">
+                View more <ChevronRight size={22} />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
               {topRanking.map((product) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-2xl p-2 border border-transparent hover:border-emerald-200 transition">
-                  <div className="aspect-square rounded-xl overflow-hidden bg-white mb-3 relative">
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition">
+                  <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-36 md:h-40">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
                   </div>
-                  <p className="font-semibold text-2xl text-gray-900 truncate underline">{product.title}</p>
-                  <p className="text-gray-600 underline text-2xl">Hot selling</p>
+                  <p className="font-semibold text-xl text-gray-900 truncate underline">{product.title}</p>
+                  <p className="text-gray-600 underline text-xl">Hot selling</p>
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 md:p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="text-4xl font-bold text-gray-900 leading-none mb-2 inline-flex items-center gap-2">
-                  <Sparkles size={30} className="text-emerald-600" />
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1 inline-flex items-center gap-2">
+                  <Sparkles size={24} className="text-emerald-600" />
                   New Arrivals
                 </h2>
-                <p className="text-gray-600 text-lg">Stay ahead with the latest product offerings</p>
+                <p className="text-gray-600 text-base">Stay ahead with the latest product offerings</p>
               </div>
-              <Link href="/products?sort=createdAt" className="font-bold text-gray-900 text-2xl hover:text-emerald-700 transition inline-flex items-center gap-2">
-                View more <ChevronRight size={26} />
+              <Link href="/products?sort=createdAt" className="font-bold text-gray-900 text-xl hover:text-emerald-700 transition inline-flex items-center gap-1.5">
+                View more <ChevronRight size={22} />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
               {newArrivals.map((product, index) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-2xl p-2 border border-transparent hover:border-emerald-200 transition">
-                  <div className="aspect-square rounded-xl overflow-hidden bg-white mb-3 relative">
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition">
+                  <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-36 md:h-40">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     {index === 0 && (
                       <span className="absolute top-2 left-2 text-sm bg-violet-600 text-white px-2 py-1 rounded-full">Fresh</span>
@@ -235,8 +235,8 @@ export default function HomePage() {
                       <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
-                  <p className="font-bold text-5xl text-gray-900 underline mb-1">{formatBdt(product.currentPrice)}</p>
-                  <p className="text-2xl text-gray-800 underline">MOQ: {computeMoq(product.stock)}</p>
+                  <p className="font-bold text-3xl text-gray-900 underline leading-tight mb-1">{formatBdt(product.currentPrice)}</p>
+                  <p className="text-xl text-gray-800 underline">MOQ: {computeMoq(product.stock)}</p>
                 </Link>
               ))}
             </div>
