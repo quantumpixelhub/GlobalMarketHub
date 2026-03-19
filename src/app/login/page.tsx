@@ -55,11 +55,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <div className="text-center mb-7">
+            <h1 className="text-2xl md:text-[2rem] font-bold text-gray-800 mb-1.5 leading-tight">
               🌍 GlobalMarketHub
             </h1>
-            <p className="text-gray-600">Sign in to your account</p>
+            <p className="text-gray-600 text-sm md:text-base">Sign in to your account</p>
           </div>
 
           {/* Error Message */}

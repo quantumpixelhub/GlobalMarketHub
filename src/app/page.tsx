@@ -202,8 +202,8 @@ export default function HomePage() {
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
                   </div>
-                  <p className="font-semibold text-xl text-gray-900 truncate underline">{product.title}</p>
-                  <p className="text-gray-600 underline text-xl">Hot selling</p>
+                  <p className="font-semibold text-lg md:text-xl text-gray-900 truncate underline">{product.title}</p>
+                  <p className="text-gray-600 underline text-lg md:text-xl leading-tight">Hot selling</p>
                 </Link>
               ))}
             </div>
@@ -235,8 +235,8 @@ export default function HomePage() {
                       <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
-                  <p className="font-bold text-3xl text-gray-900 underline leading-tight mb-1">{formatBdt(product.currentPrice)}</p>
-                  <p className="text-xl text-gray-800 underline">MOQ: {computeMoq(product.stock)}</p>
+                  <p className="font-bold text-2xl md:text-[2rem] text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
+                  <p className="text-lg md:text-xl text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
                 </Link>
               ))}
             </div>

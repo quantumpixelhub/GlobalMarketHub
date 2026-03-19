@@ -92,13 +92,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-3 right-3 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onAddToWishlist?.(id);
             }}
-            className="bg-white p-2 rounded-full hover:bg-red-50"
+            className="bg-white/95 border border-gray-200 p-2 rounded-full shadow-sm hover:bg-red-50"
             title="Add to wishlist"
           >
             <Heart size={20} className="text-red-500" />
