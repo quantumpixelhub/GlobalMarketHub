@@ -38,6 +38,14 @@ interface GuestCheckoutData {
   paymentMethod: string;
 }
 
+interface ProfileData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  addresses?: UserAddress[];
+}
+
 export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [cart, setCart] = useState<CartSummary | null>(null);
@@ -92,7 +100,15 @@ export default function CheckoutPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const profileData = await profileRes.json();
-        setAddresses(profileData.user?.addresses || []);
+        const userProfile: ProfileData = profileData.user || {};
+        setAddresses(userProfile.addresses || []);
+        setNewAddressData((prev) => ({
+          ...prev,
+          firstName: userProfile.firstName || '',
+          lastName: userProfile.lastName || '',
+          email: userProfile.email || '',
+          phone: userProfile.phone || '',
+        }));
 
         const cartRes = await fetch('/api/cart', {
           headers: { Authorization: `Bearer ${token}` },

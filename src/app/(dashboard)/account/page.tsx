@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { User, MapPin, Package, LogOut } from 'lucide-react';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface UserProfile {
   id: string;
@@ -24,6 +25,7 @@ interface Order {
 }
 
 export default function AccountPage() {
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,21 @@ export default function AccountPage() {
   });
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressSaving, setAddressSaving] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    label: 'Home',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    division: '',
+    district: '',
+    upazila: '',
+    address: '',
+    postCode: '',
+    isDefault: true,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +74,13 @@ export default function AccountPage() {
             lastName: profileData.user.lastName || '',
             phone: profileData.user.phone || '',
           });
+          setAddressForm((prev) => ({
+            ...prev,
+            firstName: profileData.user.firstName || '',
+            lastName: profileData.user.lastName || '',
+            email: profileData.user.email || '',
+            phone: profileData.user.phone || '',
+          }));
         }
 
         // Fetch orders
@@ -96,13 +120,50 @@ export default function AccountPage() {
         const data = await res.json();
         setProfile(data.user);
         setEditMode(false);
-        alert('Profile updated successfully!');
+        showToast('Profile updated successfully', 'success');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile');
+      showToast('Error updating profile', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAddAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token || !profile) return;
+
+    try {
+      setAddressSaving(true);
+      const res = await fetch('/api/users/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(addressForm),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        showToast(errorData.error || 'Failed to add address', 'error');
+        return;
+      }
+
+      const data = await res.json();
+      setProfile({
+        ...profile,
+        addresses: [...(profile.addresses || []), data.address],
+      });
+      setShowAddressForm(false);
+      showToast('Address added successfully', 'success');
+    } catch (error) {
+      console.error('Error adding address:', error);
+      showToast('Failed to add address', 'error');
+    } finally {
+      setAddressSaving(false);
     }
   };
 
@@ -339,7 +400,116 @@ export default function AccountPage() {
             {/* Addresses Tab */}
             {activeTab === 'addresses' && (
               <div className="bg-white rounded-lg p-6">
-                <h2 className="text-2xl font-bold mb-6">My Addresses</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">My Addresses</h2>
+                  <button
+                    onClick={() => setShowAddressForm((prev) => !prev)}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                  >
+                    {showAddressForm ? 'Cancel' : 'Add New Address'}
+                  </button>
+                </div>
+
+                {showAddressForm && (
+                  <form onSubmit={handleAddAddress} className="mb-6 rounded-lg border border-gray-200 p-4 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <input
+                        required
+                        value={addressForm.label}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, label: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Label (Home/Office)"
+                      />
+                      <input
+                        required
+                        value={addressForm.firstName}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, firstName: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="First Name"
+                      />
+                      <input
+                        required
+                        value={addressForm.lastName}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, lastName: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Last Name"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        required
+                        type="email"
+                        value={addressForm.email}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, email: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Email"
+                      />
+                      <input
+                        required
+                        value={addressForm.phone}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Phone"
+                      />
+                    </div>
+
+                    <input
+                      required
+                      value={addressForm.address}
+                      onChange={(e) => setAddressForm((prev) => ({ ...prev, address: e.target.value }))}
+                      className="w-full border rounded-lg px-4 py-2"
+                      placeholder="Street Address"
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <input
+                        required
+                        value={addressForm.division}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, division: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Division"
+                      />
+                      <input
+                        required
+                        value={addressForm.district}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, district: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="District"
+                      />
+                      <input
+                        required
+                        value={addressForm.upazila}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, upazila: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Upazila"
+                      />
+                      <input
+                        value={addressForm.postCode}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, postCode: e.target.value }))}
+                        className="w-full border rounded-lg px-4 py-2"
+                        placeholder="Post Code"
+                      />
+                    </div>
+
+                    <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={addressForm.isDefault}
+                        onChange={(e) => setAddressForm((prev) => ({ ...prev, isDefault: e.target.checked }))}
+                      />
+                      Set as default address
+                    </label>
+
+                    <button
+                      type="submit"
+                      disabled={addressSaving}
+                      className="px-5 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:bg-gray-400"
+                    >
+                      {addressSaving ? 'Saving...' : 'Save Address'}
+                    </button>
+                  </form>
+                )}
 
                 {profile.addresses && profile.addresses.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">

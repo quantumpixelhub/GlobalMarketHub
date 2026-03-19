@@ -59,13 +59,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const userId = auth.data?.userId as string;
-    const { firstName, lastName, language, currency } = await request.json();
+    const { firstName, lastName, phone, language, currency } = await request.json();
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         ...(firstName && { firstName }),
         ...(lastName && { lastName }),
+        ...(phone && { phone }),
         ...(language && { language }),
         ...(currency && { currency }),
       },

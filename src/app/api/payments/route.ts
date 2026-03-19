@@ -2,6 +2,54 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 
+function buildGatewayPaymentUrl(
+  request: NextRequest,
+  gatewayName: string,
+  transactionId: string,
+  amount: number | string,
+  orderId: string
+) {
+  const origin = new URL(request.url).origin;
+  const method = gatewayName.toLowerCase();
+  const fallbackInternalUrl = `${origin}/payment/mock?transactionId=${encodeURIComponent(transactionId)}&gateway=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(amount))}`;
+
+  const gatewayMap: Record<string, string | undefined> = {
+    bkash: process.env.BKASH_PAYMENT_URL,
+    nagad: process.env.NAGAD_PAYMENT_URL,
+    rocket: process.env.ROCKET_PAYMENT_URL,
+    uddoktapay: process.env.UDDOKTAPAY_PAYMENT_URL,
+    stripe: process.env.STRIPE_PAYMENT_URL,
+  };
+
+  const defaultMap: Record<string, string> = {
+    bkash: "https://www.bkash.com/",
+    nagad: "https://www.nagad.com.bd/",
+    rocket: "https://www.dutchbanglabank.com/rocket/rocket.html",
+    uddoktapay: "https://uddoktapay.com/",
+    stripe: "https://checkout.stripe.com/",
+  };
+
+  if (method === "cod") {
+    return `${origin}/account`;
+  }
+
+  const configuredBaseUrl = gatewayMap[method] || defaultMap[method];
+
+  if (!configuredBaseUrl) {
+    return fallbackInternalUrl;
+  }
+
+  try {
+    const target = new URL(configuredBaseUrl);
+    target.searchParams.set("orderId", orderId);
+    target.searchParams.set("transactionId", transactionId);
+    target.searchParams.set("amount", String(amount));
+    return target.toString();
+  } catch {
+    return fallbackInternalUrl;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticate(request);
@@ -72,16 +120,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Integrate with actual payment gateway
-    // For MVP, route to internal payment mock page instead of invalid external domains.
-    const origin = new URL(request.url).origin;
-    const mockPaymentUrl = `${origin}/payment/mock?transactionId=${transaction.id}&gateway=${paymentMethod}&amount=${order.totalAmount}`;
+    const paymentUrl = buildGatewayPaymentUrl(
+      request,
+      paymentMethod as string,
+      transaction.id,
+      order.totalAmount as unknown as number,
+      order.id
+    );
 
     return NextResponse.json(
       {
         message: "Payment initiated",
         transactionId: transaction.id,
-        paymentUrl: mockPaymentUrl,
+        paymentUrl,
         amount: order.totalAmount,
         currency: "BDT",
         gateway: paymentMethod,
