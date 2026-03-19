@@ -42,6 +42,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
   const [resolvedAuth, setResolvedAuth] = React.useState(Boolean(isAuthenticated));
   const [resolvedUserName, setResolvedUserName] = React.useState(userName);
+  const [resolvedWishlistCount, setResolvedWishlistCount] = React.useState(wishlistCount || 0);
   const [profileImage, setProfileImage] = React.useState<string | null>(null);
   const [categories, setCategories] = React.useState<Category[]>([]);
 
@@ -125,21 +126,46 @@ export const Navigation: React.FC<NavigationProps> = ({
     }
   }, []);
 
+  const fetchWishlistCount = React.useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setResolvedWishlistCount(0);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/users/wishlist', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setResolvedWishlistCount(data.count || 0);
+      }
+    } catch {
+      setResolvedWishlistCount(0);
+    }
+  }, []);
+
   React.useEffect(() => {
     syncCartAndAuthState();
     fetchCategories();
+    fetchWishlistCount();
 
     const onStorage = () => syncCartAndAuthState();
     const onCartUpdated = () => syncCartAndAuthState();
+    const onWishlistUpdated = () => fetchWishlistCount();
 
     window.addEventListener('storage', onStorage);
     window.addEventListener('cart-updated', onCartUpdated);
+    window.addEventListener('wishlist-updated', onWishlistUpdated);
 
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('cart-updated', onCartUpdated);
+      window.removeEventListener('wishlist-updated', onWishlistUpdated);
     };
-  }, [pathname, syncCartAndAuthState, fetchCategories]);
+  }, [pathname, syncCartAndAuthState, fetchCategories, fetchWishlistCount]);
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -173,9 +199,9 @@ export const Navigation: React.FC<NavigationProps> = ({
               title="Wishlist"
             >
               <Heart size={22} />
-              {wishlistCount > 0 && (
+              {resolvedWishlistCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {wishlistCount}
+                  {resolvedWishlistCount}
                 </span>
               )}
               <span className="absolute left-0 -bottom-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100">
