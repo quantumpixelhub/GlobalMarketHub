@@ -284,7 +284,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             })}
           <Link
             href="/products"
-            className="text-sm whitespace-nowrap font-semibold py-2 px-4 ml-auto bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
+            className="text-sm whitespace-nowrap font-semibold py-2 px-4 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
           >
             See All →
           </Link>
