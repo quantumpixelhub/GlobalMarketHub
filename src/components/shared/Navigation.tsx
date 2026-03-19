@@ -251,7 +251,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex gap-2 md:gap-3 flex-wrap pb-2 mt-5 md:mt-6 scrollbar-hide border-b-2 border-blue-600">
           {categories
             .filter((cat) => !cat.parentId) // Only main categories
-            .slice(0, 14)
+            .slice(0, 13)
             .map((category) => {
               const subcategories = categories.filter((cat) => cat.parentId === category.id);
               const hasSubcategories = subcategories.length > 0;
@@ -284,7 +284,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             })}
           <Link
             href="/products"
-            className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold py-3 px-2 border-b-2 border-transparent hover:border-blue-600 ml-auto"
+            className="text-sm whitespace-nowrap font-semibold py-2 px-4 ml-auto bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
           >
             See All →
           </Link>
