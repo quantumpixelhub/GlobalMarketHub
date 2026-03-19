@@ -59,9 +59,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             {categories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => onCategoryChange?.(category.id)}
+                onClick={() => onCategoryChange?.(category.slug)}
                 className={`block w-full text-left px-3 py-2 rounded ${
-                  selectedCategory === category.id
+                  selectedCategory === category.slug
                     ? 'bg-emerald-100 text-emerald-700 font-semibold'
                     : 'hover:bg-gray-100'
                 }`}
