@@ -5,7 +5,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import Link from 'next/link';
-import { Zap, Shield, Truck, HeadphonesIcon, ChevronRight, ChevronLeft, TrendingUp, Sparkles, Flame } from 'lucide-react';
+import { Zap, Shield, Truck, HeadphonesIcon, ChevronRight, ChevronLeft, TrendingUp, Sparkles, Flame, Megaphone, Ticket } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
@@ -80,6 +80,7 @@ export default function HomePage() {
   const topRanking = [...featuredProducts]
     .sort((a, b) => (Number(b.rating) - Number(a.rating)) || (b.reviewCount - a.reviewCount))
     .slice(0, 12);
+  const topRankingShowcase = topRanking.slice(0, 3);
   const topReviews = [...featuredProducts]
     .sort((a, b) => b.reviewCount - a.reviewCount)
     .slice(0, 12);
@@ -107,6 +108,7 @@ export default function HomePage() {
   };
 
   const newArrivals = featuredProducts.slice(6, 9);
+  const campaignProducts = featuredProducts.slice(0, 2);
 
   const getBannerPageStep = (container: HTMLDivElement) => {
     const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
@@ -405,8 +407,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:items-stretch">
+          <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200 h-full flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1 inline-flex items-center gap-2">
@@ -420,21 +422,23 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
-              {topRanking.map((product) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 flex-1">
+              {topRankingShowcase.map((product) => (
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition h-full flex flex-col">
                   <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-36 md:h-40">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
                   </div>
-                  <p className="font-semibold text-lg md:text-xl text-gray-900 truncate underline">{product.title}</p>
-                  <p className="text-gray-600 underline text-lg md:text-xl leading-tight">Hot selling</p>
+                  <div className="min-h-[62px]">
+                    <p className="font-semibold text-lg md:text-xl text-gray-900 truncate underline">{product.title}</p>
+                    <p className="text-gray-600 underline text-lg md:text-xl leading-tight">Hot selling</p>
+                  </div>
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200">
+          <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200 h-full flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1 inline-flex items-center gap-2">
@@ -448,9 +452,9 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 flex-1">
               {newArrivals.map((product, index) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition">
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition h-full flex flex-col">
                   <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-36 md:h-40">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     {index === 0 && (
@@ -460,9 +464,54 @@ export default function HomePage() {
                       <span className="absolute top-2 right-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
-                  <p className="font-bold text-xl md:text-2xl text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
-                  <p className="text-base md:text-lg text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
+                  <div className="min-h-[62px]">
+                    <p className="font-bold text-xl md:text-2xl text-gray-900 underline leading-none mb-1 whitespace-nowrap">{formatBdt(product.currentPrice)}</p>
+                    <p className="text-base md:text-lg text-gray-800 underline leading-tight">MOQ: {computeMoq(product.stock)}</p>
+                  </div>
                 </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Campaign & Coupon Section */}
+      <div className="max-w-7xl mx-auto px-4 pb-6 w-full">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="rounded-2xl p-4 md:p-5 bg-gradient-to-r from-sky-600 to-cyan-500 text-white border border-sky-500">
+            <div className="flex items-center gap-2 mb-2">
+              <Megaphone size={20} />
+              <h3 className="text-xl font-bold">Active Campaigns</h3>
+            </div>
+            <p className="text-sm text-cyan-50 mb-3">Limited-time category promotions running this week.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {campaignProducts.map((product, idx) => (
+                <Link key={product.id} href={`/product/${product.id}`} className="bg-white/15 rounded-lg p-2 border border-white/25 hover:bg-white/20 transition">
+                  <p className="text-xs uppercase tracking-wide text-cyan-100 mb-1">Campaign {idx + 1}</p>
+                  <p className="font-semibold line-clamp-1">{product.title}</p>
+                  <p className="text-sm text-cyan-100">Up to {12 + idx * 3}% off</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-4 md:p-5 bg-white border border-amber-200">
+            <div className="flex items-center gap-2 mb-2 text-amber-700">
+              <Ticket size={20} />
+              <h3 className="text-xl font-bold text-gray-900">Coupon Center</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">Apply these coupon codes at checkout to save more.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { code: 'GLOBAL10', text: '10% off above BDT 5,000' },
+                { code: 'FREESHIP', text: 'Free shipping on eligible orders' },
+                { code: 'NEWMEMBER', text: 'BDT 300 off for new users' },
+                { code: 'BULKBUY', text: 'Extra 8% off on bulk items' },
+              ].map((coupon) => (
+                <div key={coupon.code} className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+                  <p className="font-bold text-sm text-amber-800">{coupon.code}</p>
+                  <p className="text-xs text-gray-700">{coupon.text}</p>
+                </div>
               ))}
             </div>
           </div>

@@ -40,6 +40,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const router = useRouter();
   const discount = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
   const isOutOfStock = stock === 0;
+  const [isWishlisted, setIsWishlisted] = React.useState(false);
+  const [wishlistLoading, setWishlistLoading] = React.useState(false);
 
   const goToProduct = () => {
     router.push(`/product/${id}`);
@@ -48,8 +50,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const handleWishlistClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
+    if (wishlistLoading) return;
+
     if (onAddToWishlist) {
       onAddToWishlist(id);
+      setIsWishlisted(true);
       return;
     }
 
@@ -62,7 +67,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
 
     try {
-      await fetch('/api/users/wishlist', {
+      setWishlistLoading(true);
+
+      if (isWishlisted) {
+        const res = await fetch(`/api/users/wishlist?productId=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok || res.status === 404) {
+          setIsWishlisted(false);
+          window.dispatchEvent(new Event('wishlist-updated'));
+        }
+        return;
+      }
+
+      const addRes = await fetch('/api/users/wishlist', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,8 +92,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         },
         body: JSON.stringify({ productId: id }),
       });
+
+      if (addRes.ok || addRes.status === 400) {
+        // 400 is treated as already in wishlist so the UI can still reflect saved state.
+        setIsWishlisted(true);
+        window.dispatchEvent(new Event('wishlist-updated'));
+      }
     } catch {
       // Silent fallback to avoid interrupting product browsing if wishlist API fails.
+    } finally {
+      setWishlistLoading(false);
     }
   };
 
@@ -127,8 +157,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleWishlistClick}
             className="bg-white/95 border border-gray-200 p-2 rounded-full shadow-sm hover:bg-red-50"
             title="Add to wishlist"
+            disabled={wishlistLoading}
           >
-            <Heart size={20} className="text-red-500" />
+            <Heart size={20} className={`text-red-500 ${isWishlisted ? 'fill-red-500' : ''}`} />
           </button>
         </div>
       </div>
