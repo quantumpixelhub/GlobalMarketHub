@@ -32,11 +32,12 @@ async function main() {
   console.log("✓ Existing data cleared\n");
 
   // ============================================================================
-  // 1. CREATE CATEGORIES
+  // 1. CREATE MAIN CATEGORIES WITH SUBCATEGORIES
   // ============================================================================
-  console.log("📁 Creating categories...");
+  console.log("📁 Creating categories with subcategories...");
 
-  const categories = await Promise.all([
+  // Create main categories first
+  const mainCategories = await Promise.all([
     prisma.category.create({
       data: {
         name: "Electronics",
@@ -86,6 +87,239 @@ async function main() {
       },
     }),
   ]);
+
+  // Create subcategories for each main category
+  const subcategories = await Promise.all([
+    // Electronics subcategories
+    prisma.category.create({
+      data: {
+        name: "Smartphones & Tablets",
+        slug: "smartphones-tablets",
+        parentId: mainCategories[0].id,
+        description: "Latest phones and tablets",
+        image: "https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Laptops & Computers",
+        slug: "laptops-computers",
+        parentId: mainCategories[0].id,
+        description: "Laptops, desktops, and accessories",
+        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Audio & Headphones",
+        slug: "audio-headphones",
+        parentId: mainCategories[0].id,
+        description: "Earbuds, headphones, and speakers",
+        image: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Cameras & Photography",
+        slug: "cameras-photography",
+        parentId: mainCategories[0].id,
+        description: "Cameras, lenses, and photo gear",
+        image: "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?w=500",
+      },
+    }),
+    
+    // Clothing subcategories
+    prisma.category.create({
+      data: {
+        name: "Men's Clothing",
+        slug: "mens-clothing",
+        parentId: mainCategories[1].id,
+        description: "Shirts, pants, jackets for men",
+        image: "https://images.unsplash.com/photo-1516215495046-61c1bae89fa2?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Women's Clothing",
+        slug: "womens-clothing",
+        parentId: mainCategories[1].id,
+        description: "Dresses, tops, bottoms for women",
+        image: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Kids & Baby Clothes",
+        slug: "kids-baby-clothes",
+        parentId: mainCategories[1].id,
+        description: "Clothing for children and babies",
+        image: "https://images.unsplash.com/photo-1519689373023-dd07c7aad4d4?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Shoes & Footwear",
+        slug: "shoes-footwear",
+        parentId: mainCategories[1].id,
+        description: "Sneakers, casual, and formal shoes",
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
+      },
+    }),
+    
+    // Home & Kitchen subcategories
+    prisma.category.create({
+      data: {
+        name: "Kitchen Appliances",
+        slug: "kitchen-appliances",
+        parentId: mainCategories[2].id,
+        description: "Microwaves, ovens, and cookware",
+        image: "https://images.unsplash.com/photo-1584990347449-a49f9f15f203?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Furniture & Decor",
+        slug: "furniture-decor",
+        parentId: mainCategories[2].id,
+        description: "Sofas, tables, and home decor",
+        image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Bedding & Bath",
+        slug: "bedding-bath",
+        parentId: mainCategories[2].id,
+        description: "Sheets, pillows, towels, and bath items",
+        image: "https://images.unsplash.com/photo-1584622281867-8759c6673ce6?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Cleaning Supplies",
+        slug: "cleaning-supplies",
+        parentId: mainCategories[2].id,
+        description: "Cleaning products and tools",
+        image: "https://images.unsplash.com/photo-1584622666411-993a426fbf0a?w=500",
+      },
+    }),
+    
+    // Sports & Outdoors subcategories
+    prisma.category.create({
+      data: {
+        name: "Fitness Equipment",
+        slug: "fitness-equipment",
+        parentId: mainCategories[3].id,
+        description: "Dumbbells, yoga mats, treadmills",
+        image: "https://images.unsplash.com/photo-1517836357463-d25ddfcbf042?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Sports Gear",
+        slug: "sports-gear",
+        parentId: mainCategories[3].id,
+        description: "Balls, rackets, and sport-specific equipment",
+        image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Outdoor & Camping",
+        slug: "outdoor-camping",
+        parentId: mainCategories[3].id,
+        description: "Tents, sleeping bags, and camping gear",
+        image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Water Sports",
+        slug: "water-sports",
+        parentId: mainCategories[3].id,
+        description: "Surfboards, life jackets, and water gear",
+        image: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=500",
+      },
+    }),
+    
+    // Books & Media subcategories
+    prisma.category.create({
+      data: {
+        name: "Physical Books",
+        slug: "physical-books",
+        parentId: mainCategories[4].id,
+        description: "Hardcover and paperback books",
+        image: "https://images.unsplash.com/photo-1507842217343-583f20270319?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "eBooks & Digital Media",
+        slug: "ebooks-digital",
+        parentId: mainCategories[4].id,
+        description: "Digital books and audiobooks",
+        image: "https://images.unsplash.com/photo-1476124369162-f4978b46c9e2?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Music & Audio",
+        slug: "music-audio",
+        parentId: mainCategories[4].id,
+        description: "CDs, vinyl, and music albums",
+        image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Movies & Videos",
+        slug: "movies-videos",
+        parentId: mainCategories[4].id,
+        description: "DVDs, Blu-rays, and video content",
+        image: "https://images.unsplash.com/photo-1489599849228-bed96c3c4c88?w=500",
+      },
+    }),
+    
+    // Health & Beauty subcategories
+    prisma.category.create({
+      data: {
+        name: "Skincare",
+        slug: "skincare",
+        parentId: mainCategories[5].id,
+        description: "Face care, moisturizers, and serums",
+        image: "https://images.unsplash.com/photo-1556228578-c6d4938c1da8?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Cosmetics & Makeup",
+        slug: "cosmetics-makeup",
+        parentId: mainCategories[5].id,
+        description: "Foundation, lipstick, eyeshadow",
+        image: "https://images.unsplash.com/photo-1596462502278-38bda3fe10eb?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Hair Care",
+        slug: "hair-care",
+        parentId: mainCategories[5].id,
+        description: "Shampoo, conditioner, styling products",
+        image: "https://images.unsplash.com/photo-1585747860715-cd4628902046?w=500",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Health & Supplements",
+        slug: "health-supplements",
+        parentId: mainCategories[5].id,
+        description: "Vitamins, minerals, and wellness products",
+        image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde0f?w=500",
+      },
+    }),
+  ]);
+
+  const categories = [...mainCategories, ...subcategories];
 
   const marketplaceCategoryNames = [
     "Apparel & Accessories",

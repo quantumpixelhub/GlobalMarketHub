@@ -90,6 +90,8 @@ model Category {
   description String?
   image     String?
   parentId  String?  // For subcategories
+  parent    Category? @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Category[] @relation("ParentChild")
   
   products  Product[]
   

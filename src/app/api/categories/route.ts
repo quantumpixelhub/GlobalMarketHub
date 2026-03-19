@@ -10,8 +10,19 @@ export async function GET(_request: NextRequest) {
         slug: true,
         description: true,
         image: true,
+        parentId: true,
+        children: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            image: true,
+            parentId: true,
+          },
+        },
       },
-      orderBy: { name: "asc" },
+      orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
     });
 
     return NextResponse.json(

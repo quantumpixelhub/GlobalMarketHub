@@ -20,6 +20,8 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  parentId?: string | null;
+  children?: Category[];
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -186,21 +188,45 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
         </div>
 
-        {/* Category Links */}
-        <div className="flex gap-6 overflow-x-auto pb-0 mt-0 scrollbar-hide">
-          {categories.slice(0, 6).map((category) => (
-            <Link
-              key={category.id}
-              href={`/products?category=${category.slug}`}
-              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors"
-            >
-              {category.name}
-            </Link>
-          ))}
-          {categories.length > 6 && (
+        {/* Category Links with Subcategories */}
+        <div className="flex gap-4 overflow-x-auto pb-0 mt-0 scrollbar-hide">
+          {categories
+            .filter((cat) => !cat.parentId) // Only main categories
+            .slice(0, 6)
+            .map((category) => {
+              const subcategories = categories.filter((cat) => cat.parentId === category.id);
+              const hasSubcategories = subcategories.length > 0;
+
+              return (
+                <div key={category.id} className="relative group">
+                  <Link
+                    href={`/products?category=${category.slug}`}
+                    className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-2"
+                  >
+                    {category.name}
+                  </Link>
+
+                  {/* Subcategories Dropdown */}
+                  {hasSubcategories && (
+                    <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 w-max">
+                      {subcategories.map((sub) => (
+                        <Link
+                          key={sub.id}
+                          href={`/products?category=${sub.slug}`}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          {categories.filter((cat) => !cat.parentId).length > 6 && (
             <Link
               href="/products"
-              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold"
+              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold py-3 px-2"
             >
               See All →
             </Link>
