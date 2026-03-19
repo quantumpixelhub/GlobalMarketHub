@@ -16,6 +16,12 @@ interface NavigationProps {
   onLogout?: () => void;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export const Navigation: React.FC<NavigationProps> = ({
   cartItemCount,
   wishlistCount = 0,
@@ -26,6 +32,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const pathname = usePathname();
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
   const [resolvedAuth, setResolvedAuth] = React.useState(Boolean(isAuthenticated));
+  const [categories, setCategories] = React.useState<Category[]>([]);
 
   const syncCartAndAuthState = React.useCallback(async () => {
     if (typeof window === 'undefined') return;
@@ -57,8 +64,21 @@ export const Navigation: React.FC<NavigationProps> = ({
     }
   }, [cartItemCount, isAuthenticated]);
 
+  const fetchCategories = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  }, []);
+
   React.useEffect(() => {
     syncCartAndAuthState();
+    fetchCategories();
 
     const onStorage = () => syncCartAndAuthState();
     const onCartUpdated = () => syncCartAndAuthState();
@@ -70,7 +90,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('cart-updated', onCartUpdated);
     };
-  }, [pathname, syncCartAndAuthState]);
+  }, [pathname, syncCartAndAuthState, fetchCategories]);
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -167,25 +187,24 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links */}
-        <div className="flex gap-6 overflow-x-auto pb-0 mt-0">
-          <Link href="/category/electronics" className="text-sm whitespace-nowrap hover:text-emerald-600">
-            📱 Electronics
-          </Link>
-          <Link href="/category/clothing" className="text-sm whitespace-nowrap hover:text-emerald-600">
-            👕 Clothing
-          </Link>
-          <Link href="/category/home-kitchen" className="text-sm whitespace-nowrap hover:text-emerald-600">
-            🏠 Home & Kitchen
-          </Link>
-          <Link href="/category/sports-outdoors" className="text-sm whitespace-nowrap hover:text-emerald-600">
-            ⚽ Sports
-          </Link>
-          <Link href="/category/books-media" className="text-sm whitespace-nowrap hover:text-emerald-600">
-            📚 Books
-          </Link>
-          <Link href="/category/health-beauty" className="text-sm whitespace-nowrap hover:text-emerald-600">
-            💄 Health & Beauty
-          </Link>
+        <div className="flex gap-6 overflow-x-auto pb-0 mt-0 scrollbar-hide">
+          {categories.slice(0, 6).map((category) => (
+            <Link
+              key={category.id}
+              href={`/products?category=${category.slug}`}
+              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors"
+            >
+              {category.name}
+            </Link>
+          ))}
+          {categories.length > 6 && (
+            <Link
+              href="/products"
+              className="text-sm whitespace-nowrap hover:text-emerald-600 transition-colors font-semibold"
+            >
+              See All →
+            </Link>
+          )}
         </div>
       </div>
     </nav>
