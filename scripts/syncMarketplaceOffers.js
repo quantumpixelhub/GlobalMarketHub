@@ -104,6 +104,18 @@ async function fetchViaJina(url) {
   return { status: response.status, text, wrappedUrl: wrapped };
 }
 
+async function fetchDirect(url) {
+  const response = await fetch(url, {
+    headers: {
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      'accept-language': 'en-US,en;q=0.9',
+    },
+  });
+
+  const text = await response.text();
+  return { status: response.status, text, wrappedUrl: url };
+}
+
 function parseDaraz(markdown, query) {
   const offers = [];
   const regex = /\[!\[Image[^\]]*\]\((https?:\/\/[^)]+)\)\]\((https?:\/\/[^)]+)\)\s*\n\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\)\s*\n\s*৳\s*([0-9,]+)(?:\s*\n\s*([0-9]{1,2})% Off)?/gi;
@@ -278,6 +290,47 @@ function parseStartech(markdown, query) {
       title,
       sellerName: 'Startech',
       imageUrl: match[1] || null,
+      categoryName: 'Electronics',
+      externalPrice: currentPrice,
+      externalOriginalPrice: originalPrice,
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
+function parseTechland(html, query) {
+  const offers = [];
+  const regex = /<a href="(https?:\/\/www\.techlandbd\.com\/[^"#?]+)">([^<]{12,})<\/a>[\s\S]{0,7000}?<span class="text-red-600">৳\s*([0-9,]+)<\/span>(?:[\s\S]{0,220}?line-through">৳\s*([0-9,]+)<\/span>)?/gi;
+
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const url = normalizeText(match[1]);
+    const title = normalizeText(match[2]);
+    if (!url || !title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const currentPrice = parsePrice(match[3]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = match[4] ? parsePrice(match[4]) : currentPrice;
+    const slug = url.split('/').pop() || url;
+    const lead = html.slice(Math.max(0, match.index - 2200), match.index);
+    const imageCandidates = [...lead.matchAll(/https:\/\/www\.techlandbd\.com\/cache\/images\/uploads\/products\/[^"\s<>]+/gi)];
+    const imageUrl = imageCandidates.length ? imageCandidates[imageCandidates.length - 1][0] : null;
+
+    offers.push({
+      platform: 'techland-bd',
+      externalId: `techland-${shortHash(slug)}`,
+      externalUrl: url,
+      title,
+      sellerName: 'Techland BD',
+      imageUrl,
       categoryName: 'Electronics',
       externalPrice: currentPrice,
       externalOriginalPrice: originalPrice,
@@ -530,6 +583,11 @@ const providers = {
     buildUrl: (q) => `https://www.startech.com.bd/product/search?search=${encodeURIComponent(q)}`,
     parse: parseStartech,
   },
+  'techland-bd': {
+    buildUrl: (q) => `https://www.techlandbd.com/index.php?route=product/search&search=${encodeURIComponent(q)}`,
+    parse: parseTechland,
+    fetch: fetchDirect,
+  },
   alibaba: {
     buildUrl: (q) => `https://m.alibaba.com/trade/search?SearchText=${encodeURIComponent(q)}`,
     parse: parseAlibaba,
@@ -556,7 +614,6 @@ const providers = {
   boighar: unsupportedProvider((q) => `https://boighar.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   pickaboo: unsupportedProvider((q) => `https://www.pickaboo.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   
-  'techland-bd': unsupportedProvider((q) => `https://www.techlandbd.com/search?search=${encodeURIComponent(q)}`, 'Connector queued'),
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
   yellow: unsupportedProvider((q) => `https://yellowclothing.net/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
@@ -642,7 +699,8 @@ async function syncSeller(seller, query) {
   let wrappedUrl = '';
 
   for (const url of urls) {
-    const res = await fetchViaJina(url);
+    const fetchFn = provider.fetch || fetchViaJina;
+    const res = await fetchFn(url);
     status = res.status;
     text = res.text;
     wrappedUrl = res.wrappedUrl;

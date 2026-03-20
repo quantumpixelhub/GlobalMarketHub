@@ -57,6 +57,19 @@ const fetchViaJina = async (url: string) => {
   return { status: res.status, text };
 };
 
+const fetchDirect = async (url: string) => {
+  const res = await fetch(url, {
+    headers: {
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      'accept-language': 'en-US,en;q=0.9',
+    },
+    cache: 'no-store',
+  });
+
+  const text = await res.text();
+  return { status: res.status, text };
+};
+
 const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] => {
   const regex = /\[!\[Image[^\]]*\]\((https?:\/\/[^)]+)\)\]\((https?:\/\/[^)]+)\)\s*\n\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\)\s*\n\s*৳\s*([0-9,]+)(?:\s*\n\s*([0-9]{1,2})% Off)?/gi;
   const offers: LiveOffer[] = [];
@@ -200,6 +213,39 @@ const parseStartech = (markdown: string, query: string, max: number): LiveOffer[
       originalPrice,
       discountVerified: originalPrice > currentPrice,
       sellerName: 'Startech',
+    });
+  }
+
+  return offers;
+};
+
+const parseTechland = (html: string, query: string, max: number): LiveOffer[] => {
+  const regex = /<a href="(https?:\/\/www\.techlandbd\.com\/[^"#?]+)">([^<]{12,})<\/a>[\s\S]{0,7000}?<span class="text-red-600">৳\s*([0-9,]+)<\/span>(?:[\s\S]{0,220}?line-through">৳\s*([0-9,]+)<\/span>)?/gi;
+  const offers: LiveOffer[] = [];
+
+  let m;
+  while ((m = regex.exec(html)) !== null && offers.length < max) {
+    const title = String(m[2] || '').trim();
+    if (!matchesQuery(title, query)) continue;
+
+    const currentPrice = parsePrice(m[3]);
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = m[4] ? parsePrice(m[4]) : currentPrice;
+    const lead = html.slice(Math.max(0, m.index - 2200), m.index);
+    const imageMatches = [...lead.matchAll(/https:\/\/www\.techlandbd\.com\/cache\/images\/uploads\/products\/[^"\s<>]+/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][0] : undefined;
+
+    offers.push({
+      platform: 'techland-bd',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl: m[1],
+      imageUrl,
+      currentPrice,
+      originalPrice,
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Techland BD',
     });
   }
 
@@ -436,6 +482,15 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'startech', offers: parseStartech(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'startech', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchDirect(`https://www.techlandbd.com/index.php?route=product/search&search=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'techland-bd', offers: [], error: `HTTP ${status}` };
+        return { seller: 'techland-bd', offers: parseTechland(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'techland-bd', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {
