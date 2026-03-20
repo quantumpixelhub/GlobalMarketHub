@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface Category {
   id: string;
   name: string;
   slug: string;
+  parentId?: string | null;
 }
 
 interface CategoryFilterProps {
@@ -28,6 +29,25 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   const [showPrice, setShowPrice] = useState(true);
   const [localMin, setLocalMin] = useState(minPrice);
   const [localMax, setLocalMax] = useState(maxPrice);
+
+  const mainCategories = useMemo(
+    () => categories.filter((category) => !category.parentId),
+    [categories],
+  );
+
+  const subcategoriesByParent = useMemo(() => {
+    const groups: Record<string, Category[]> = {};
+
+    categories.forEach((category) => {
+      if (!category.parentId) return;
+      if (!groups[category.parentId]) {
+        groups[category.parentId] = [];
+      }
+      groups[category.parentId].push(category);
+    });
+
+    return groups;
+  }, [categories]);
 
   const handleApplyPrice = () => {
     onPriceChange?.(localMin, localMax);
@@ -56,19 +76,42 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             >
               All Categories
             </button>
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => onCategoryChange?.(category.slug)}
-                className={`block w-full text-left px-3 py-2 rounded ${
-                  selectedCategory === category.slug
-                    ? 'bg-emerald-100 text-emerald-700 font-semibold'
-                    : 'hover:bg-gray-100'
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
+            {mainCategories.map((category) => {
+              const subcategories = subcategoriesByParent[category.id] || [];
+
+              return (
+                <div key={category.id} className="space-y-1">
+                  <button
+                    onClick={() => onCategoryChange?.(category.slug)}
+                    className={`block w-full text-left px-3 py-2 rounded ${
+                      selectedCategory === category.slug
+                        ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                        : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+
+                  {subcategories.length > 0 && (
+                    <div className="pl-5 space-y-1">
+                      {subcategories.map((subcategory) => (
+                        <button
+                          key={subcategory.id}
+                          onClick={() => onCategoryChange?.(subcategory.slug)}
+                          className={`block w-full text-left px-3 py-1.5 rounded text-sm ${
+                            selectedCategory === subcategory.slug
+                              ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                              : 'hover:bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {subcategory.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

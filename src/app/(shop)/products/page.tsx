@@ -23,6 +23,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  parentId?: string | null;
 }
 
 export default function ProductsPage() {
