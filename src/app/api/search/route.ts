@@ -41,7 +41,7 @@ const DOMESTIC_PLATFORMS = new Set([
   'shajgoj',
 ]);
 
-const INTERNATIONAL_PLATFORMS = new Set(['amazon', 'alibaba']);
+const INTERNATIONAL_PLATFORMS = new Set(['amazon', 'alibaba', 'aliexpress']);
 
 const normalizePlatform = (platform: string) =>
   platform.toLowerCase().trim().replace(/\s+/g, '-');
