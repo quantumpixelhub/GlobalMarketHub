@@ -83,10 +83,10 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 <div key={category.id} className="space-y-1">
                   <button
                     onClick={() => onCategoryChange?.(category.slug)}
-                    className={`block w-full text-left px-3 py-2 rounded ${
+                    className={`block w-full text-left px-3 py-2 rounded bg-emerald-50 ${
                       selectedCategory === category.slug
                         ? 'bg-emerald-100 text-emerald-700 font-semibold'
-                        : 'hover:bg-gray-100'
+                        : 'text-gray-800 hover:bg-emerald-100'
                     }`}
                   >
                     {category.name}
