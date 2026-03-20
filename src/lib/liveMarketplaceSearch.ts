@@ -637,6 +637,56 @@ const parseCatsEye = (html: string, query: string, max: number): LiveOffer[] => 
   return offers;
 };
 
+const parseEasyStoreApi = (jsonText: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  let payload: unknown;
+
+  try {
+    payload = JSON.parse(jsonText);
+  } catch {
+    return offers;
+  }
+
+  const rows = Array.isArray(payload) ? (payload as Array<Record<string, unknown>>) : [];
+  const seen = new Set<string>();
+
+  for (const row of rows) {
+    if (offers.length >= max) return offers;
+
+    const title = String(row?.name || '').trim();
+    if (!title || !matchesQuery(title, query)) continue;
+
+    const prices = (row?.prices || {}) as Record<string, unknown>;
+    const currentPrice = parsePrice(String(prices.price || prices.regular_price || prices.sale_price || '0'));
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = parsePrice(String(prices.regular_price || prices.sale_price || prices.price || '0')) || currentPrice;
+    const externalUrl = String(row?.permalink || '').trim();
+    if (!externalUrl) continue;
+
+    const key = String(row?.id || externalUrl).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const images = Array.isArray(row?.images) ? (row.images as Array<Record<string, unknown>>) : [];
+    const imageUrl = String(images[0]?.src || images[0]?.thumbnail || '').trim() || undefined;
+
+    offers.push({
+      platform: 'easy',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl,
+      currentPrice,
+      originalPrice: Math.max(originalPrice, currentPrice),
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Easy Fashion',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -809,6 +859,15 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'cats-eye', offers: [] };
       } catch (error) {
         return { seller: 'cats-eye', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchDirect(`https://easyfashion.com.bd/wp-json/wc/store/v1/products?search=${encodeURIComponent(q)}&per_page=40`);
+        if (status !== 200) return { seller: 'easy', offers: [], error: `HTTP ${status}` };
+        return { seller: 'easy', offers: parseEasyStoreApi(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'easy', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {

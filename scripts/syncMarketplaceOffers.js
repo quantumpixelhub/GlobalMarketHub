@@ -813,6 +813,62 @@ function parseCatsEye(html, query) {
   return offers;
 }
 
+function parseEasyStoreApi(jsonText, query) {
+  const offers = [];
+  let payload;
+
+  try {
+    payload = JSON.parse(jsonText);
+  } catch {
+    return offers;
+  }
+
+  const rows = Array.isArray(payload) ? payload : [];
+  const queryLower = String(query || '').toLowerCase();
+  const seen = new Set();
+
+  for (const row of rows) {
+    const title = normalizeText(row?.name);
+    if (!title || !title.toLowerCase().includes(queryLower)) {
+      continue;
+    }
+
+    const currentPrice = parsePrice(row?.prices?.price || row?.prices?.regular_price || row?.prices?.sale_price || '');
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = parsePrice(row?.prices?.regular_price || row?.prices?.sale_price || row?.prices?.price || '') || currentPrice;
+    const externalUrl = normalizeText(row?.permalink || row?.add_to_cart?.url || '');
+    if (!externalUrl) {
+      continue;
+    }
+
+    const id = normalizeText(row?.id);
+    const externalId = id ? `easy-${id}` : `easy-${shortHash(externalUrl)}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    offers.push({
+      platform: 'easy',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'Easy Fashion',
+      imageUrl: row?.images?.[0]?.src || row?.images?.[0]?.thumbnail || null,
+      categoryName: row?.categories?.[0]?.name || 'Fashion',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(originalPrice, currentPrice),
+      externalRating: Number.isFinite(Number(row?.average_rating)) ? Number(row?.average_rating) : null,
+      externalReviewCount: parseIntSafe(row?.review_count || 0),
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -894,7 +950,11 @@ const providers = {
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
   ecstasy: unsupportedProvider((q) => `https://ecstasybd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  easy: unsupportedProvider((q) => `https://easyfashion.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  easy: {
+    buildUrl: (q) => `https://easyfashion.com.bd/wp-json/wc/store/v1/products?search=${encodeURIComponent(q)}&per_page=60`,
+    parse: parseEasyStoreApi,
+    fetch: fetchDirect,
+  },
   milan: unsupportedProvider((q) => `https://milan-bd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   'top-ten': unsupportedProvider((q) => `https://topten.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   'beauty-booth-bd': unsupportedProvider((q) => `https://beautybooth.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
