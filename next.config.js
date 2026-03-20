@@ -31,6 +31,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.shajgoj.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.yellowclothing.net',
+      },
+      {
+        protocol: 'https',
         hostname: 'storage.googleapis.com',
       },
       {

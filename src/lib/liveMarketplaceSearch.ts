@@ -465,6 +465,92 @@ const parseRyans = (markdown: string, query: string, max: number): LiveOffer[] =
   return offers;
 };
 
+const parseShajgoj = (markdown: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  const queryTokens = String(query || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+  const regex = /!\[Image\s+\d+:[^\]]*\]\((https?:\/\/[^)]+)\)\s*([^\[]+?)\s+SALE\s+\?\s*([0-9]+(?:\.[0-9]{2})?)\?\s*([0-9]+(?:\.[0-9]{2})?)[\s\S]{0,120}?\]\((https?:\/\/shop\.shajgoj\.com\/product\/[^)\s]+)\)/gi;
+  const seen = new Set<string>();
+
+  let m;
+  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
+    const title = String(m[2] || '').trim();
+    if (!title) continue;
+
+    const titleLower = title.toLowerCase();
+    const relevant = queryTokens.length === 0 || matchesQuery(title, query) || queryTokens.some((token) => titleLower.includes(token));
+    if (!relevant) continue;
+
+    const originalPrice = parsePrice(m[3]);
+    const currentPrice = parsePrice(m[4]);
+    if (currentPrice <= 0) continue;
+
+    const externalUrl = String(m[5] || '').replace(/&amp;/g, '&');
+    const key = externalUrl.split('/').pop() || titleLower;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    offers.push({
+      platform: 'shajgoj',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl: m[1],
+      currentPrice,
+      originalPrice: Math.max(originalPrice, currentPrice),
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Shajgoj',
+    });
+  }
+
+  return offers;
+};
+
+const parseYellow = (html: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  const regex = /<div class="product-item">[\s\S]{0,7000}?<a class="card-title[^"]*" href="([^"]+)">([\s\S]{1,160}?)<\/a>[\s\S]{0,1600}?<span class="price-item price-item--regular">Tk\s*([0-9,]+(?:\.[0-9]{2})?)<\/span>[\s\S]{0,700}?(?:<span class="price-item price-item--sale">Tk\s*([0-9,]+(?:\.[0-9]{2})?)<\/span>)?/gi;
+  const seen = new Set<string>();
+
+  let m;
+  while ((m = regex.exec(html)) !== null && offers.length < max) {
+    const title = String(m[2] || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (!title || !matchesQuery(title, query)) continue;
+
+    const regularPrice = parsePrice(m[3]);
+    const salePrice = m[4] ? parsePrice(m[4]) : regularPrice;
+    const currentPrice = salePrice > 0 ? salePrice : regularPrice;
+    if (currentPrice <= 0) continue;
+
+    const externalUrl = String(m[1] || '').startsWith('http')
+      ? String(m[1])
+      : `https://www.yellowclothing.net${String(m[1] || '')}`;
+    const key = externalUrl.split('?')[0].toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const lead = html.slice(Math.max(0, m.index - 2500), m.index + 300);
+    const imageMatches = [...lead.matchAll(/https:\/\/www\.yellowclothing\.net\/cdn\/shop\/files\/[^"\s<>]+/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][0] : undefined;
+
+    offers.push({
+      platform: 'yellow',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl,
+      currentPrice,
+      originalPrice: Math.max(regularPrice, currentPrice),
+      discountVerified: regularPrice > currentPrice,
+      sellerName: 'YELLOW Clothing',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -549,6 +635,39 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'pickaboo', offers: parsePickaboo(fallback.text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'pickaboo', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const slugQuery = encodeURIComponent(String(q).trim().toLowerCase().replace(/\s+/g, '-'));
+        const urls = [
+          `https://shop.shajgoj.com/search?type=product&q=${encodeURIComponent(q)}`,
+          `https://shop.shajgoj.com/product-category/${slugQuery}/`,
+          'https://shop.shajgoj.com/product-category/face/',
+        ];
+
+        for (const url of urls) {
+          const { status, text } = await fetchViaJina(url);
+          if (status !== 200) continue;
+
+          const parsed = parseShajgoj(text, q, maxPerSeller);
+          if (parsed.length > 0) {
+            return { seller: 'shajgoj', offers: parsed };
+          }
+        }
+
+        return { seller: 'shajgoj', offers: [] };
+      } catch (error) {
+        return { seller: 'shajgoj', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchDirect(`https://www.yellowclothing.net/search?q=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'yellow', offers: [], error: `HTTP ${status}` };
+        return { seller: 'yellow', offers: parseYellow(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'yellow', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {

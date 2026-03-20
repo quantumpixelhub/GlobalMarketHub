@@ -610,6 +610,112 @@ function parseRyans(markdown, query) {
   return offers;
 }
 
+function parseShajgoj(markdown, query) {
+  const offers = [];
+  const queryTokens = String(query || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+  const regex = /!\[Image\s+\d+:[^\]]*\]\((https?:\/\/[^)]+)\)\s*([^\[]+?)\s+SALE\s+\?\s*([0-9]+(?:\.[0-9]{2})?)\?\s*([0-9]+(?:\.[0-9]{2})?)[\s\S]{0,120}?\]\((https?:\/\/shop\.shajgoj\.com\/product\/[^)\s]+)\)/gi;
+  const seen = new Set();
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const title = normalizeText(match[2]);
+    if (!title) {
+      continue;
+    }
+
+    const titleLower = title.toLowerCase();
+    const relevant = queryTokens.length === 0 || queryTokens.some((token) => titleLower.includes(token));
+    if (!relevant) {
+      continue;
+    }
+
+    const originalPrice = parsePrice(match[3]);
+    const currentPrice = parsePrice(match[4]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const externalUrl = match[5].replace(/&amp;/g, '&');
+    const slug = externalUrl.split('/').pop() || shortHash(externalUrl);
+    const externalId = `shajgoj-${slug}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    offers.push({
+      platform: 'shajgoj',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'Shajgoj',
+      imageUrl: match[1] || null,
+      categoryName: 'Beauty & Personal Care',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(originalPrice, currentPrice),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
+function parseYellow(html, query) {
+  const offers = [];
+  const regex = /<div class="product-item">[\s\S]{0,7000}?<a class="card-title[^"]*" href="([^"]+)">([\s\S]{1,160}?)<\/a>[\s\S]{0,1600}?<span class="price-item price-item--regular">Tk\s*([0-9,]+(?:\.[0-9]{2})?)<\/span>[\s\S]{0,700}?(?:<span class="price-item price-item--sale">Tk\s*([0-9,]+(?:\.[0-9]{2})?)<\/span>)?/gi;
+  const seen = new Set();
+
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const title = normalizeText(match[2]).replace(/<[^>]*>/g, '').trim();
+    if (!title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const regularPrice = parsePrice(match[3]);
+    const salePrice = match[4] ? parsePrice(match[4]) : regularPrice;
+    const currentPrice = salePrice > 0 ? salePrice : regularPrice;
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const externalUrl = (match[1] || '').startsWith('http')
+      ? match[1]
+      : `https://www.yellowclothing.net${match[1]}`;
+    const slug = (externalUrl.split('?')[0].split('/').pop() || shortHash(externalUrl)).toLowerCase();
+    const externalId = `yellow-${slug}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    const lead = html.slice(Math.max(0, match.index - 2500), match.index + 300);
+    const imageMatches = [...lead.matchAll(/https:\/\/www\.yellowclothing\.net\/cdn\/shop\/files\/[^"\s<>]+/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][0] : null;
+
+    offers.push({
+      platform: 'yellow',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'YELLOW Clothing',
+      imageUrl,
+      categoryName: 'Fashion',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(regularPrice, currentPrice),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -668,17 +774,24 @@ const providers = {
     buildUrl: (q) => `https://www.pickaboo.com/product/${encodeURIComponent(String(q).trim().toLowerCase().replace(/\s+/g, '-'))}`,
     parse: parsePickaboo,
   },
+  shajgoj: {
+    buildUrl: (q) => `https://shop.shajgoj.com/search?type=product&q=${encodeURIComponent(q)}`,
+    parse: parseShajgoj,
+  },
+  yellow: {
+    buildUrl: (q) => `https://www.yellowclothing.net/search?q=${encodeURIComponent(q)}`,
+    parse: parseYellow,
+    fetch: fetchDirect,
+  },
   
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  yellow: unsupportedProvider((q) => `https://yellowclothing.net/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   sailor: unsupportedProvider((q) => `https://sailor.clothing/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   'cats-eye': unsupportedProvider((q) => `https://www.catseye.com.bd/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   ecstasy: unsupportedProvider((q) => `https://ecstasybd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   easy: unsupportedProvider((q) => `https://easyfashion.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   milan: unsupportedProvider((q) => `https://milan-bd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   'top-ten': unsupportedProvider((q) => `https://topten.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  shajgoj: unsupportedProvider((q) => `https://shop.shajgoj.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   'beauty-booth-bd': unsupportedProvider((q) => `https://beautybooth.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   bbb: unsupportedProvider((q) => `https://bbb.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   livewire: unsupportedProvider((q) => `https://livewirebd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
@@ -752,6 +865,12 @@ async function syncSeller(seller, query) {
             'https://www.pickaboo.com/product/smartphone',
             provider.buildUrl(query),
           ]
+      : seller === 'shajgoj'
+        ? [
+            provider.buildUrl(query),
+            `https://shop.shajgoj.com/product-category/${encodeURIComponent(String(query).trim().toLowerCase().replace(/\s+/g, '-'))}/`,
+            'https://shop.shajgoj.com/product-category/face/',
+          ]
       : [provider.buildUrl(query)];
 
   let status = 0;
@@ -771,6 +890,12 @@ async function syncSeller(seller, query) {
     }
 
     if (status === 200) {
+      if (seller === 'shajgoj') {
+        const probeParsed = provider.parse(text, query);
+        if (!probeParsed.length) {
+          continue;
+        }
+      }
       break;
     }
   }
