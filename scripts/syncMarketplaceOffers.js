@@ -369,6 +369,44 @@ function parseBagdoom(markdown, query) {
   return offers;
 }
 
+function parseRyans(markdown, query) {
+  const offers = [];
+  const regex = /\[!\[Image[^\]]*\]\((https?:\/\/www\.ryans\.com\/storage\/products\/[^)]+)\)\]\((https?:\/\/www\.ryans\.com\/[^)\s]+)\)[\s\S]{0,260}?\[([^\]]+)\]\((https?:\/\/www\.ryans\.com\/[^)\s]+)\)[\s\S]{0,180}?Tk\s*([0-9,]+)(?:[\s\S]{0,140}?Regular Price[\s\S]{0,50}?Tk\s*([0-9,]+))?/gi;
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const title = normalizeText(match[3]);
+    if (!title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const currentPrice = parsePrice(match[5]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = match[6] ? parsePrice(match[6]) : currentPrice;
+    const url = match[4] || match[2];
+    const slug = url.split('/').pop() || url;
+
+    offers.push({
+      platform: 'ryans',
+      externalId: `ryans-${shortHash(slug)}`,
+      externalUrl: url,
+      title,
+      sellerName: 'Ryans Computers',
+      imageUrl: match[1] || null,
+      categoryName: 'Electronics',
+      externalPrice: currentPrice,
+      externalOriginalPrice: originalPrice,
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -385,6 +423,10 @@ const providers = {
   rokomari: {
     buildUrl: (q) => `https://www.rokomari.com/search?term=${encodeURIComponent(q)}`,
     parse: parseRokomari,
+  },
+  ryans: {
+    buildUrl: (q) => `https://www.ryans.com/search?q=${encodeURIComponent(q)}`,
+    parse: parseRyans,
   },
   startech: {
     buildUrl: (q) => `https://www.startech.com.bd/product/search?search=${encodeURIComponent(q)}`,
@@ -411,7 +453,7 @@ const providers = {
   shwapno: unsupportedProvider((q) => `https://www.shwapno.com/search?text=${encodeURIComponent(q)}`, 'Connector queued'),
   boighar: unsupportedProvider((q) => `https://boighar.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   pickaboo: unsupportedProvider((q) => `https://www.pickaboo.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  ryans: unsupportedProvider((q) => `https://www.ryans.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  
   'techland-bd': unsupportedProvider((q) => `https://www.techlandbd.com/search?search=${encodeURIComponent(q)}`, 'Connector queued'),
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),

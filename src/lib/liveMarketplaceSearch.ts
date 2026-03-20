@@ -269,6 +269,37 @@ const parseBagdoom = (markdown: string, query: string, max: number): LiveOffer[]
   return offers;
 };
 
+const parseRyans = (markdown: string, query: string, max: number): LiveOffer[] => {
+  const regex = /\[!\[Image[^\]]*\]\((https?:\/\/www\.ryans\.com\/storage\/products\/[^)]+)\)\]\((https?:\/\/www\.ryans\.com\/[^)\s]+)\)[\s\S]{0,260}?\[([^\]]+)\]\((https?:\/\/www\.ryans\.com\/[^)\s]+)\)[\s\S]{0,180}?Tk\s*([0-9,]+)(?:[\s\S]{0,140}?Regular Price[\s\S]{0,50}?Tk\s*([0-9,]+))?/gi;
+  const offers: LiveOffer[] = [];
+
+  let m;
+  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
+    const title = String(m[3] || '').trim();
+    if (!matchesQuery(title, query)) continue;
+
+    const currentPrice = parsePrice(m[5]);
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = m[6] ? parsePrice(m[6]) : currentPrice;
+    const url = m[4] || m[2];
+
+    offers.push({
+      platform: 'ryans',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl: url,
+      imageUrl: m[1],
+      currentPrice,
+      originalPrice,
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Ryans Computers',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -310,6 +341,15 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'rokomari', offers: parseRokomari(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'rokomari', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchViaJina(`https://www.ryans.com/search?q=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'ryans', offers: [], error: `HTTP ${status}` };
+        return { seller: 'ryans', offers: parseRyans(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'ryans', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {
