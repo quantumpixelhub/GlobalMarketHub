@@ -33,8 +33,6 @@ interface SearchListing {
 interface SearchResponse {
   sections?: {
     localInventory: SearchListing[];
-    domesticSellers: SearchListing[];
-    internationalSellers: SearchListing[];
   };
   results?: SearchListing[];
   sortMode?: SortMode;
@@ -45,8 +43,6 @@ function SearchContent() {
   const query = searchParams.get('q') || '';
   
   const [localProducts, setLocalProducts] = useState<SearchListing[]>([]);
-  const [domesticProducts, setDomesticProducts] = useState<SearchListing[]>([]);
-  const [internationalProducts, setInternationalProducts] = useState<SearchListing[]>([]);
   const [sortMode, setSortMode] = useState<SortMode>('best_value');
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
@@ -55,8 +51,6 @@ function SearchContent() {
     const fetchResults = async () => {
       if (!query) {
         setLocalProducts([]);
-        setDomesticProducts([]);
-        setInternationalProducts([]);
         setLoading(false);
         return;
       }
@@ -70,19 +64,13 @@ function SearchContent() {
 
         if (data.sections) {
           setLocalProducts(data.sections.localInventory || []);
-          setDomesticProducts(data.sections.domesticSellers || []);
-          setInternationalProducts(data.sections.internationalSellers || []);
           return;
         }
 
         setLocalProducts(data.results || []);
-        setDomesticProducts([]);
-        setInternationalProducts([]);
       } catch (error) {
         console.error('Search error:', error);
         setLocalProducts([]);
-        setDomesticProducts([]);
-        setInternationalProducts([]);
       } finally {
         setLoading(false);
       }
@@ -189,23 +177,7 @@ function SearchContent() {
           />
         </section>
 
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Domestic Sellers</h2>
-            <span className="text-sm text-gray-500">{domesticProducts.length} items</span>
-          </div>
-          <ProductGrid products={domesticProducts} loading={loading} columns={4} />
-        </section>
-
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">International Sellers</h2>
-            <span className="text-sm text-gray-500">{internationalProducts.length} items</span>
-          </div>
-          <ProductGrid products={internationalProducts} loading={loading} columns={4} />
-        </section>
-
-        {!loading && localProducts.length === 0 && domesticProducts.length === 0 && internationalProducts.length === 0 && (
+        {!loading && localProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-xl text-gray-500 mb-4">No products found</p>
             <p className="text-gray-400">Try searching for different keywords</p>
