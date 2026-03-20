@@ -450,6 +450,9 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
     (async () => {
       try {
         const { status, text } = await fetchViaJina(`https://m.alibaba.com/trade/search?SearchText=${encodeURIComponent(q)}`);
+        if (status === 451 || /SecurityCompromiseError|"code":451/i.test(text)) {
+          return { seller: 'alibaba', offers: [] };
+        }
         if (status !== 200) return { seller: 'alibaba', offers: [], error: `HTTP ${status}` };
         return { seller: 'alibaba', offers: parseAlibaba(text, q, maxPerSeller) };
       } catch (error) {

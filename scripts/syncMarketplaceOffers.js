@@ -628,8 +628,43 @@ async function syncSeller(seller, query) {
     return { seller, fetched: 0, imported: 0, error: provider.unsupportedReason };
   }
 
-  const url = provider.buildUrl(query);
-  const { status, text, wrappedUrl } = await fetchViaJina(url);
+  const urls =
+    seller === 'alibaba'
+      ? [
+          provider.buildUrl(query),
+          `https://www.alibaba.com/trade/search?fsb=y&IndexArea=product_en&SearchText=${encodeURIComponent(query)}`,
+          `https://www.alibaba.com/trade/search?SearchText=${encodeURIComponent(query)}`,
+        ]
+      : [provider.buildUrl(query)];
+
+  let status = 0;
+  let text = '';
+  let wrappedUrl = '';
+
+  for (const url of urls) {
+    const res = await fetchViaJina(url);
+    status = res.status;
+    text = res.text;
+    wrappedUrl = res.wrappedUrl;
+
+    const blockedAlibaba = seller === 'alibaba' && (status === 451 || /SecurityCompromiseError|"code":451/i.test(text));
+    if (blockedAlibaba) {
+      continue;
+    }
+
+    if (status === 200) {
+      break;
+    }
+  }
+
+  if (seller === 'alibaba' && (status === 451 || /SecurityCompromiseError|"code":451/i.test(text))) {
+    return {
+      seller,
+      fetched: 0,
+      imported: 0,
+      error: null,
+    };
+  }
 
   if (status !== 200) {
     return {
@@ -637,15 +672,6 @@ async function syncSeller(seller, query) {
       fetched: 0,
       imported: 0,
       error: `HTTP ${status} from ${wrappedUrl}`,
-    };
-  }
-
-  if (seller === 'alibaba' && /SecurityCompromiseError|"code":451/i.test(text)) {
-    return {
-      seller,
-      fetched: 0,
-      imported: 0,
-      error: 'Source blocked in current environment (451)',
     };
   }
 
