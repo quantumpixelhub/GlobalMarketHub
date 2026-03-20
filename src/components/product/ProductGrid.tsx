@@ -15,6 +15,10 @@ interface Product {
     id: string;
     storeName: string;
   };
+  sourceType?: 'LOCAL' | 'DOMESTIC' | 'INTERNATIONAL';
+  sourcePlatform?: string;
+  externalUrl?: string;
+  lastSyncedAt?: string;
 }
 
 interface ProductGridProps {

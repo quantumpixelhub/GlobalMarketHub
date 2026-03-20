@@ -8,36 +8,92 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
+type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated' | 'best_value';
+
+interface SearchListing {
+  id: string;
+  title: string;
+  currentPrice: number;
+  originalPrice: number;
+  mainImage: string;
+  rating: number;
+  reviewCount: number;
+  stock: number;
+  isFeatured?: boolean;
+  sourceType?: 'LOCAL' | 'DOMESTIC' | 'INTERNATIONAL';
+  sourcePlatform?: string;
+  externalUrl?: string;
+  lastSyncedAt?: string;
+  seller: {
+    id: string;
+    storeName: string;
+  };
+}
+
+interface SearchResponse {
+  sections?: {
+    localInventory: SearchListing[];
+    domesticSellers: SearchListing[];
+    internationalSellers: SearchListing[];
+  };
+  results?: SearchListing[];
+  sortMode?: SortMode;
+}
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   
-  const [products, setProducts] = useState([]);
+  const [localProducts, setLocalProducts] = useState<SearchListing[]>([]);
+  const [domesticProducts, setDomesticProducts] = useState<SearchListing[]>([]);
+  const [internationalProducts, setInternationalProducts] = useState<SearchListing[]>([]);
+  const [sortMode, setSortMode] = useState<SortMode>('best_value');
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (!query) return;
+      if (!query) {
+        setLocalProducts([]);
+        setDomesticProducts([]);
+        setInternationalProducts([]);
+        setLoading(false);
+        return;
+      }
       
       try {
         setLoading(true);
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        setProducts(data.results);
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}`,
+        );
+        const data: SearchResponse = await res.json();
+
+        if (data.sections) {
+          setLocalProducts(data.sections.localInventory || []);
+          setDomesticProducts(data.sections.domesticSellers || []);
+          setInternationalProducts(data.sections.internationalSellers || []);
+          return;
+        }
+
+        setLocalProducts(data.results || []);
+        setDomesticProducts([]);
+        setInternationalProducts([]);
       } catch (error) {
         console.error('Search error:', error);
+        setLocalProducts([]);
+        setDomesticProducts([]);
+        setInternationalProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchResults();
-  }, [query]);
+  }, [query, sortMode]);
 
   const handleAddToCart = async (productId: string) => {
     try {
-      const product = (products as any[]).find((p: any) => p.id === productId);
+      const product = localProducts.find((p) => p.id === productId);
       if (!product) return;
 
       const token = localStorage.getItem('token');
@@ -79,7 +135,7 @@ function SearchContent() {
       }
     } catch (error) {
       console.error('Error:', error);
-      const product = (products as any[]).find((p: any) => p.id === productId);
+      const product = localProducts.find((p) => p.id === productId);
       if (product) {
         addToGuestCart({
           id: product.id,
@@ -102,14 +158,54 @@ function SearchContent() {
           {query && `Showing results for "${query}"`}
         </p>
 
-        <ProductGrid
-          products={products}
-          loading={loading}
-          onAddToCart={handleAddToCart}
-          columns={4}
-        />
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <label htmlFor="sort-mode" className="text-sm text-gray-700 font-medium">
+            Sort by:
+          </label>
+          <select
+            id="sort-mode"
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as SortMode)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="best_value">Best Value</option>
+            <option value="best_price">Best Price</option>
+            <option value="trust_seller">Trust Seller</option>
+            <option value="most_reviews">Most Reviews</option>
+            <option value="highest_rated">Highest Rated</option>
+          </select>
+        </div>
 
-        {!loading && products.length === 0 && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Local Inventory</h2>
+            <span className="text-sm text-gray-500">{localProducts.length} items</span>
+          </div>
+          <ProductGrid
+            products={localProducts}
+            loading={loading}
+            onAddToCart={handleAddToCart}
+            columns={4}
+          />
+        </section>
+
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Domestic Sellers</h2>
+            <span className="text-sm text-gray-500">{domesticProducts.length} items</span>
+          </div>
+          <ProductGrid products={domesticProducts} loading={loading} columns={4} />
+        </section>
+
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">International Sellers</h2>
+            <span className="text-sm text-gray-500">{internationalProducts.length} items</span>
+          </div>
+          <ProductGrid products={internationalProducts} loading={loading} columns={4} />
+        </section>
+
+        {!loading && localProducts.length === 0 && domesticProducts.length === 0 && internationalProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-xl text-gray-500 mb-4">No products found</p>
             <p className="text-gray-400">Try searching for different keywords</p>

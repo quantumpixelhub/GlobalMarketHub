@@ -3,6 +3,85 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
+type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated' | 'best_value';
+
+type SearchListing = {
+  id: string;
+  title: string;
+  currentPrice: number;
+  originalPrice: number;
+  mainImage: string;
+  rating: number;
+  reviewCount: number;
+  stock: number;
+  isFeatured?: boolean;
+  externalUrl?: string;
+  sourceType: 'LOCAL' | 'DOMESTIC' | 'INTERNATIONAL';
+  sourcePlatform: string;
+  lastSyncedAt?: string;
+  seller: {
+    id: string;
+    storeName: string;
+  };
+};
+
+const DOMESTIC_PLATFORMS = new Set([
+  'daraz',
+  'othoba',
+  'pickaboo',
+  'star-tech',
+  'startech',
+  'ryans',
+  'chaldal',
+  'rokomari',
+  'gadget-and-gear',
+  'gadgetandgear',
+  'walton-digitech',
+  'waltondigitech',
+  'shajgoj',
+]);
+
+const INTERNATIONAL_PLATFORMS = new Set(['amazon', 'alibaba']);
+
+const normalizePlatform = (platform: string) =>
+  platform.toLowerCase().trim().replace(/\s+/g, '-');
+
+const clampReviewCount = (value: number) => (Number.isFinite(value) ? value : 0);
+
+const getSortMode = (value: string | null): SortMode => {
+  const normalized = (value || '').toLowerCase();
+  if (normalized === 'best_price') return 'best_price';
+  if (normalized === 'trust_seller') return 'trust_seller';
+  if (normalized === 'most_reviews') return 'most_reviews';
+  if (normalized === 'highest_rated') return 'highest_rated';
+  return 'best_value';
+};
+
+const compareListings = (mode: SortMode) => (a: SearchListing, b: SearchListing) => {
+  if (mode === 'best_price') {
+    return a.currentPrice - b.currentPrice;
+  }
+
+  if (mode === 'trust_seller') {
+    if (b.rating !== a.rating) return b.rating - a.rating;
+    return b.reviewCount - a.reviewCount;
+  }
+
+  if (mode === 'most_reviews') {
+    if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount;
+    return b.rating - a.rating;
+  }
+
+  if (mode === 'highest_rated') {
+    if (b.rating !== a.rating) return b.rating - a.rating;
+    return b.reviewCount - a.reviewCount;
+  }
+
+  const valueScoreA = (a.rating * 20) + Math.min(a.reviewCount / 10, 30) - (a.currentPrice / 10000);
+  const valueScoreB = (b.rating * 20) + Math.min(b.reviewCount / 10, 30) - (b.currentPrice / 10000);
+  return valueScoreB - valueScoreA;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -14,6 +93,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("order") || "desc";
+    const sortMode = getSortMode(searchParams.get('sortMode'));
 
     const skip = (page - 1) * limit;
 
@@ -61,13 +141,94 @@ export async function GET(request: NextRequest) {
       include: {
         category: { select: { id: true, name: true } },
         seller: { select: { id: true, storeName: true } },
+        externalProducts: {
+          where: { isTracked: true },
+          select: {
+            id: true,
+            platform: true,
+            externalUrl: true,
+            externalPrice: true,
+            externalOriginalPrice: true,
+            externalRating: true,
+            externalReviewCount: true,
+            lastSyncedAt: true,
+          },
+        },
       },
     });
 
     const total = await prisma.product.count({ where });
 
+    const localInventory: SearchListing[] = products.map((product) => ({
+      id: product.id,
+      title: product.title,
+      currentPrice: Number(product.currentPrice),
+      originalPrice: Number(product.originalPrice),
+      mainImage: product.mainImage,
+      rating: Number(product.rating),
+      reviewCount: product.reviewCount,
+      stock: product.stock,
+      isFeatured: product.isFeatured,
+      sourceType: 'LOCAL',
+      sourcePlatform: 'globalmarkethub',
+      seller: {
+        id: product.seller.id,
+        storeName: product.seller.storeName,
+      },
+    }));
+
+    const domesticSellers: SearchListing[] = [];
+    const internationalSellers: SearchListing[] = [];
+
+    products.forEach((product) => {
+      product.externalProducts.forEach((external) => {
+        const normalizedPlatform = normalizePlatform(external.platform);
+        const listing: SearchListing = {
+          id: `ext-${external.id}`,
+          title: product.title,
+          currentPrice: Number(external.externalPrice),
+          originalPrice: Number(external.externalOriginalPrice || external.externalPrice),
+          mainImage: product.mainImage,
+          rating: Number(external.externalRating || product.rating),
+          reviewCount: clampReviewCount(external.externalReviewCount || product.reviewCount),
+          stock: 999,
+          isFeatured: product.isFeatured,
+          externalUrl: external.externalUrl,
+          sourceType: INTERNATIONAL_PLATFORMS.has(normalizedPlatform) ? 'INTERNATIONAL' : 'DOMESTIC',
+          sourcePlatform: external.platform,
+          lastSyncedAt: external.lastSyncedAt ? external.lastSyncedAt.toISOString() : undefined,
+          seller: {
+            id: product.seller.id,
+            storeName: product.seller.storeName,
+          },
+        };
+
+        if (INTERNATIONAL_PLATFORMS.has(normalizedPlatform)) {
+          internationalSellers.push(listing);
+          return;
+        }
+
+        if (DOMESTIC_PLATFORMS.has(normalizedPlatform)) {
+          domesticSellers.push(listing);
+          return;
+        }
+
+        domesticSellers.push(listing);
+      });
+    });
+
+    localInventory.sort(compareListings(sortMode));
+    domesticSellers.sort(compareListings(sortMode));
+    internationalSellers.sort(compareListings(sortMode));
+
     return NextResponse.json(
       {
+        sections: {
+          localInventory,
+          domesticSellers,
+          internationalSellers,
+        },
+        sortMode,
         results: products,
         pagination: {
           page,
