@@ -38,8 +38,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   userName = '',
   onLogout,
 }) => {
-  const MAX_VISIBLE_CATEGORY_LINKS = 16;
-
   const pathname = usePathname();
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
   const [resolvedAuth, setResolvedAuth] = React.useState(Boolean(isAuthenticated));
@@ -47,6 +45,15 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [resolvedWishlistCount, setResolvedWishlistCount] = React.useState(wishlistCount || 0);
   const [profileImage, setProfileImage] = React.useState<string | null>(null);
   const [categories, setCategories] = React.useState<Category[]>([]);
+  const [visibleCategoryCount, setVisibleCategoryCount] = React.useState(0);
+  const [linksContainerWidth, setLinksContainerWidth] = React.useState(0);
+  const linksContainerRef = React.useRef<HTMLDivElement>(null);
+  const measurementWrapRef = React.useRef<HTMLDivElement>(null);
+
+  const mainCategories = React.useMemo(
+    () => categories.filter((cat) => !cat.parentId),
+    [categories],
+  );
 
   const resolveProfile = React.useCallback(async (token: string) => {
     try {
@@ -169,6 +176,52 @@ export const Navigation: React.FC<NavigationProps> = ({
     };
   }, [pathname, syncCartAndAuthState, fetchCategories, fetchWishlistCount]);
 
+  React.useEffect(() => {
+    const linksContainer = linksContainerRef.current;
+    if (!linksContainer) return;
+
+    const updateWidth = () => {
+      setLinksContainerWidth(linksContainer.clientWidth);
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(linksContainer);
+
+    return () => observer.disconnect();
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const measureWrap = measurementWrapRef.current;
+
+    if (!measureWrap || mainCategories.length === 0) {
+      setVisibleCategoryCount(0);
+      return;
+    }
+
+    const items = Array.from(
+      measureWrap.querySelectorAll<HTMLElement>('[data-measure-category="true"]'),
+    );
+
+    if (items.length === 0) {
+      setVisibleCategoryCount(0);
+      return;
+    }
+
+    const tops = items.map((item) => item.offsetTop);
+    const uniqueRowTops = Array.from(new Set(tops)).sort((a, b) => a - b);
+
+    if (uniqueRowTops.length <= 2) {
+      setVisibleCategoryCount(items.length);
+      return;
+    }
+
+    const secondRowTop = uniqueRowTops[1];
+    const fittedCount = tops.filter((top) => top <= secondRowTop).length;
+    setVisibleCategoryCount(Math.max(1, fittedCount));
+  }, [mainCategories, linksContainerWidth]);
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       {/* Top Bar */}
@@ -276,46 +329,67 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links with Subcategories */}
-        <div className="flex gap-2 md:gap-3 flex-wrap pb-2 mt-5 md:mt-6 scrollbar-hide border-b-2 border-blue-600">
-          {categories
-            .filter((cat) => !cat.parentId) // Only main categories
-            .slice(0, MAX_VISIBLE_CATEGORY_LINKS)
-            .map((category) => {
-              const subcategories = categories.filter((cat) => cat.parentId === category.id);
-              const hasSubcategories = subcategories.length > 0;
+        <div className="mt-5 md:mt-6 pb-2 border-b-2 border-blue-600">
+          <div className="flex items-start gap-2 md:gap-3">
+            <div ref={linksContainerRef} className="relative flex-1 min-w-0">
+              <div className="flex gap-2 md:gap-3 flex-wrap scrollbar-hide">
+                {mainCategories
+                  .slice(0, visibleCategoryCount || mainCategories.length)
+                  .map((category) => {
+                    const subcategories = categories.filter((cat) => cat.parentId === category.id);
+                    const hasSubcategories = subcategories.length > 0;
 
-              return (
-                <div key={category.id} className="relative group flex-shrink-0">
-                  <Link
-                    href={`/products?category=${category.slug}`}
-                    className="text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
-                  >
-                    {category.name}
-                  </Link>
-
-                  {/* Subcategories Dropdown */}
-                  {hasSubcategories && (
-                    <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 w-max">
-                      {subcategories.map((sub) => (
+                    return (
+                      <div key={category.id} className="relative group flex-shrink-0">
                         <Link
-                          key={sub.id}
-                          href={`/products?category=${sub.slug}`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
+                          href={`/products?category=${category.slug}`}
+                          className="text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
                         >
-                          {sub.name}
+                          {category.name}
                         </Link>
-                      ))}
-                    </div>
-                  )}
+
+                        {/* Subcategories Dropdown */}
+                        {hasSubcategories && (
+                          <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 w-max">
+                            {subcategories.map((sub) => (
+                              <Link
+                                key={sub.id}
+                                href={`/products?category=${sub.slug}`}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
+                              >
+                                {sub.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Hidden measurement row to compute exact two-line fit */}
+              <div className="absolute left-0 top-0 invisible pointer-events-none -z-10 w-full">
+                <div ref={measurementWrapRef} className="flex gap-2 md:gap-3 flex-wrap">
+                  {mainCategories.map((category) => (
+                    <span
+                      key={`measure-${category.id}`}
+                      data-measure-category="true"
+                      className="text-xs whitespace-nowrap py-3 px-1.5 border-b-2 border-transparent"
+                    >
+                      {category.name}
+                    </span>
+                  ))}
                 </div>
-              );
-            })}
-          <Link
-            href="/products"
-            className="text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors ml-auto"
-          >
-            See All →
-          </Link>
+              </div>
+            </div>
+
+            <Link
+              href="/products"
+              className="text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors flex-shrink-0"
+            >
+              See All →
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
