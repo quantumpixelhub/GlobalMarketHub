@@ -10,6 +10,44 @@ const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,aliexpr
   .map((v) => v.trim().toLowerCase())
   .filter(Boolean);
 
+const REGISTERED_SOURCES = [
+  'daraz',
+  'evaly',
+  'ajkerdeal',
+  'priyoshop',
+  'othoba',
+  'bagdoom',
+  'clickbd',
+  'bdstall',
+  'unikart',
+  'meena-click',
+  'bikroy',
+  'chaldal',
+  'shwapno',
+  'rokomari',
+  'boighar',
+  'pickaboo',
+  'startech',
+  'ryans',
+  'techland-bd',
+  'gadget-and-gear',
+  'aarong',
+  'yellow',
+  'sailor',
+  'cats-eye',
+  'ecstasy',
+  'easy',
+  'milan',
+  'top-ten',
+  'shajgoj',
+  'beauty-booth-bd',
+  'bbb',
+  'livewire',
+  'take-and-talks-bd',
+  'alibaba',
+  'aliexpress',
+];
+
 const normalizeText = (value) => String(value || '').trim();
 
 const parsePrice = (value) => {
@@ -23,6 +61,7 @@ const parseIntSafe = (value) => {
 };
 
 const shortHash = (value) => crypto.createHash('sha1').update(String(value)).digest('hex').slice(0, 16);
+const unsupportedProvider = (buildUrl, reason) => ({ buildUrl, parse: () => [], unsupportedReason: reason });
 
 const slugParts = (value) =>
   normalizeText(value)
@@ -317,6 +356,35 @@ const providers = {
     buildUrl: (q) => `https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(q)}`,
     parse: parseAliExpress,
   },
+  evaly: unsupportedProvider((q) => `https://evaly.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  ajkerdeal: unsupportedProvider((q) => `https://ajkerdeal.com/search?keyword=${encodeURIComponent(q)}`, 'Connector queued'),
+  priyoshop: unsupportedProvider((q) => `https://priyoshop.com/search?keyword=${encodeURIComponent(q)}`, 'Connector queued'),
+  othoba: unsupportedProvider((q) => `https://othoba.com/search?text=${encodeURIComponent(q)}`, 'Connector queued'),
+  bagdoom: unsupportedProvider((q) => `https://www.bagdoom.com/search?query=${encodeURIComponent(q)}`, 'Connector queued'),
+  clickbd: unsupportedProvider((q) => `https://www.clickbd.com/search.php?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  bdstall: unsupportedProvider((q) => `https://www.bdstall.com/search/${encodeURIComponent(q)}`, 'Connector queued'),
+  unikart: unsupportedProvider((q) => `https://unikart.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'meena-click': unsupportedProvider((q) => `https://meenaclick.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  bikroy: unsupportedProvider((q) => `https://bikroy.com/en/ads/bangladesh?query=${encodeURIComponent(q)}`, 'Connector queued'),
+  shwapno: unsupportedProvider((q) => `https://www.shwapno.com/search?text=${encodeURIComponent(q)}`, 'Connector queued'),
+  boighar: unsupportedProvider((q) => `https://boighar.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  pickaboo: unsupportedProvider((q) => `https://www.pickaboo.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  ryans: unsupportedProvider((q) => `https://www.ryans.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'techland-bd': unsupportedProvider((q) => `https://www.techlandbd.com/search?search=${encodeURIComponent(q)}`, 'Connector queued'),
+  'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
+  aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  yellow: unsupportedProvider((q) => `https://yellowclothing.net/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  sailor: unsupportedProvider((q) => `https://sailor.clothing/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'cats-eye': unsupportedProvider((q) => `https://www.catseye.com.bd/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
+  ecstasy: unsupportedProvider((q) => `https://ecstasybd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  easy: unsupportedProvider((q) => `https://easyfashion.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  milan: unsupportedProvider((q) => `https://milan-bd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'top-ten': unsupportedProvider((q) => `https://topten.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  shajgoj: unsupportedProvider((q) => `https://shop.shajgoj.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'beauty-booth-bd': unsupportedProvider((q) => `https://beautybooth.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  bbb: unsupportedProvider((q) => `https://bbb.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  livewire: unsupportedProvider((q) => `https://livewirebd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'take-and-talks-bd': unsupportedProvider((q) => `https://takeandtalksbd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
 };
 
 async function upsertOffer(offer) {
@@ -370,6 +438,10 @@ async function syncSeller(seller, query) {
     return { seller, fetched: 0, imported: 0, error: 'Provider not configured' };
   }
 
+  if (provider.unsupportedReason) {
+    return { seller, fetched: 0, imported: 0, error: provider.unsupportedReason };
+  }
+
   const url = provider.buildUrl(query);
   const { status, text, wrappedUrl } = await fetchViaJina(url);
 
@@ -411,6 +483,7 @@ async function syncSeller(seller, query) {
 }
 
 async function main() {
+  console.log(`Registered sources: ${REGISTERED_SOURCES.length}`);
   console.log(`Syncing marketplace offers. query="${DEFAULT_QUERY}", sellers=${SELLERS.join(',')}, maxPerSeller=${MAX_PER_SELLER}`);
 
   const results = [];
