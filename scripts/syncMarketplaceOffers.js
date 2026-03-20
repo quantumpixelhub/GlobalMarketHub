@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const DEFAULT_QUERY = process.env.SEARCH_QUERY || 'coffee';
 const MAX_PER_SELLER = Math.max(1, Number(process.env.MAX_PER_SELLER || 120));
-const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,pickaboo,aliexpress,alibaba,amazon')
+const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,pickaboo,yellow,sailor,cats-eye,aliexpress,alibaba,amazon')
   .split(',')
   .map((v) => v.trim().toLowerCase())
   .filter(Boolean);
@@ -765,6 +765,54 @@ function parseSailorApi(jsonText, query) {
   return offers;
 }
 
+function parseCatsEye(html, query) {
+  const offers = [];
+  const regex = /<a class="product-item-link" href="(https?:\/\/catseye\.com\.bd\/catalog\/product\/view\/id\/\d+\/s\/[^"\s]+)"[^>]*>\s*([\s\S]{1,220}?)\s*<\/a>[\s\S]{0,1700}?id="product-price-\d+"\s+data-price-amount="([0-9.]+)"[\s\S]{0,700}?(?:id="old-price-\d+"\s+data-price-amount="([0-9.]+)")?/gi;
+  const seen = new Set();
+
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const title = normalizeText(match[2]).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+    if (!title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const currentPrice = Number(match[3]);
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = match[4] ? Number(match[4]) : currentPrice;
+    const externalUrl = match[1].replace(/&amp;/g, '&');
+    const idMatch = externalUrl.match(/\/id\/(\d+)\//i);
+    const externalId = idMatch ? `cats-eye-${idMatch[1]}` : `cats-eye-${shortHash(externalUrl)}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    const lead = html.slice(Math.max(0, match.index - 2200), match.index + 250);
+    const imageMatches = [...lead.matchAll(/data-src="(https?:\/\/catseye\.com\.bd\/pub\/media\/catalog\/product\/[^"\s]+)"/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][1] : null;
+
+    offers.push({
+      platform: 'cats-eye',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'Cats Eye',
+      imageUrl,
+      categoryName: 'Fashion',
+      externalPrice: Math.round(currentPrice),
+      externalOriginalPrice: Math.max(Math.round(originalPrice), Math.round(currentPrice)),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -837,10 +885,14 @@ const providers = {
     parse: parseSailorApi,
     fetch: fetchDirect,
   },
+  'cats-eye': {
+    buildUrl: (q) => `https://catseye.com.bd/catalogsearch/result/?q=${encodeURIComponent(q)}`,
+    parse: parseCatsEye,
+    fetch: fetchDirect,
+  },
   
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  'cats-eye': unsupportedProvider((q) => `https://www.catseye.com.bd/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   ecstasy: unsupportedProvider((q) => `https://ecstasybd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   easy: unsupportedProvider((q) => `https://easyfashion.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   milan: unsupportedProvider((q) => `https://milan-bd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
@@ -932,6 +984,11 @@ async function syncSeller(seller, query) {
             'https://backend.sailor.clothing/api/v2/products/category/100',
             'https://backend.sailor.clothing/api/v2/products/category/136',
             'https://backend.sailor.clothing/api/v2/products/category/225',
+          ]
+      : seller === 'cats-eye'
+        ? [
+            provider.buildUrl(query),
+            `https://www.catseye.com.bd/catalogsearch/result/?q=${encodeURIComponent(query)}`,
           ]
       : [provider.buildUrl(query)];
 

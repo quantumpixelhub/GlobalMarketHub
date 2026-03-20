@@ -598,6 +598,45 @@ const parseSailorApi = (jsonText: string, query: string, max: number): LiveOffer
   return offers;
 };
 
+const parseCatsEye = (html: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  const regex = /<a class="product-item-link" href="(https?:\/\/catseye\.com\.bd\/catalog\/product\/view\/id\/\d+\/s\/[^"\s]+)"[^>]*>\s*([\s\S]{1,220}?)\s*<\/a>[\s\S]{0,1700}?id="product-price-\d+"\s+data-price-amount="([0-9.]+)"[\s\S]{0,700}?(?:id="old-price-\d+"\s+data-price-amount="([0-9.]+)")?/gi;
+  const seen = new Set<string>();
+
+  let m;
+  while ((m = regex.exec(html)) !== null && offers.length < max) {
+    const title = String(m[2] || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!title || !matchesQuery(title, query)) continue;
+
+    const currentRaw = Number(m[3]);
+    if (!Number.isFinite(currentRaw) || currentRaw <= 0) continue;
+
+    const originalRaw = m[4] ? Number(m[4]) : currentRaw;
+    const externalUrl = String(m[1] || '').replace(/&amp;/g, '&');
+    const key = externalUrl.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const lead = html.slice(Math.max(0, m.index - 2200), m.index + 250);
+    const imageMatches = [...lead.matchAll(/data-src="(https?:\/\/catseye\.com\.bd\/pub\/media\/catalog\/product\/[^"\s]+)"/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][1] : undefined;
+
+    offers.push({
+      platform: 'cats-eye',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl,
+      currentPrice: Math.round(currentRaw),
+      originalPrice: Math.max(Math.round(originalRaw), Math.round(currentRaw)),
+      discountVerified: originalRaw > currentRaw,
+      sellerName: 'Cats Eye',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -748,6 +787,28 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'sailor', offers: merged };
       } catch (error) {
         return { seller: 'sailor', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const urls = [
+          `https://catseye.com.bd/catalogsearch/result/?q=${encodeURIComponent(q)}`,
+          `https://www.catseye.com.bd/catalogsearch/result/?q=${encodeURIComponent(q)}`,
+        ];
+
+        for (const url of urls) {
+          const { status, text } = await fetchDirect(url);
+          if (status !== 200) continue;
+
+          const parsed = parseCatsEye(text, q, maxPerSeller);
+          if (parsed.length > 0) {
+            return { seller: 'cats-eye', offers: parsed };
+          }
+        }
+
+        return { seller: 'cats-eye', offers: [] };
+      } catch (error) {
+        return { seller: 'cats-eye', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {

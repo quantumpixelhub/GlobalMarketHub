@@ -43,6 +43,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'catseye.com.bd',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.catseye.com.bd',
+      },
+      {
+        protocol: 'https',
         hostname: 'storage.googleapis.com',
       },
       {
