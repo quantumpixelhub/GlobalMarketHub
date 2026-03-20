@@ -27,54 +27,6 @@ type SearchListing = {
   };
 };
 
-const DOMESTIC_PLATFORMS = new Set([
-  'daraz',
-  'evaly',
-  'ajkerdeal',
-  'priyoshop',
-  'othoba',
-  'bagdoom',
-  'clickbd',
-  'bdstall',
-  'unikart',
-  'meena-click',
-  'meenaclick',
-  'bikroy',
-  'pickaboo',
-  'star-tech',
-  'startech',
-  'ryans-computers',
-  'ryans',
-  'techland-bd',
-  'techlandbd',
-  'chaldal',
-  'shwapno',
-  'rokomari',
-  'boighar',
-  'gadget-and-gear',
-  'gadgetandgear',
-  'aarong',
-  'yellow',
-  'sailor',
-  'cats-eye',
-  'catseye',
-  'ecstasy',
-  'easy',
-  'milan',
-  'top-ten',
-  'topten',
-  'walton-digitech',
-  'waltondigitech',
-  'shajgoj',
-  'beauty-booth-bd',
-  'beautyboothbd',
-  'bbb',
-  'livewire',
-  'take-and-talks-bd',
-  'take-talks-bd',
-  'takeandtalksbd',
-]);
-
 const INTERNATIONAL_PLATFORMS = new Set(['amazon', 'alibaba', 'aliexpress']);
 const DEFAULT_PAGE_SIZE = 24;
 const MAX_PAGE_SIZE = 24;
@@ -524,7 +476,6 @@ export async function GET(request: NextRequest) {
       maxPrice || '',
     ].join('|');
     const cached = sectionResultCache.get(sectionCacheKey);
-    const hasAnyCache = Boolean(cached);
     const hasFreshCache = Boolean(cached && (Date.now() - cached.createdAt) < SECTION_CACHE_TTL_MS);
     const usingStaleCache = Boolean(cached && !hasFreshCache);
     const cacheAgeMs = cached ? Date.now() - cached.createdAt : Number.MAX_SAFE_INTEGER;
