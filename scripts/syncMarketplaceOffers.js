@@ -331,10 +331,52 @@ function parseAliExpress(markdown, query) {
   return offers;
 }
 
+function parseBagdoom(markdown, query) {
+  const offers = [];
+  const regex = /### \[([^\]]+)\]\((https?:\/\/www\.bagdoom\.com\/product\/[^\s)]+)[^)]*\)(?:[\s\S]{0,120}?~~৳([0-9.,]+)~~)?[\s\S]{0,100}?৳([0-9.,]+)/gi;
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const title = normalizeText(match[1]);
+    if (!title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const currentPrice = parsePrice(match[4]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = match[3] ? parsePrice(match[3]) : currentPrice;
+    const url = match[2];
+    const slug = url.split('/').pop() || url;
+
+    offers.push({
+      platform: 'bagdoom',
+      externalId: `bagdoom-${shortHash(slug)}`,
+      externalUrl: url,
+      title,
+      sellerName: 'Bagdoom Marketplace',
+      imageUrl: null,
+      categoryName: 'Marketplace',
+      externalPrice: currentPrice,
+      externalOriginalPrice: originalPrice,
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
     parse: parseDaraz,
+  },
+  bagdoom: {
+    buildUrl: (q) => `https://www.bagdoom.com/search?query=${encodeURIComponent(q)}`,
+    parse: parseBagdoom,
   },
   chaldal: {
     buildUrl: (q) => `https://chaldal.com/search/${encodeURIComponent(q)}`,
@@ -360,7 +402,7 @@ const providers = {
   ajkerdeal: unsupportedProvider((q) => `https://ajkerdeal.com/search?keyword=${encodeURIComponent(q)}`, 'Connector queued'),
   priyoshop: unsupportedProvider((q) => `https://priyoshop.com/search?keyword=${encodeURIComponent(q)}`, 'Connector queued'),
   othoba: unsupportedProvider((q) => `https://othoba.com/search?text=${encodeURIComponent(q)}`, 'Connector queued'),
-  bagdoom: unsupportedProvider((q) => `https://www.bagdoom.com/search?query=${encodeURIComponent(q)}`, 'Connector queued'),
+  
   clickbd: unsupportedProvider((q) => `https://www.clickbd.com/search.php?q=${encodeURIComponent(q)}`, 'Connector queued'),
   bdstall: unsupportedProvider((q) => `https://www.bdstall.com/search/${encodeURIComponent(q)}`, 'Connector queued'),
   unikart: unsupportedProvider((q) => `https://unikart.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),

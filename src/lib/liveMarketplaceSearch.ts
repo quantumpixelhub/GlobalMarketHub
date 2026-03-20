@@ -239,6 +239,36 @@ const parseAliExpress = (markdown: string, query: string, max: number): LiveOffe
   return offers;
 };
 
+const parseBagdoom = (markdown: string, query: string, max: number): LiveOffer[] => {
+  const regex = /### \[([^\]]+)\]\((https?:\/\/www\.bagdoom\.com\/product\/[^\s)]+)[^)]*\)(?:[\s\S]{0,120}?~~৳([0-9.,]+)~~)?[\s\S]{0,100}?৳([0-9.,]+)/gi;
+  const offers: LiveOffer[] = [];
+
+  let m;
+  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
+    const title = String(m[1] || '').trim();
+    if (!matchesQuery(title, query)) continue;
+
+    const currentPrice = parsePrice(m[4]);
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = m[3] ? parsePrice(m[3]) : currentPrice;
+
+    offers.push({
+      platform: 'bagdoom',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl: m[2],
+      imageUrl: undefined,
+      currentPrice,
+      originalPrice,
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Bagdoom Marketplace',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -253,6 +283,15 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'daraz', offers: parseDaraz(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'daraz', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchViaJina(`https://www.bagdoom.com/search?query=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'bagdoom', offers: [], error: `HTTP ${status}` };
+        return { seller: 'bagdoom', offers: parseBagdoom(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'bagdoom', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {
