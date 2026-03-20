@@ -38,7 +38,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   userName = '',
   onLogout,
 }) => {
-  const MAX_VISIBLE_CATEGORY_LINKS = 14;
+  const MAX_VISIBLE_CATEGORY_LINKS = 16;
 
   const pathname = usePathname();
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
