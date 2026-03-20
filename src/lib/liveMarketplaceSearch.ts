@@ -687,6 +687,70 @@ const parseEasyStoreApi = (jsonText: string, query: string, max: number): LiveOf
   return offers;
 };
 
+const parseTopTenShopify = (jsonText: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  let payload: unknown;
+
+  try {
+    payload = JSON.parse(jsonText);
+  } catch {
+    return offers;
+  }
+
+  const suggested = Array.isArray((payload as { resources?: { results?: { products?: unknown[] } } })?.resources?.results?.products)
+    ? (((payload as { resources: { results: { products: unknown[] } } }).resources.results.products as unknown[]) as Array<Record<string, unknown>>)
+    : [];
+  const catalog = Array.isArray((payload as { products?: unknown[] })?.products)
+    ? (((payload as { products: unknown[] }).products as unknown[]) as Array<Record<string, unknown>>)
+    : [];
+  const rows = suggested.length ? suggested : catalog;
+  const seen = new Set<string>();
+
+  for (const row of rows) {
+    if (offers.length >= max) return offers;
+
+    const title = String(row?.title || row?.name || '').trim();
+    if (!title || !matchesQuery(title, query)) continue;
+
+    const currentPrice = parsePrice(String(row?.price || row?.price_min || (Array.isArray(row?.variants) ? (row.variants as Array<Record<string, unknown>>)[0]?.price : '') || '0'));
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = parsePrice(String(row?.compare_at_price_min || row?.compare_at_price_max || (Array.isArray(row?.variants) ? (row.variants as Array<Record<string, unknown>>)[0]?.compare_at_price : '') || '0')) || currentPrice;
+    const rawUrl = String(row?.url || '').trim();
+    const handle = String(row?.handle || '').trim();
+    const externalUrl = rawUrl
+      ? (rawUrl.startsWith('http') ? rawUrl : `https://toptenmartltd.com${rawUrl}`)
+      : (handle ? `https://toptenmartltd.com/products/${handle}` : '');
+    if (!externalUrl) continue;
+
+    const key = String(row?.id || externalUrl).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const imageUrl = String(
+      row?.image ||
+      (row?.featured_image as { url?: string } | undefined)?.url ||
+      (row?.image as { src?: string } | undefined)?.src ||
+      (Array.isArray(row?.images) ? ((row.images as Array<Record<string, unknown>>)[0]?.src as string) : '') ||
+      ''
+    ).trim() || undefined;
+
+    offers.push({
+      platform: 'top-ten',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl,
+      currentPrice,
+      originalPrice: Math.max(originalPrice, currentPrice),
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'TopTen Mart',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -868,6 +932,28 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'easy', offers: parseEasyStoreApi(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'easy', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const urls = [
+          `https://toptenmartltd.com/search/suggest.json?q=${encodeURIComponent(q)}&resources[type]=product&resources[limit]=40`,
+          'https://toptenmartltd.com/products.json?limit=80',
+        ];
+
+        for (const url of urls) {
+          const { status, text } = await fetchDirect(url);
+          if (status !== 200) continue;
+
+          const parsed = parseTopTenShopify(text, q, maxPerSeller);
+          if (parsed.length > 0) {
+            return { seller: 'top-ten', offers: parsed };
+          }
+        }
+
+        return { seller: 'top-ten', offers: [] };
+      } catch (error) {
+        return { seller: 'top-ten', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {

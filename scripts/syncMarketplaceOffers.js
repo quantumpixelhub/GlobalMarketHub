@@ -869,6 +869,73 @@ function parseEasyStoreApi(jsonText, query) {
   return offers;
 }
 
+function parseTopTenShopify(jsonText, query) {
+  const offers = [];
+  let payload;
+
+  try {
+    payload = JSON.parse(jsonText);
+  } catch {
+    return offers;
+  }
+
+  const suggested = Array.isArray(payload?.resources?.results?.products)
+    ? payload.resources.results.products
+    : [];
+  const catalog = Array.isArray(payload?.products) ? payload.products : [];
+  const rows = suggested.length ? suggested : catalog;
+  const queryLower = String(query || '').toLowerCase();
+  const seen = new Set();
+
+  for (const row of rows) {
+    const title = normalizeText(row?.title || row?.name);
+    if (!title || !title.toLowerCase().includes(queryLower)) {
+      continue;
+    }
+
+    const suggestedPrice = parsePrice(row?.price || row?.price_min || row?.price_max || '');
+    const variantPrice = parsePrice(row?.variants?.[0]?.price || row?.variants?.[0]?.compare_at_price || '');
+    const currentPrice = suggestedPrice || variantPrice;
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const suggestedOriginal = parsePrice(row?.compare_at_price_min || row?.compare_at_price_max || '');
+    const variantOriginal = parsePrice(row?.variants?.[0]?.compare_at_price || '');
+    const originalPrice = suggestedOriginal || variantOriginal || currentPrice;
+
+    const rawUrl = normalizeText(row?.url || '');
+    const externalUrl = rawUrl
+      ? (rawUrl.startsWith('http') ? rawUrl : `https://toptenmartltd.com${rawUrl}`)
+      : (row?.handle ? `https://toptenmartltd.com/products/${row.handle}` : '');
+    if (!externalUrl) {
+      continue;
+    }
+
+    const externalId = row?.id ? `top-ten-${row.id}` : `top-ten-${shortHash(externalUrl)}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    offers.push({
+      platform: 'top-ten',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'TopTen Mart',
+      imageUrl: row?.image || row?.featured_image?.url || row?.image?.src || row?.images?.[0]?.src || null,
+      categoryName: normalizeText(row?.product_type) || 'Fashion',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(originalPrice, currentPrice),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -956,7 +1023,11 @@ const providers = {
     fetch: fetchDirect,
   },
   milan: unsupportedProvider((q) => `https://milan-bd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  'top-ten': unsupportedProvider((q) => `https://topten.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'top-ten': {
+    buildUrl: (q) => `https://toptenmartltd.com/search/suggest.json?q=${encodeURIComponent(q)}&resources[type]=product&resources[limit]=30`,
+    parse: parseTopTenShopify,
+    fetch: fetchDirect,
+  },
   'beauty-booth-bd': unsupportedProvider((q) => `https://beautybooth.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   bbb: unsupportedProvider((q) => `https://bbb.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   livewire: unsupportedProvider((q) => `https://livewirebd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
@@ -1049,6 +1120,11 @@ async function syncSeller(seller, query) {
         ? [
             provider.buildUrl(query),
             `https://www.catseye.com.bd/catalogsearch/result/?q=${encodeURIComponent(query)}`,
+          ]
+      : seller === 'top-ten'
+        ? [
+            provider.buildUrl(query),
+            `https://toptenmartltd.com/products.json?limit=80`,
           ]
       : [provider.buildUrl(query)];
 
