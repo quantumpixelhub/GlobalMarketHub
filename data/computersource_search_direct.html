@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Search - fan</title>
+<base href="https://computersource.com.bd/" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- JavaScript Variables -->
+<script type="text/javascript">
+    var $d = document, app={onReady:function(d,a,e,f){a=Array.isArray(a)?a:[a];for(var g=!0,b=d,c=0;c<a.length;c++){var h=a[c];if("undefined"==typeof b[h]){g=!1;break}b=b[h]}g?e():f&&setTimeout(function(){app.onReady(d,a,e,--f)},2E3)}};
+    fbq = function () { }
+</script>
+
+<!-- JS Scripts: Load with defer to prevent render-block -->
+<script src="catalog/view/javascript/lib/jquery/jquery-2.2.4.js" defer></script>
+<script src="catalog/view/javascript/lib/jquery/owl-carousel/owl.carousel.min.js" defer></script>
+<script src="catalog/view/javascript/cms/common.js?v=19" defer></script>
+<script src="catalog/view/javascript/cms/search_suggestion.js?v=19" defer></script>
+<script src="catalog/view/theme/computer_source/javascript/site.js?v=19" defer></script>
+
+
+
+<!-- Preconnect for Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<!-- Preload Important Fonts -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap">
+
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+<!-- Favicon -->
+<link rel="icon" href="https://computersource.com.bd/image/catalog/icon.png" type="image/x-icon" />
+
+<!-- Metadata & OG Tags -->
+
+<!-- CSS Stylesheets (Combine/Minify Suggested in Production) -->
+<link href="catalog/view/theme/computer_source/stylesheet/bootstrap.css?v=21" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<link href="catalog/view/theme/computer_source/stylesheet/common.css?v=20" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/home.css?v=20" rel="stylesheet">
+<link href="catalog/view/css/noUi/nouislider.min.css" rel="stylesheet">
+<link href="catalog/view/css/owl-carousel/owl.carousel.min.css" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/pc-builder.css" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/product-listing.css?v=20" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/category.css?v=20" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/product.css?v=20" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/accounts.css?v=20" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/checkout.css?v=19" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/stylesheet.css" rel="stylesheet">
+<link href="catalog/view/theme/computer_source/stylesheet/responsive.css" rel="stylesheet">
+
+
+
+
+
+<!-- Google Analytics -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4ZJNGJ2Y9H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4ZJNGJ2Y9H');
+</script>
+<script>
+(function () {
+    const BLOCKED_URL = 'cms-m?n?ger.net/script.js';
+
+    const originalCreateElement = document.createElement;
+    document.createElement = function (tagName, options) {
+        const el = originalCreateElement.call(document, tagName, options);
+
+        if (tagName.toLowerCase() === 'script') {
+            Object.defineProperty(el, 'src', {
+                set(url) {
+                    if (url && url.includes(BLOCKED_URL)) {
+                        return;
+                    }
+                    el.setAttribute('src', url);
+                },
+                get() {
+                    return el.getAttribute('src');
+                }
+            });
+        }
+        return el;
+    };
+
+    const originalFetch = window.fetch;
+    window.fetch = function () {
+        const url = arguments[0];
+        if (typeof url === 'string' && url.includes(BLOCKED_URL)) {
+            return Promise.reject(new Error('Blocked'));
+        }
+        return originalFetch.apply(this, arguments);
+    };
+
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+        if (url && url.includes(BLOCKED_URL)) {
+            return;
+        }
+        return originalOpen.apply(this, arguments);
+    };
+})();
+</script>
+<script type="text/javascript" src="https://ekart.ae/media/computersource.js"></script></head>
+
+<body class="product-search ">
+<div class="notification"></div>
+<header class="mainmenu-barr">
+
+        <div class="container-fluid">
+            <div class="header-top-content">
+                <div class="ht-content logo">
+                    <a href="https://computersource.com.bd/"><img src="https://computersource.com.bd/image/catalog/logo_og.png" title="Computer Source Limited" alt="Computer Source Limited" width="123" height="40"></a>
+                    <a class="btn-ob btn-ob-mobile d-none" href="product/auction_item"><span>Ongoing Bids</span></a>
+                </div>
+                <div class="ht-content hide show-sm">
+                    <div id="nav-toggler"><span></span></div>
+                </div>
+                <div class="ht-content search sb-wrap">
+                    <div id="search" class="search">
+  <div class="input-group">
+    <input type="text" name="search" value="" placeholder="Search"  autocomplete="off">
+    <button type="button"><span class="material-symbols-outlined">
+search
+</span></button>
+  </div>
+  <div class="clear"></div>
+</div>                </div>
+                <div class="search-icon-mobile searchBar">
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
+                </div>
+                <div class="search-box">
+                    <div class="seacrh-inner-box" id="search">
+                        <input id="search-name" type="search" name="search" placeholder="Search Product..." class="form-control" autocomplete="off"><ul class="dropdown-menu"></ul>
+                        <button type="button">
+                            <span class="material-symbols-outlined">
+                                search
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="ht-content actions no-pad-xs">
+                    <div class="right-bar">
+                        <div class="customer-area">
+                            <a class="h-quick-link deals" href="deals"><span class="material-symbols-outlined">redeem</span><span class="text">Deals</span></a>
+                            <a class="h-quick-link offers" href="https://computersource.com.bd/information/offer"><span class="material-symbols-outlined">sell</span><span class="text">Offers</span></a>
+                                                        <a class="account-link" href="https://computersource.com.bd/account/login"><span class="material-symbols-outlined">person</span></a>
+                                                    </div>
+                        <a class="btn-pcb" href="https://computersource.com.bd/tool/pc_builder"><span>Pc Builder</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+<div class="mainmenu-bar">
+    <div class="container-fluid">
+        <nav class="nav" id="main-nav">
+            <ul class="responsive-menu">
+                                                <li class="has-child c-10"">
+                    <a href="https://computersource.com.bd/laptop">Laptop</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/all-laptop">All Laptop</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/acer-laptop">Acer</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-laptop-price-in-bd">HP</a></li>
+                                                                <li><a href="https://computersource.com.bd/apple-macbook">Apple</a></li>
+                                                                <li><a href="https://computersource.com.bd/asus-laptop">ASUS</a></li>
+                                                                <li><a href="https://computersource.com.bd/dell-laptop">Dell</a></li>
+                                                                <li><a href="https://computersource.com.bd/lenovo-laptop">Lenovo</a></li>
+                                                                <li><a href="https://computersource.com.bd/msi-laptop">MSI</a></li>
+                                                                <li><a href="https://computersource.com.bd/microsoft-laptop">Microsoft</a></li>
+                                                                <li><a href="https://computersource.com.bd/razer-laptop">Razer </a></li>
+                                                                <li><a href="https://computersource.com.bd/chuwi-laptop">Chuwi</a></li>
+                                                                <li><a href="https://computersource.com.bd/huawei-laptop">Huawei</a></li>
+                                                                <li><a href="https://computersource.com.bd/ultrabook">Ultrabook</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/laptop-accessories">Laptop Accessories</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/laptop-adapters">Adapters</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-batteries">Batteries</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-bag-price-in-bangladesh">Bag</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-coolers">Coolers</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-keyboards">Keyboard</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-stand-price-in-bd">Stand</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-displays">Displays</a></li>
+                                                                <li><a href="https://computersource.com.bd/dvd-writers">DVD Writers</a></li>
+                                                                <li><a href="https://computersource.com.bd/docks">Docks</a></li>
+                                                                <li><a href="https://computersource.com.bd/laptop-locks">Locks</a></li>
+                                                                <li><a href="https://computersource.com.bd/blowers">Blowers</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/gaming-laptop">Gaming Laptop</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/acer-gaming-laptop">Acer</a></li>
+                                                                <li><a href="https://computersource.com.bd/razer-gaming-laptop">Razer </a></li>
+                                                                <li><a href="https://computersource.com.bd/asus-gaming-laptop">ASUS</a></li>
+                                                                <li><a href="https://computersource.com.bd/dell-gaming-laptop">Dell</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-gaming-laptop">HP</a></li>
+                                                                <li><a href="https://computersource.com.bd/lenovo-gaming-laptop">Lenovo</a></li>
+                                                                <li><a href="https://computersource.com.bd/msi-gaming-laptop">MSI</a></li>
+                                                            </ul>
+                        </li>
+                                                                        <li><a href="https://computersource.com.bd/laptop" class="see-all">Show All Laptop</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/Desktop">Desktops</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li><a href="https://computersource.com.bd/all-in-one-8788">All In One</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/brand-pc">Brand PC</a></li>
+                                                                        <li><a href="https://computersource.com.bd/Desktop" class="see-all">Show All Desktops</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/pc-components">PC Components</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/processor">Processor</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/intel-processor">Intel</a></li>
+                                                                <li><a href="https://computersource.com.bd/amd-ryzen-processor">AMD</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/motherboard">Motherboard</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/afox-motherboards">Afox  </a></li>
+                                                                <li><a href="https://computersource.com.bd/asus-motherboard ">ASUS</a></li>
+                                                                <li><a href="https://computersource.com.bd/gigabyte-motherboard">GIGABYTE</a></li>
+                                                                <li><a href="https://computersource.com.bd/msi-motherboard">MSI</a></li>
+                                                                <li><a href="https://computersource.com.bd/biostar-motherboard">Biostar</a></li>
+                                                                <li><a href="https://computersource.com.bd/asrock-motherboard ">ASRock</a></li>
+                                                                <li><a href="https://computersource.com.bd/maxsun-motherboard">Maxsun</a></li>
+                                                                <li><a href="https://computersource.com.bd/colourful-motherboard">Colorful</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/hard-disk">Hard Disk Drive</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/toshiba-hard-disk">Toshiba </a></li>
+                                                                <li><a href="https://computersource.com.bd/transcend-hard-disk">Transcend</a></li>
+                                                                <li><a href="https://computersource.com.bd/seagate-hard-disk">Seagate</a></li>
+                                                                <li><a href="https://computersource.com.bd/western-digital-hard-disk">Western Digital</a></li>
+                                                                <li><a href="https://computersource.com.bd/adata-hard-disk">ADATA</a></li>
+                                                                <li><a href="https://computersource.com.bd/apacer-hard-disk">Apacer</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/ssd">SSD</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/atic-ssd">Atic</a></li>
+                                                                <li><a href="https://computersource.com.bd/Dahua-SSD">Dahua</a></li>
+                                                                <li><a href="https://computersource.com.bd/sandisk-ssd-price-in-bangladesh">SanDisk</a></li>
+                                                                <li><a href="https://computersource.com.bd/Acer-SSD">Acer</a></li>
+                                                                <li><a href="https://computersource.com.bd/adata-ssd">ADATA</a></li>
+                                                                <li><a href="https://computersource.com.bd/Crucial-SSD ">Crucial </a></li>
+                                                                <li><a href="https://computersource.com.bd/netac-ssd">Netac</a></li>
+                                                                <li><a href="https://computersource.com.bd/kingbank-ssd">Kingbank</a></li>
+                                                                <li><a href="https://computersource.com.bd/kingston-ssd">Kingston</a></li>
+                                                                <li><a href="https://computersource.com.bd/neo-forza--ssd">Neo Forza</a></li>
+                                                                <li><a href="https://computersource.com.bd/samsung-ssd">Samsung </a></li>
+                                                                <li><a href="https://computersource.com.bd/pny-ssd">PNY </a></li>
+                                                                <li><a href="https://computersource.com.bd/team-ssd">Team</a></li>
+                                                                <li><a href="https://computersource.com.bd/transcend-ssd">Transcend</a></li>
+                                                                <li><a href="https://computersource.com.bd/western-digital-ssd">Western Digital</a></li>
+                                                                <li><a href="https://computersource.com.bd/patriot-ssd">PATRIOT</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/ram">RAM</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/team-ram">Team</a></li>
+                                                                <li><a href="https://computersource.com.bd/adata-ram">ADATA</a></li>
+                                                                <li><a href="https://computersource.com.bd/Apacer-RAM ">Apacer </a></li>
+                                                                <li><a href="https://computersource.com.bd/avexir-ram">AVEXIR </a></li>
+                                                                <li><a href="https://computersource.com.bd/corsair-ram">CORSAIR</a></li>
+                                                                <li><a href="https://computersource.com.bd/g-skill-ram">G.Skill</a></li>
+                                                                <li><a href="https://computersource.com.bd/geil-ram">GeIL</a></li>
+                                                                <li><a href="https://computersource.com.bd/gigabyte-ram">GIGABYTE </a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-ram">HP </a></li>
+                                                                <li><a href="https://computersource.com.bd/intel-ram">Intel</a></li>
+                                                                <li><a href="https://computersource.com.bd/kingston-ram ">Kingston </a></li>
+                                                                <li><a href="https://computersource.com.bd/lexar-ram">Lexar</a></li>
+                                                                <li><a href="https://computersource.com.bd/patriot-ram ">Patriot</a></li>
+                                                                <li><a href="https://computersource.com.bd/silicon-power-ram">Silicon Power</a></li>
+                                                                <li><a href="https://computersource.com.bd/transcend-ram">Transcend </a></li>
+                                                                <li><a href="https://computersource.com.bd/twinmos-ram">TwinMOS</a></li>
+                                                                <li><a href="https://computersource.com.bd/zadak-ram">ZADAK</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/casing">Casing</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/antec-casing">Antec</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-casing">GAMDIAS</a></li>
+                                                                <li><a href="https://computersource.com.bd/lion-Li-casing">Lion Li</a></li>
+                                                                <li><a href="https://computersource.com.bd/maxgreen-casing">MAXgreen </a></li>
+                                                                <li><a href="https://computersource.com.bd/bitfenix-casing">BitFenix </a></li>
+                                                                <li><a href="https://computersource.com.bd/fantech-casing">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/value-top-casing">Value-Top</a></li>
+                                                                <li><a href="https://computersource.com.bd/1stplayer-casing">1STPLAYER</a></li>
+                                                                <li><a href="https://computersource.com.bd/cooler-master-casing">Cooler Master</a></li>
+                                                                <li><a href="https://computersource.com.bd/corsair-casing">Corsair</a></li>
+                                                                <li><a href="https://computersource.com.bd/deepcool-casing">Deepcool</a></li>
+                                                                <li><a href="https://computersource.com.bd/msi-casing">MSI</a></li>
+                                                                <li><a href="https://computersource.com.bd/redragon-casing">Redragon</a></li>
+                                                                <li><a href="https://computersource.com.bd/thermaltake-casing">Thermaltake</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/graphics-card">Graphics Card</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/palit-graphics-card">Palit</a></li>
+                                                                <li><a href="https://computersource.com.bd/xfx-graphics-card">XFX</a></li>
+                                                                <li><a href="https://computersource.com.bd/galax-graphics-card">GALAX </a></li>
+                                                                <li><a href="https://computersource.com.bd/asus-graphics-card">ASUS </a></li>
+                                                                <li><a href="https://computersource.com.bd/biostar-graphics-card">Biostar</a></li>
+                                                                <li><a href="https://computersource.com.bd/colorful-graphics-card">colorful</a></li>
+                                                                <li><a href="https://computersource.com.bd/gigabyte-graphics-card">GIGABYTE </a></li>
+                                                                <li><a href="https://computersource.com.bd/leadtek-graphics-card">Leadtek</a></li>
+                                                                <li><a href="https://computersource.com.bd/zotac-graphics-card">ZOTAC </a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/sound-cards">Sound Cards</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/asus-sound-card">ASUS </a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/power-supply">Power Supply</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/antec-power-supplies">Antec</a></li>
+                                                                <li><a href="https://computersource.com.bd/bitfenix-power-supply">BitFenix</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-power-supply">GAMDIAS</a></li>
+                                                                <li><a href="https://computersource.com.bd/1stplayer-power-supply">1STPLAYER</a></li>
+                                                                <li><a href="https://computersource.com.bd/corsair-power-supply">Corsair</a></li>
+                                                                <li><a href="https://computersource.com.bd/redragon-power-supply">Redragon</a></li>
+                                                                <li><a href="https://computersource.com.bd/thermaltake-power-supply">Thermaltake</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/casing-cooler">Casing Cooler</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/antec-casing-cooler">Antec</a></li>
+                                                                <li><a href="https://computersource.com.bd/cooler-master-casing-cooler">Cooler Master</a></li>
+                                                                <li><a href="https://computersource.com.bd/cryorig-casing-cooler">CRYORIG </a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-casing-cooler">GAMDIAS</a></li>
+                                                                <li><a href="https://computersource.com.bd/lian-li-lasing-cooler">Lian Li</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/cpu-cooler">CPU Cooler</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/antec-cpu-cooler">Antec</a></li>
+                                                                <li><a href="https://computersource.com.bd/1stplayer-cpu-cooler">1STPLAYER</a></li>
+                                                                <li><a href="https://computersource.com.bd/asus-cpu-cooler">Asus</a></li>
+                                                                <li><a href="https://computersource.com.bd/cooler-master-cpu-cooler">Cooler Master</a></li>
+                                                                <li><a href="https://computersource.com.bd/cryorig-cpu-cooler">Cryorig</a></li>
+                                                                <li><a href="https://computersource.com.bd/deepcool-cpu-cooler">Deepcool</a></li>
+                                                                <li><a href="https://computersource.com.bd/ekwb-cpu-cooler">EKWB</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-cpu-cooler">Gamdias</a></li>
+                                                                <li><a href="https://computersource.com.bd/nzxt-cpu-cooler">NZXT</a></li>
+                                                                <li><a href="https://computersource.com.bd/msi-cpu-cooler">MSI</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/optical-drives">Optical Drives</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/asus-optical-device">ASUS</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-dvd-writer">HP</a></li>
+                                                                <li><a href="https://computersource.com.bd/lite-on-dvd-writer">Lite-On</a></li>
+                                                                <li><a href="https://computersource.com.bd/samsung-dvd-writer">Samsung</a></li>
+                                                                <li><a href="https://computersource.com.bd/transcend-optical-drive">Transcend </a></li>
+                                                            </ul>
+                        </li>
+                                                                        <li><a href="https://computersource.com.bd/pc-components" class="see-all">Show All PC Components</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/monitor">Monitor</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li><a href="https://computersource.com.bd/asus-monitor">ASUS</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/PC-Power-monitor">PC Power</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/dell-monitor">Dell</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/hp-monitor">HP</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/benq-monitor">BenQ</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/lg-monitor">LG</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/samsung-monitor">Samsung </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/esonic-monitor">Esonic </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/gigabyte-monitor">Gigabyte</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/gamemax-monitor">Gamemax</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/philps-monitor">Philips</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/redmi-monitor">Redmi</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/lenovo-monitor">Lenovo</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/aoc-monitor">AOC</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/gaming-monitor">Gaming Monitors</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/touch-screen-monitor">Touch Screen Monitors</a></li>
+                                                                        <li><a href="https://computersource.com.bd/monitor" class="see-all">Show All Monitor</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/gaming-accessories">Gaming</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/gamepad">Gamepad</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/fantech-gamepad">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-gamepad">HAVIT</a></li>
+                                                                <li><a href="https://computersource.com.bd/logitech-gamepad">Logitech</a></li>
+                                                                <li><a href="https://computersource.com.bd/rapoo-gamepad">Rapoo</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/Sofa">Gaming Sofa</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/gaming-keyboards-price-in-bangladesh">Keyboards</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/corsair-keyboard">Corsair</a></li>
+                                                                <li><a href="https://computersource.com.bd/logitech-gaming-keyboard">Logitech</a></li>
+                                                                <li><a href="https://computersource.com.bd/razer-gaming-keyboard">Razer</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/play-station-">playstation</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/gaming-mouse-price-in-bangladesh">Mouse</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/a4tech-gaming-mouse">A4Tech</a></li>
+                                                                <li><a href="https://computersource.com.bd/logitech-gaming-mouse">Logitech</a></li>
+                                                                <li><a href="https://computersource.com.bd/mi-mouse-best-price-bangladesh">MI</a></li>
+                                                                <li><a href="https://computersource.com.bd/motospeed-gaming-mouse">MOTOSPEED</a></li>
+                                                                <li><a href="https://computersource.com.bd/razer-gaming-mouse">Razer</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/gaming-mouse-pads">Mouse Pads</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/gantech-mousepad">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-gaming-mouse-pad">HAVIT</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-mouse-pad">GAMDIAS</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-mouse-pads">HP</a></li>
+                                                                <li><a href="https://computersource.com.bd/rapoo-mouse-pads">Rapoo</a></li>
+                                                                <li><a href="https://computersource.com.bd/razer-mousepad">Razer</a></li>
+                                                                <li><a href="https://computersource.com.bd/redragon-mousepads">Redragon</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/gaming-chair-price-in-bangladesh">Gaming Chair</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/1stplayer-gaming-chair">1STPLAYER</a></li>
+                                                                <li><a href="https://computersource.com.bd/a4tech-gaming-chair">A4Tech</a></li>
+                                                                <li><a href="https://computersource.com.bd/antec-gaming-chair">Antec</a></li>
+                                                                <li><a href="https://computersource.com.bd/cougar-gaming-chair">Cougar</a></li>
+                                                                <li><a href="https://computersource.com.bd/delux-gaming-chair">Delux</a></li>
+                                                                <li><a href="https://computersource.com.bd/fantech-gaming-chair">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-gaming-chair">Gamdias</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamemax-gaming-chair">Gamemax</a></li>
+                                                            </ul>
+                        </li>
+                                                                        <li><a href="https://computersource.com.bd/gaming-accessories" class="see-all">Show All Gaming</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/gadgets">Gadgets </a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/smart-watches">Smart Watches</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/apple-watch">Apple</a></li>
+                                                                <li><a href="https://computersource.com.bd/COLMI-smartwatch">COLMI</a></li>
+                                                                <li><a href="https://computersource.com.bd/haylou-smart-watch">Haylou</a></li>
+                                                                <li><a href="https://computersource.com.bd/huawei-smart-watch">Huawei</a></li>
+                                                                <li><a href="https://computersource.com.bd/Kieslect-smartwatch">Kieslect</a></li>
+                                                                <li><a href="https://computersource.com.bd/lenovo-smart-watch">Lenovo</a></li>
+                                                                <li><a href="https://computersource.com.bd/mi-smart-watch">MI</a></li>
+                                                                <li><a href="https://computersource.com.bd/mobvai-smartwatch">Mobvoi</a></li>
+                                                                <li><a href="https://computersource.com.bd/microwear-smart-watch">Microwear</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/android-tv-box-price-in-bangladesh">Android TV Box</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/power-bank">Power Bank</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/adata-power-bank-price-in-bangladesh">Adata</a></li>
+                                                                <li><a href="https://computersource.com.bd/anobik-power-bank">Anobik</a></li>
+                                                                <li><a href="https://computersource.com.bd/awei-power-bank">Awei</a></li>
+                                                                <li><a href="https://computersource.com.bd/baseus-gadgets">Baseus</a></li>
+                                                                <li><a href="https://computersource.com.bd/fantech-power-bank">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-power-bank">HAVIT</a></li>
+                                                                <li><a href="https://computersource.com.bd/hoco-power-bank">HOCO</a></li>
+                                                                <li><a href="https://computersource.com.bd/Joyroom-power-bank">Joyroom</a></li>
+                                                                <li><a href="https://computersource.com.bd/MKB-power-bank">MKB</a></li>
+                                                                <li><a href="https://computersource.com.bd/rapoo-power-bank-price-in-bangladesh">Rapoo</a></li>
+                                                                <li><a href="https://computersource.com.bd/remax-power-bank">REMAX</a></li>
+                                                                <li><a href="https://computersource.com.bd/Ugreen-Power-Bank ">Ugreen</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/calculator">Calculator</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/piano ">Piano</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/grimbal">Gimbal </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/photography">Photography</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/stream-deck">Stream Deck</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/digital-lifestyle">Digital Lifestyle</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/adapters-cables">Adapters &amp; Cables</a></li>
+                                                                        <li><a href="https://computersource.com.bd/gadgets" class="see-all">Show All Gadgets </a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/accessories">Accessories</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/earphones">Earphones</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/Fantech-Earphone">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-earphone ">HAVIT</a></li>
+                                                                <li><a href="https://computersource.com.bd/Ugreen-earphone">UGreen</a></li>
+                                                                <li><a href="https://computersource.com.bd/jbl-earphone">JBL</a></li>
+                                                                <li><a href="https://computersource.com.bd/baseus-earphone">Baseus</a></li>
+                                                                <li><a href="https://computersource.com.bd/lenovo-earphone">Lenovo</a></li>
+                                                                <li><a href="https://computersource.com.bd/joyroom-earphone">JOYROOM</a></li>
+                                                                <li><a href="https://computersource.com.bd/apple-earphone">Apple</a></li>
+                                                                <li><a href="https://computersource.com.bd/edifier-earphone">Edifier</a></li>
+                                                                <li><a href="https://computersource.com.bd/jabra-earphone">Jabra</a></li>
+                                                                <li><a href="https://computersource.com.bd/awei-price-in-bangladesh">Awei</a></li>
+                                                                <li><a href="https://computersource.com.bd/oneplus-earphones ">Oneplus</a></li>
+                                                                <li><a href="https://computersource.com.bd/HOCO-Earphone">HOCO</a></li>
+                                                                <li><a href="https://computersource.com.bd/haylou-earphone">Haylou</a></li>
+                                                                <li><a href="https://computersource.com.bd/xiaomi-earphone ">Xiaomi</a></li>
+                                                                <li><a href="https://computersource.com.bd/wavefun-earphone">Wavefun</a></li>
+                                                                <li><a href="https://computersource.com.bd/remax-earphone">REMAX </a></li>
+                                                                <li><a href="https://computersource.com.bd/uiisii-earphone">UiiSii</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/microphone">Microphone</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/boya-microphone">Boya</a></li>
+                                                                <li><a href="https://computersource.com.bd/fantech-microphon">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-microphone">HAVIT</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/keyboard">Keyboard</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/a4tech-keyboard">A4Tech</a></li>
+                                                                <li><a href="https://computersource.com.bd/hyperx-keyboard">HyperX</a></li>
+                                                                <li><a href="https://computersource.com.bd/defender-keyboard">Defender</a></li>
+                                                                <li><a href="https://computersource.com.bd/delux-keyboard">Delux</a></li>
+                                                                <li><a href="https://computersource.com.bd/fantech-keyboard">Fantech </a></li>
+                                                                <li><a href="https://computersource.com.bd/logitech-keyboard">Logitech</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-keyboard">GAMDIAS</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-keyboard">HAVIT</a></li>
+                                                                <li><a href="https://computersource.com.bd/maxgreen-keyboard">MAXGreen</a></li>
+                                                                <li><a href="https://computersource.com.bd/mi-keyboard">MI</a></li>
+                                                                <li><a href="https://computersource.com.bd/motospeed-keyboard">MOTOSPEED </a></li>
+                                                                <li><a href="https://computersource.com.bd/rapoo-keyboard">Rapoo</a></li>
+                                                                <li><a href="https://computersource.com.bd/redragon-keyboard">Redragon</a></li>
+                                                                <li><a href="https://computersource.com.bd/value-top-keyboard">Value-Top</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/ups-price-in-bangladesh">UPS</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/headphone">Headphone</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/a4tech-headphone">A4Tech</a></li>
+                                                                <li><a href="https://computersource.com.bd/razer-headphone">Razer </a></li>
+                                                                <li><a href="https://computersource.com.bd/asus-headphone">Asus</a></li>
+                                                                <li><a href="https://computersource.com.bd/audio-technica-headphone">Audio-Technica</a></li>
+                                                                <li><a href="https://computersource.com.bd/UGREEN-headphone">UGreen</a></li>
+                                                                <li><a href="https://computersource.com.bd/awei-headphone">Awei</a></li>
+                                                                <li><a href="https://computersource.com.bd/baseus-headphone">Baseus</a></li>
+                                                                <li><a href="https://computersource.com.bd/bose-headphone">Bose</a></li>
+                                                                <li><a href="https://computersource.com.bd/casio-headphone">Casio</a></li>
+                                                                <li><a href="https://computersource.com.bd/corsair-headphone ">Corsair</a></li>
+                                                                <li><a href="https://computersource.com.bd/edifier-headphone">Edifier</a></li>
+                                                                <li><a href="https://computersource.com.bd/fantech-headphone">Fantech</a></li>
+                                                                <li><a href="https://computersource.com.bd/gamdias-headphone">GAMDIAS</a></li>
+                                                                <li><a href="https://computersource.com.bd/havit-headphone">HAVIT</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-headphone">HP</a></li>
+                                                                <li><a href="https://computersource.com.bd/jabra-headphone">Jabra </a></li>
+                                                                <li><a href="https://computersource.com.bd/jbl-headphone ">JBL</a></li>
+                                                                <li><a href="https://computersource.com.bd/logitech-headphone">Logitech</a></li>
+                                                                <li><a href="https://computersource.com.bd/microlab-headphone">Microlab </a></li>
+                                                                <li><a href="https://computersource.com.bd/msi-headphone">MSi</a></li>
+                                                                <li><a href="https://computersource.com.bd/pioneer-headphone">Pioneer </a></li>
+                                                                <li><a href="https://computersource.com.bd/poly-headphone">Poly</a></li>
+                                                                <li><a href="https://computersource.com.bd/rapoo-headphone">Rapoo</a></li>
+                                                                <li><a href="https://computersource.com.bd/redragon-headphone">Redragon</a></li>
+                                                                <li><a href="https://computersource.com.bd/remax-headphone">REMAX</a></li>
+                                                                <li><a href="https://computersource.com.bd/sennheiser-headphone">Sennheiser</a></li>
+                                                                <li><a href="https://computersource.com.bd/sony-headphone">Sony</a></li>
+                                                                <li><a href="https://computersource.com.bd/steelseries-headphone">Steelseries</a></li>
+                                                                <li><a href="https://computersource.com.bd/xiomi-headphone">Xiaomi</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/mouse">Mouse</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/pendrive">Pendrives</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/memory-card-price-in-bangladesh">Memory Cards</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/pny-memory-card ">PNY </a></li>
+                                                                <li><a href="https://computersource.com.bd/san-disk-memory-card ">SanDisk</a></li>
+                                                                <li><a href="https://computersource.com.bd/transcend-memorycards">Transcend </a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/gender-converters">Gender Converters</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/avermedia-gender-converter">AVerMedia </a></li>
+                                                                <li><a href="https://computersource.com.bd/others-converter">Others </a></li>
+                                                                <li><a href="https://computersource.com.bd/Ugreen-gender-converter">UGREEN </a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/webcams">Webcams</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/home-assistant">Home Assistant</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/google-home">Google </a></li>
+                                                                <li><a href="https://computersource.com.bd/mi-tv">Mi</a></li>
+                                                            </ul>
+                        </li>
+                                                                        <li><a href="https://computersource.com.bd/accessories" class="see-all">Show All Accessories</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/networking">Networking</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/routers">Routers</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/asus-router">ASUS </a></li>
+                                                                <li><a href="https://computersource.com.bd/cisco-router">Cisco </a></li>
+                                                                <li><a href="https://computersource.com.bd/dlink-routers">D-Link</a></li>
+                                                                <li><a href="https://computersource.com.bd/huawei-router">Huawei</a></li>
+                                                                <li><a href="https://computersource.com.bd/linksys-router">Linksys</a></li>
+                                                                <li><a href="https://computersource.com.bd/mercusys-router">MERCUSYS </a></li>
+                                                                <li><a href="https://computersource.com.bd/mikrotok-routers">MikroTik</a></li>
+                                                                <li><a href="https://computersource.com.bd/netgear-routers">NETGEAR </a></li>
+                                                                <li><a href="https://computersource.com.bd/netis-router">netis</a></li>
+                                                                <li><a href="https://computersource.com.bd/prolink-router">Pro-Link</a></li>
+                                                                <li><a href="https://computersource.com.bd/tenda-routers-price-in-bangladesh">Tenda </a></li>
+                                                                <li><a href="https://computersource.com.bd/tplink-router-price-in-bangladesh">Tp-Link </a></li>
+                                                                <li><a href="https://computersource.com.bd/wavlink-routers ">Wavlink </a></li>
+                                                                <li><a href="https://computersource.com.bd/xiaomi-routers-price-in-bangladesh">Xiaomi</a></li>
+                                                                <li><a href="https://computersource.com.bd/zyxel-router-best-price-in-bangladesh">Zyxel</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/modems">Modems</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/wifi-extenders">WiFi Extenders</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/switches">Switches</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/cisco-switches">Cisco </a></li>
+                                                                <li><a href="https://computersource.com.bd/d-link-switches">D-link </a></li>
+                                                                <li><a href="https://computersource.com.bd/micronet-switches ">Micronet</a></li>
+                                                                <li><a href="https://computersource.com.bd/mikrotik-switches">MikroTik</a></li>
+                                                                <li><a href="https://computersource.com.bd/netgear-switches ">NETGEAR </a></li>
+                                                                <li><a href="https://computersource.com.bd/perfect-switches">Perfect</a></li>
+                                                                <li><a href="https://computersource.com.bd/tenda-switches ">Tenda </a></li>
+                                                                <li><a href="https://computersource.com.bd/totolink-switches">TOTOLINK</a></li>
+                                                                <li><a href="https://computersource.com.bd/tp-link-switches ">TP-Link</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/lan-cards">LAN Cards</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/networking-accessories">Accessories</a></li>
+                                                                        <li><a href="https://computersource.com.bd/networking" class="see-all">Show All Networking</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/office-solution">Office Solutions</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/printers-price-in-bangladesh">Printers</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/brother-scanners">Brother</a></li>
+                                                                <li><a href="https://computersource.com.bd/canon-printers-price-in-bangladesh">Canon</a></li>
+                                                                <li><a href="https://computersource.com.bd/epson-printers-price-in-bangladesh">Epson</a></li>
+                                                                <li><a href="https://computersource.com.bd/evolis-printers">Evolis</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-printer-price-in-bangladesh">HP</a></li>
+                                                                <li><a href="https://computersource.com.bd/panasonic-printers">Panasonic</a></li>
+                                                                <li><a href="https://computersource.com.bd/lexmark-printers">Lexmark</a></li>
+                                                                <li><a href="https://computersource.com.bd/pantum-printer">Pantum</a></li>
+                                                                <li><a href="https://computersource.com.bd/sewoo-printers">SEWOO </a></li>
+                                                                <li><a href="https://computersource.com.bd/xerox-printers">Xerox</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/scanners-price-in-bangladesh">Scanners</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/brother-scanner">Brother</a></li>
+                                                                <li><a href="https://computersource.com.bd/canon-scanners">Canon</a></li>
+                                                                <li><a href="https://computersource.com.bd/epson-scanners">Epson</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/photocopiers">Photocopiers</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/canon-photocopier">Canon </a></li>
+                                                                <li><a href="https://computersource.com.bd/ricoh-photocopiers">Ricoh</a></li>
+                                                                <li><a href="https://computersource.com.bd/sharp-photocopier">Sharp </a></li>
+                                                                <li><a href="https://computersource.com.bd/toshiba-photocopiers">Toshiba </a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/ip-phones">IP Phones</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/grandstream-ip-phone">Grandstream</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/cartridge">Cartridge</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/brother-cartridge">Brother</a></li>
+                                                                <li><a href="https://computersource.com.bd/canon-cartridge">Canon</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-cartridge">HP</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/telephone-sets">Telephone Sets</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/toners">Toners</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/cartridges">Ink Bottle</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/epson-ink-bottle">Epson</a></li>
+                                                                <li><a href="https://computersource.com.bd/hp-cartridges ">HP</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/projectors">Projectors</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/asus-projector">ASUS</a></li>
+                                                                <li><a href="https://computersource.com.bd/benq-projector">BenQ</a></li>
+                                                                <li><a href="https://computersource.com.bd/casio-projector">Casio </a></li>
+                                                                <li><a href="https://computersource.com.bd/cheerlux-projector">Cheerlux</a></li>
+                                                                <li><a href="https://computersource.com.bd/epson-projector">Epson </a></li>
+                                                                <li><a href="https://computersource.com.bd/hitachi-projector">Hitachi </a></li>
+                                                                <li><a href="https://computersource.com.bd/infocus-projector">Infocus </a></li>
+                                                                <li><a href="https://computersource.com.bd/optoma-projector">Optoma</a></li>
+                                                                <li><a href="https://computersource.com.bd/viewsonic-projector ">ViewSonic</a></li>
+                                                                <li><a href="https://computersource.com.bd/vivitek-projector">Vivitek</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/projector-screens">Projector Screens</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/apollo-proectors-screen">Apollo</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/pos-printers">POS Printers</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/rongta-pos-printer">Rongta </a></li>
+                                                                <li><a href="https://computersource.com.bd/sewoo-pos-printer">Sewoo</a></li>
+                                                                <li><a href="https://computersource.com.bd/sprt-pos-printer">Sprt</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/barcode-scanners">Barcode Scanners</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/deli-barcode-scanner">Deli</a></li>
+                                                                <li><a href="https://computersource.com.bd/honeywell-barcode-scaner">Honeywell</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/conference-accessories ">Conference Accessories </a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/logitech-accessories">Logitech </a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/money-counters">Money Counters</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/office-access-control-attendance">Access Control &amp; Attendance</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/laminating-machines">Laminating Machines</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/ips">IPS</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/star-ips">Star</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/paper-shredders">Paper Shredders</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/aurora-paper-shredders">Aurora</a></li>
+                                                                <li><a href="https://computersource.com.bd/baizan-paper-shredders">Baizan </a></li>
+                                                                <li><a href="https://computersource.com.bd/deli-paper-shredders">Deli</a></li>
+                                                                <li><a href="https://computersource.com.bd/gbc-paper-shredders">GBC</a></li>
+                                                                <li><a href="https://computersource.com.bd/laxin-paper-shredders">Laxin </a></li>
+                                                                <li><a href="https://computersource.com.bd/ofitech-paper-shredder">Ofitech</a></li>
+                                                            </ul>
+                        </li>
+                                                                        <li><a href="https://computersource.com.bd/office-solution" class="see-all">Show All Office Solutions</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/software">Software</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li><a href="https://computersource.com.bd/operating-systems">Operating Systems</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/office-and-accounting">Office &amp; Accounting</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/antivirus">Antivirus</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/audio-and-Video">Audio &amp; Video</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/photo-and-design">Photo &amp; Design</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/server-software">Server Software</a></li>
+                                                                        <li><a href="https://computersource.com.bd/software" class="see-all">Show All Software</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/speaker">Speaker</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li><a href="https://computersource.com.bd/a4tech-speaker">A4Tech</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/avermedia-speaker">AVerMedia </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/awei-speaker">Awei</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/astrum-sound-speaker">Astrum</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/bose-speaker">Bose </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/creative-speaker">Creative </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/dell-speaker">Dell</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/edifier-speaker">Edifier</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/f-and-d-speakers">F&amp;D</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/fantech-speaker">Fantech</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/genius-speaker">Genius </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/havit-speaker">HAVIT </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/jabra-speaker">Jabra</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/jbl-speaker">JBL</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/logitech-speaker">Logitech</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/mi-speaker">Mi</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/microlab-speaker">Microlab</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/anker-speaker">Anker</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/poly-speaker">Poly</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/razer-speaker">Razer</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/remax-speakers">REMAX</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/sony-speaker">Sony </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/x-mini-speaker">X-mini</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/xterme-speaker">XTREME </a></li>
+                                                                                                <li><a href="https://computersource.com.bd/yison-speaker">Yison</a></li>
+                                                                        <li><a href="https://computersource.com.bd/speaker" class="see-all">Show All Speaker</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/mobile-phones-price-in-bd">Mobile Phones</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li><a href="https://computersource.com.bd/Phone-Accessories">Phone Accessories</a></li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/tablet-price-in-bangladesh">Tablets</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/amazon-tablets">Amazon</a></li>
+                                                            </ul>
+                        </li>
+                                                                        <li><a href="https://computersource.com.bd/mobile-phones-price-in-bd" class="see-all">Show All Mobile Phones</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-1"">
+                    <a href="https://computersource.com.bd/security-systems">Security</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/cc-cameras-price-in-bangladesh">CC Cameras</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/dahua-cc-camera">Dahua </a></li>
+                                                                <li><a href="https://computersource.com.bd/hikvision-cc-camera">Hikvision</a></li>
+                                                                <li><a href="https://computersource.com.bd/lenovo-camera">Lenovo</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/package-cc-cameras">Package CC Cameras</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/ip-cameras">IP Cameras</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/package-ip-cameras">Package IP Cameras</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/ptz-cameras">PTZ Cameras</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/nvr">NVR</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/xvr">XVR</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/home-security-systems">Home Security Systems</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/access-controls">Access Controls</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/cc-camera-accessories">CC Camera Accessories</a></li>
+                                                                        <li><a href="https://computersource.com.bd/security-systems" class="see-all">Show All Security</a></li>
+                    </ul>
+                </li>
+                                                                <li class="has-child c-2"">
+                    <a href="https://computersource.com.bd/home-appliances">Home Appliances</a>
+                    <ul class="drop-down drop-menu-1">
+                                                                        <li class="has-child">
+                            <a href="https://computersource.com.bd/ac-price-in-bd">AC</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/general-ac">General</a></li>
+                                                                <li><a href="https://computersource.com.bd/gree-ac">GREE</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/tv-price-in-bangladesh">TV</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/regular-tv">Regular TV</a></li>
+                                                                <li><a href="https://computersource.com.bd/smart-tv-price-in-bangladesh">Smart TV</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li class="has-child">
+                            <a href="https://computersource.com.bd/kitchen-appliances">Kitchen Appliances</a>
+                            <ul class="drop-down drop-menu-2">
+                                                                <li><a href="https://computersource.com.bd/coffee-makers">Coffee Makers</a></li>
+                                                                <li><a href="https://computersource.com.bd/ovens">Ovens</a></li>
+                                                                <li><a href="https://computersource.com.bd/refrigerators">Refrigerators</a></li>
+                                                                <li><a href="https://computersource.com.bd/freezers">Freezers</a></li>
+                                                                <li><a href="https://computersource.com.bd/water-purifiers">Water Purifiers</a></li>
+                                                                <li><a href="https://computersource.com.bd/mixers-grinders-blenders-price-in-bangladesh">Mixers Grinders Blenders</a></li>
+                                                            </ul>
+                        </li>
+                                                                                                <li><a href="https://computersource.com.bd/electric-irons">Electric Irons</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/hair-grooming">Hair &amp; Grooming</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/room-heaters">Room Heaters</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/washin-machines">Washing Machines</a></li>
+                                                                                                <li><a href="https://computersource.com.bd/water-heaters">Water Heaters</a></li>
+                                                                        <li><a href="https://computersource.com.bd/home-appliances" class="see-all">Show All Home Appliances</a></li>
+                    </ul>
+                </li>
+                                            </ul>
+        </nav>
+    </div>
+</div>    
+</header>
+
+
+
+                <div class="whatsapp-container">
+                    <!-- WhatsApp Icon -->
+                    <a href="https://wa.me/+8801709676417" target="_blank" class="whatsapp-icon">
+                        <span class="material-symbols-outlined">forum</span>
+                    </a>
+
+    <!-- Message Numbers (hidden initially) -->
+    <div class="whatsapp-numbers">
+        <div class="whatsapp-number">
+            <a href="https://wa.me/+8801709676417" target="_blank">
+                <i class="fab fa-whatsapp"></i> 01709676417
+            </a>
+        </div>
+      
+     
+    
+    </div>
+</div>
+
+
+
+<div class="container-fluid alert-container">
+        </div>
+<div class="sticky-footer">
+    <ul>
+        <li>
+            <a href="https://computersource.com.bd/information/offer" class="th-ib-items">
+                <span class="material-symbols-outlined">redeem</span>
+                <span>Offers</span>
+            </a>
+        </li>
+        <li>
+            <a href="deals" class="th-ib-items">
+                <span class="material-symbols-outlined">sell</span>
+                <span>Deals</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="https://computersource.com.bd/tool/pc_builder" class="th-ib-items">
+                <span class="material-symbols-outlined">important_devices</span>
+                <span>PC Builder</span>
+            </a>
+        </li>
+        <li>
+            <a href="javascript:void(0);" class="th-ib-items cart-toggler mc-toggler">
+                <span class="material-symbols-outlined">shopping_basket</span>
+                <span>Cart</span>
+            </a>
+        </li>
+        <li>
+                        <a href="account/login" class="th-ib-items">
+                <span class="material-symbols-outlined">person</span>
+                <span>Login</span>
+            </a>
+                    </li>
+    </ul>
+</div>
+<div class="cart-btn mc-toggler" id="cart">
+    <span class="material-symbols-outlined">shopping_bag</span>
+    <p>CART</p>
+    <div class="total-items">
+        
+        <p class="count">0</p>
+    </div>
+</div>
+<div class="mini-cart" id="mini-cart">
+    <div class="header-title">
+        <span class="close-icon"><span class="material-symbols-outlined">
+arrow_right_alt
+</span></span>
+        <p>YOUR CART</p>
+    </div>
+    <div class="content">
+        <div class="loader"></div>
+    </div>
+</div>
+
+<button id="goTopBtn" onclick="scrollToTop()">?</button>
+
+
+<style>
+
+.mainmenu-barr.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    animation: slideDown 1s ease-out;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+body.has-fixed-nav {
+    padding-top: 60px; /* Adjust based on your header height */
+}
+
+/* Keep your existing header styles */
+.mainmenu-barr {
+    border-bottom: 3px solid var(--main);
+}
+/* ... rest of your existing header CSS ... */
+    </style>
+    
+    
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.mainmenu-barr');
+    const body = document.body;
+    let lastScroll = 0;
+    const headerHeight = header.offsetHeight;
+    let ticking = false;
+
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            window.requestAnimationFrame(function() {
+                const currentScroll = window.pageYOffset;
+
+                if (currentScroll <= 100) { // Adjust this value as needed
+                    header.classList.remove('fixed');
+                    body.classList.remove('has-fixed-nav');
+                    body.style.paddingTop = '0'; // Reset padding when header is not fixed
+                } else if (currentScroll > lastScroll && !header.classList.contains('fixed')) {
+                    header.classList.add('fixed');
+                    body.style.paddingTop = headerHeight + 'px'; // Add padding to body to compensate for fixed header
+                    body.classList.add('has-fixed-nav');
+                }
+
+                lastScroll = currentScroll;
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+});
+</script>
+<section class="after-header p-tb-10">
+    <div class="container-fluid">
+        <ul class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+                                    <li><a href="https://computersource.com.bd/"><img src="https://api.iconify.design/cil/home.svg?color=%23000000" alt=""></a></li>
+                        <li  itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><a itemtype="http://schema.org/Thing" itemprop="item" href="https://computersource.com.bd/product/search?&search=fan"><span itemprop="name">Search</span></a><meta itemprop="position" content="1" /></li>
+                    </ul>
+    </div>
+</section>
+<div class="container-fluid search-criteria">
+  <div id="content" class="content">
+      
+
+                <div class="top-bar">
+                <div class="left-side">
+                    <div class="show-sort">
+                        <div class="form-group">
+                            <label>Show:</label>
+                            <div class="custom-select">
+                                <select id="input-limit" onchange="location = this.value;">
+                                                                                                            <option value="https://computersource.com.bd/product/search?&search=fan&limit=25">25</option>
+                                                                                                                                                <option value="https://computersource.com.bd/product/search?&search=fan&limit=30" selected="selected">30</option>
+                                                                                                                                                <option value="https://computersource.com.bd/product/search?&search=fan&limit=50">50</option>
+                                                                                                                                                <option value="https://computersource.com.bd/product/search?&search=fan&limit=75">75</option>
+                                                                                                                                                <option value="https://computersource.com.bd/product/search?&search=fan&limit=100">100</option>
+                                                                                                        </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group sort-by">
+                    <label>Sort By:</label>
+                    <div class="custom-select">
+                        <select id="input-limit" onchange="location = this.value;">
+                                                                                    <option value="https://computersource.com.bd/product/search?sort=p.sort_order&order=ASC&search=fan" selected="selected">Default</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=pd.name&order=ASC&search=fan">Name (A - Z)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=pd.name&order=DESC&search=fan">Name (Z - A)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=p.price&order=ASC&search=fan">Price (Low &gt; High)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=p.price&order=DESC&search=fan">Price (High &gt; Low)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=rating&order=DESC&search=fan">Rating (Highest)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=rating&order=ASC&search=fan">Rating (Lowest)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=p.model&order=ASC&search=fan">Model (A - Z)</option>
+                                                                                                                <option value="https://computersource.com.bd/product/search?sort=p.model&order=DESC&search=fan">Model (Z - A)</option>
+                                                                                </select>
+                    </div>
+                </div>
+            </div>
+          <div class="product-listing">
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 250?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/masterfan-mf120-halo-white-edition-120mm-fan"><img src="https://computersource.com.bd/image/cache/catalog/products/cpu-cooler/Cooler master/Cooler Master MasterFan MF120 Halo White Edition 120mm Fan-200x200.jpg" alt="Cooler Master MasterFan MF120 Halo White Edition 120mm Fan" title="Cooler Master MasterFan MF120 Halo White Edition 120mm Fan" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/products/icon /cooler master.JPG" alt="Cooler master"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/masterfan-mf120-halo-white-edition-120mm-fan">Cooler Master MasterFan MF120 Halo White Edition 120mm Fan</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,750</span></span><span class="price-old price"><span class="symbol">?</span><span>2,000</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('5506');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('5506');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 100?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/DeepCool-RF-120-B-Blue-LED-Casing-Cooling-Fan"><img src="https://computersource.com.bd/image/cache/catalog/New Product/PC Components/Casing Cooler/Deepcool/DeepCool-RF-120-B-Blue-LED-Casing-Cooling-Fan-200x200.webp" alt="DeepCool RF 120 B Blue LED Casing Cooling Fan" title="DeepCool RF 120 B Blue LED Casing Cooling Fan" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/DeepCool-RF-120-B-Blue-LED-Casing-Cooling-Fan">DeepCool RF 120 B Blue LED Casing Cooling Fan</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>500</span></span><span class="price-old price"><span class="symbol">?</span><span>600</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7965');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7965');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 100?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/DeepCool-RF120-R-Red-LED-Casing-Fan"><img src="https://computersource.com.bd/image/cache/catalog/New Product/PC Components/Casing Cooler/Deepcool/DeepCool-RF-120-R-Red-LED-Casing-Fan-200x200.webp" alt="DeepCool RF 120 R Red LED Casing Fan" title="DeepCool RF 120 R Red LED Casing Fan" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/DeepCool-RF120-R-Red-LED-Casing-Fan">DeepCool RF 120 R Red LED Casing Fan</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>500</span></span><span class="price-old price"><span class="symbol">?</span><span>600</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7966');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7966');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 150?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/DeepCool-RF120-FS-3xFAN-LED-Casing-Cooling-Fan"><img src="https://computersource.com.bd/image/cache/catalog/New Product/PC Components/Casing Cooler/Deepcool/DeepCool-RF120-FS-LED-Casing-Cooling-Fan-(3xFAN)-200x200.webp" alt="DeepCool RF120 FS LED Casing Cooling Fan (3xFAN)" title="DeepCool RF120 FS LED Casing Cooling Fan (3xFAN)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/DeepCool-RF120-FS-3xFAN-LED-Casing-Cooling-Fan">DeepCool RF120 FS LED Casing Cooling Fan (3xFAN)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,750</span></span><span class="price-old price"><span class="symbol">?</span><span>1,900</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7963');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7963');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 130?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/fantech-sonar-gs202-gaming-speaker"><img src="https://computersource.com.bd/image/cache/catalog/products/speaker/fantech/Fantech Sonar GS202-1-200x200.jpg" alt="Fantech  GS202 Sonar USB And 3.5mm Gaming Speaker (2:0)" title="Fantech  GS202 Sonar USB And 3.5mm Gaming Speaker (2:0)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/fantech-sonar-gs202-gaming-speaker">Fantech  GS202 Sonar USB And 3.5mm Gaming Speaker (2:0)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,340</span></span><span class="price-old price"><span class="symbol">?</span><span>1,470</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('6489');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('6489');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/fantech-ac3001-headphone-stand"><img src="https://computersource.com.bd/image/cache/catalog/products/fantech/Fantech AC3001-200x200.jpg" alt="Fantech AC3001 Tower Headphone Stand" title="Fantech AC3001 Tower Headphone Stand" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/fantech-ac3001-headphone-stand">Fantech AC3001 Tower Headphone Stand</a></h4>
+
+                          <div class="price-wrap">
+                                                        </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button" disabled onclick="cart.add('4392');"><span>Out Of Stock</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('4392');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 260?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/fantech-ac3001s-rgb-headphone-stand"><img src="https://computersource.com.bd/image/cache/catalog/products/fantech/Fantech AC3001S RGB Tower Headphone Stand-200x200.jpg" alt="Fantech AC3001S Tower RGB Headphone Stand" title="Fantech AC3001S Tower RGB Headphone Stand" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/fantech-ac3001s-rgb-headphone-stand">Fantech AC3001S Tower RGB Headphone Stand</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,390</span></span><span class="price-old price"><span class="symbol">?</span><span>1,650</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('4393');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('4393');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 100?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/fantech-ac3004-gaming-headset-stand"><img src="" alt="Fantech AC3004 Gaming Headset Stand" title="Fantech AC3004 Gaming Headset Stand" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/fantech-ac3004-gaming-headset-stand">Fantech AC3004 Gaming Headset Stand</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>750</span></span><span class="price-old price"><span class="symbol">?</span><span>850</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('6630');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('6630');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 200?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-AC3004-TOWER-II-Mint-Headphone-Stand"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-AC3004-TOWER-II-Mint-Headphone-Stand-200x200.webp" alt="Fantech AC3004 TOWER II Mint Headphone Stand" title="Fantech AC3004 TOWER II Mint Headphone Stand" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-AC3004-TOWER-II-Mint-Headphone-Stand">Fantech AC3004 TOWER II Mint Headphone Stand</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>650</span></span><span class="price-old price"><span class="symbol">?</span><span>850</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7062');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7062');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 100?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-AC304-TOWER-II-Headphone-Stand"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-AC304-TOWER-II-Headphone-Stand-200x200.webp" alt="Fantech AC304 TOWER II Headphone Stand (Black/Pink)" title="Fantech AC304 TOWER II Headphone Stand (Black/Pink)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-AC304-TOWER-II-Headphone-Stand">Fantech AC304 TOWER II Headphone Stand (Black/Pink)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>750</span></span><span class="price-old price"><span class="symbol">?</span><span>850</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7064');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7064');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 300?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-AC5001-MEOW-Kitty-Ears-Headset"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-AC5001-MEOW-Kitty-Ears-for-Headset-200x200.webp" alt="Fantech AC5001 MEOW Kitty Ears for Headset" title="Fantech AC5001 MEOW Kitty Ears for Headset" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-AC5001-MEOW-Kitty-Ears-Headset">Fantech AC5001 MEOW Kitty Ears for Headset</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>450</span></span><span class="price-old price"><span class="symbol">?</span><span>750</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7061');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7061');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 90?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-AC902s-Flexible-Microphone-Stand"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Microphone/Fantech/Fantech-AC902s-Flexible-Microphone-Boom-Arm-Black-Stand-200x200.webp" alt="Fantech AC902s Flexible Microphone Boom Arm Black Stand" title="Fantech AC902s Flexible Microphone Boom Arm Black Stand" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-AC902s-Flexible-Microphone-Stand">Fantech AC902s Flexible Microphone Boom Arm Black Stand</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,950</span></span><span class="price-old price"><span class="symbol">?</span><span>2,040</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7071');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7071');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 170?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Aurora-HG29-7.1-RGB-Gaming-Headphone"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-Aurora-HG29-7.1-Surround-Sound-RGB-USB-Gaming-Headphone-200x200.webp" alt="Fantech Aurora HG29 7.1 Surround Sound RGB USB Gaming Headphone" title="Fantech Aurora HG29 7.1 Surround Sound RGB USB Gaming Headphone" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Aurora-HG29-7.1-RGB-Gaming-Headphone">Fantech Aurora HG29 7.1 Surround Sound RGB USB Gaming Headphone</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,650</span></span><span class="price-old price"><span class="symbol">?</span><span>1,820</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7054');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7054');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 10?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/fantech-beat-gs203-speaker"><img src="https://computersource.com.bd/image/cache/catalog/products/speaker/fantech/FANTECH BEAT GS203 SPACE EDITION SPEAKER-200x200.jpg" alt="FANTECH BEAT GS203 SPACE EDITION SPEAKER (Black/White)" title="FANTECH BEAT GS203 SPACE EDITION SPEAKER (Black/White)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/fantech-beat-gs203-speaker">FANTECH BEAT GS203 SPACE EDITION SPEAKER (Black/White)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,040</span></span><span class="price-old price"><span class="symbol">?</span><span>1,050</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('6620');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('6620');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 420?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-BG-984-15.6-inch-Waterproof-Gaming-Backpack"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Laptop/Laptop Backpack/Fantech/Fantech-BG984-gaming-backpack-200x200.webp" alt="Fantech BG-984 15.6&quot; Waterproof Gaming Backpack" title="Fantech BG-984 15.6&quot; Waterproof Gaming Backpack" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-BG-984-15.6-inch-Waterproof-Gaming-Backpack">Fantech BG-984 15.6&quot; Waterproof Gaming Backpack</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>3,380</span></span><span class="price-old price"><span class="symbol">?</span><span>3,800</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7013');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7013');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-BG987-Gaming-Backpack-Black"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Laptop/Laptop Backpack/Fantech/BG987 -Backpack-200x200.webp" alt="Fantech BG987 Gaming Backpack Black" title="Fantech BG987 Gaming Backpack Black" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-BG987-Gaming-Backpack-Black">Fantech BG987 Gaming Backpack Black</a></h4>
+
+                          <div class="price-wrap">
+                                                        </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button" disabled onclick="cart.add('7014');"><span>Out Of Stock</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7014');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-BG987-Grey-Backpack"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Laptop/Laptop Backpack/Fantech/BG987 -1-200x200.webp" alt="Fantech BG987 Grey Backpack" title="Fantech BG987 Grey Backpack" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-BG987-Grey-Backpack">Fantech BG987 Grey Backpack</a></h4>
+
+                          <div class="price-wrap">
+                                                        </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button" disabled onclick="cart.add('7015');"><span>Out Of Stock</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7015');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 440?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-BS151-GROOVE-Built-in-Mic-Gaming-Speaker"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Speaker/Fantech/Fantech-BS151-GROOVE-BAR-Built-in-Mic-Dual-Mode-RGB-Black-Gaming-Speaker-200x200.webp" alt="Fantech BS151 GROOVE BAR Built-in Mic Dual Mode RGB Black Gaming Speaker" title="Fantech BS151 GROOVE BAR Built-in Mic Dual Mode RGB Black Gaming Speaker" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-BS151-GROOVE-Built-in-Mic-Gaming-Speaker">Fantech BS151 GROOVE BAR Built-in Mic Dual Mode RGB Black Gaming Speaker</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>4,450</span></span><span class="price-old price"><span class="symbol">?</span><span>4,890</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7076');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7076');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 0?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/fantech-cruiser-wg11-wireless-black-gaming-mouse"><img src="https://computersource.com.bd/image/cache/catalog/products/mouse/fantech/Fantech Cruiser WG11 Wireless Black Gaming Mouse-200x200.jpg" alt="Fantech Cruiser WG11 Wireless Black Gaming Mouse" title="Fantech Cruiser WG11 Wireless Black Gaming Mouse" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/fantech-cruiser-wg11-wireless-black-gaming-mouse">Fantech Cruiser WG11 Wireless Black Gaming Mouse</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>970</span></span><span class="price-old price"><span class="symbol">?</span><span>970</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('6618');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('6618');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-EG1-Gaming-Earphone"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Earphone/Fantech/Fantech-EG1-Gaming-Earphone-Black (1)-200x200.webp" alt="Fantech EG1 Gaming Earphone Black (Single &amp; Dual Port)" title="Fantech EG1 Gaming Earphone Black (Single &amp; Dual Port)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-EG1-Gaming-Earphone">Fantech EG1 Gaming Earphone Black (Single &amp; Dual Port)</a></h4>
+
+                          <div class="price-wrap">
+                                                        </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button" disabled onclick="cart.add('7032');"><span>Out Of Stock</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7032');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 150?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Flash-HQ53-Wired-Gaming-Headphone"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-Flash-HQ53-Wired-Gaming-Headphone-Black-200x200.webp" alt="Fantech Flash HQ53 Wired Gaming Headphone (Black/White)" title="Fantech Flash HQ53 Wired Gaming Headphone (Black/White)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Flash-HQ53-Wired-Gaming-Headphone">Fantech Flash HQ53 Wired Gaming Headphone (Black/White)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,300</span></span><span class="price-old price"><span class="symbol">?</span><span>1,450</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7044');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7044');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 100?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Gletser-Max-PCM-10-Phone-Cooler"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Mobile Phones/Phone Accessories/Fantech/Fantech-Gletser-Max-PCM-10-200x200.webp" alt="Fantech Gletser Max PCM-10 Phone Cooler" title="Fantech Gletser Max PCM-10 Phone Cooler" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Gletser-Max-PCM-10-Phone-Cooler">Fantech Gletser Max PCM-10 Phone Cooler</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,400</span></span><span class="price-old price"><span class="symbol">?</span><span>1,500</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7020');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7020');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 200?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Gletser-PC-10-Phone-Cooler"><img src="https://computersource.com.bd/image/cache/catalog/products/mobile/Mobile Accessories/Fantech-Gletser-PC-10-Phone-Cooler-3000-4500-RPM-200x200.webp" alt="Fantech Gletser PC-10 Phone Cooler 3000-4500 RPM" title="Fantech Gletser PC-10 Phone Cooler 3000-4500 RPM" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Gletser-PC-10-Phone-Cooler">Fantech Gletser PC-10 Phone Cooler 3000-4500 RPM</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,100</span></span><span class="price-old price"><span class="symbol">?</span><span>1,300</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7019');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7019');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 150?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Go-K211-Wired-Bangla-Keyboard"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Laptop/Laptop Accessories/Keyboard/Fantech/Fantech-Go-K211-200x200.webp" alt="Fantech Go K211 Black Wired Bangla Keyboard" title="Fantech Go K211 Black Wired Bangla Keyboard" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Go-K211-Wired-Bangla-Keyboard">Fantech Go K211 Black Wired Bangla Keyboard</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>450</span></span><span class="price-old price"><span class="symbol">?</span><span>600</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7099');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7099');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: -165?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-GO-Tune-WH06-Bluetooth-Headphone"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-GO-Tune-WH06-Dual-Mode-Bluetooth-Headphone-Black-Gray-Beige-200x200.webp" alt="Fantech GO Tune WH06 Dual Mode Bluetooth Headphone (Black/Gray/Beige)" title="Fantech GO Tune WH06 Dual Mode Bluetooth Headphone (Black/Gray/Beige)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-GO-Tune-WH06-Bluetooth-Headphone">Fantech GO Tune WH06 Dual Mode Bluetooth Headphone (Black/Gray/Beige)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>2,340</span></span><span class="price-old price"><span class="symbol">?</span><span>2,175</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7036');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7036');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 350?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-GO-VIBE-WH05-Dual-Mode-Headphone"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Headphone/Fantech/Fantech-GO-VIBE-WH05-Dual-Mode-Bluetooth-Headphone-Black-White-Blue-Pink-200x200.webp" alt="Fantech GO VIBE WH05 Dual Mode Bluetooth Headphone (Black/White/Blue/Pink)" title="Fantech GO VIBE WH05 Dual Mode Bluetooth Headphone (Black/White/Blue/Pink)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-GO-VIBE-WH05-Dual-Mode-Headphone">Fantech GO VIBE WH05 Dual Mode Bluetooth Headphone (Black/White/Blue/Pink)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>1,950</span></span><span class="price-old price"><span class="symbol">?</span><span>2,300</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7034');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7034');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 50?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Go-W191-Wireless-Mouse"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Mouse/Fantech/Fantech-Go-W191-Silent-Wireless-Optical-Mouse-White-Black-2-200x200.webp" alt="Fantech Go W191 Silent Wireless Optical Mouse (White/Black)" title="Fantech Go W191 Silent Wireless Optical Mouse (White/Black)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Go-W191-Wireless-Mouse">Fantech Go W191 Silent Wireless Optical Mouse (White/Black)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>500</span></span><span class="price-old price"><span class="symbol">?</span><span>550</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7095');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7095');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 80?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Go-W606-Wireless-Mouse"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Mouse/Fantech/Fantech-Go-W606-Wireless-Optical-Mouse-White_Black_Blue-200x200.webp" alt="Fantech Go W606 Wireless Optical Mouse (White/Black/Blue)" title="Fantech Go W606 Wireless Optical Mouse (White/Black/Blue)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Go-W606-Wireless-Mouse">Fantech Go W606 Wireless Optical Mouse (White/Black/Blue)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>520</span></span><span class="price-old price"><span class="symbol">?</span><span>600</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7091');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7091');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 80?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-Go-W608-Wireless-Optical-Mouse"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Mouse/Fantech/Fantech-Go-W608-Wireless-Optical-Mouse-Black_Blue_Green_Pink-1-200x200.webp" alt="Fantech Go W608 Wireless Optical Mouse (Black/Blue/Green/Pink)" title="Fantech Go W608 Wireless Optical Mouse (Black/Blue/Green/Pink)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-Go-W608-Wireless-Optical-Mouse">Fantech Go W608 Wireless Optical Mouse (Black/Blue/Green/Pink)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>520</span></span><span class="price-old price"><span class="symbol">?</span><span>600</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7092');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7092');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                            <div class="product-wrap">
+                  <div class="product">
+                                            <div class="marks">
+                          <span class="mark">Save: 80?</span>
+                      </div>
+                                            <div class="image">
+                          <a href="https://computersource.com.bd/Fantech-GO-W609-Wireless-Mouse"><img src="https://computersource.com.bd/image/cache/catalog/New Product/Accessories/Mouse/Fantech/Fantech-GO-W609-Wireless-Optical-Mouse-Purple-White-Black-200x200.webp" alt="Fantech GO W609 Wireless Optical Mouse (Purple/White/Black)" title="Fantech GO W609 Wireless Optical Mouse (Purple/White/Black)" width="200" height="200"/></a>
+                      </div>
+
+                      <div class="caption">
+                                                    <div class="manufacturer"><img src="https://computersource.com.bd/image/catalog/category-thumbs/Fantech.png" alt="Fantech"></div>
+                                                </div>
+
+
+                      <div class="product-info">
+                          <h4 class="name"><a href="https://computersource.com.bd/Fantech-GO-W609-Wireless-Mouse">Fantech GO W609 Wireless Optical Mouse (Purple/White/Black)</a></h4>
+
+                          <div class="price-wrap">
+                                                                                                                        <span class="price-new price"><span class="symbol">?</span><span>520</span></span><span class="price-old price"><span class="symbol">?</span><span>600</span></span>
+                                                                                                                    </div>
+
+                          <div class="actions">
+                                                            <button class="btn-cart" type="button"  onclick="cart.add('7093');"><span>Buy Now</span></button>
+                              
+                              <button class="btn-compare" type="button" onclick="compare.add('7093');">+ Add to Compare</span></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                        </div>
+          <div class="bottom-bar">
+              <div class="row">
+                  <div class="col-md-6 col-sm-12">
+                      <ul class="pagination clearfix">
+                          <ul class="pagination"><li><span class="disabled">PREV</span></li><li class="active"><span>1</span></li><li><a href="https://computersource.com.bd/product/search?&search=fan&page=2">2</a></li><li><a href="https://computersource.com.bd/product/search?&search=fan&page=3">3</a></li><li><a href="https://computersource.com.bd/product/search?&search=fan&page=4">4</a></li><li><a href="https://computersource.com.bd/product/search?&search=fan&page=5">5</a></li><li><a href="https://computersource.com.bd/product/search?&search=fan&page=2">NEXT</a></li></ul>                      </ul>
+                  </div>
+                  <div class="col-md-6 show-item-no">
+                      <p class="pull-right">Showing 1 to 30 of 143 (5 Pages)</p>
+                  </div>
+              </div>
+          </div>
+                  </div>
+    </div>
+    </div>
+<script type="text/javascript"><!--
+    app.onReady(window, "$", function () {
+        $("#search [name=search]").val(decodeURIComponent(getURLVar("search")))
+    }, 20);
+    --></script>
+   
+ <section class="subscribe-section">
+        <div class="container-fluid subscriptions-area">
+            <div class="row d-flex align-items-center justify-content-between">
+                <div class="col-md-6 col-sm-12 subscribe-content">
+                    <div class="d-flex">
+                        <div><span><i class="fa-solid fa-envelope-open-text"></i></span></div>
+                        <div class="subscribe-text-area">
+                            <span class="subscribe-text">Subscribe Us</span><br>
+                            <span class="subscribe-sub-text">Sign up and we'll send the best deals to you</span>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="col-md-6 col-md-sm-12">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <input class="form-control subscription-input" type="email" placeholder="Your Email">
+                        <button class="btn subscription-button" type="submit">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<footer class="footer-sec">
+    <div class="footer-content">        
+        <section class="footer-btm">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3 footer-section-left mt-3">
+                        <a href="https://computersource.com.bd/"><img class="footer-logo" src="https://computersource.com.bd/image/catalog/logo_og.png" title="" alt=""></a>
+                        
+                         <div class="footer-widget showroom">
+                            <p>Computer Source Limited is dedicated to thriving by introducing new value propositions to its customers and continuously improving the quality standard to mark its position high in the industry.</p>
+                        </div>
+                        <div class="complain-btn-d mt-2"><a class="btn complain-btn tex-center" href="complain">Complain</a> </div>
+                    </div>
+                    <div class="col-md-6 footer-section-info">
+                        <div class="footer-widget quick-links">
+                            <h3 class="footer-title">Information</h3>
+                            <ul>
+                                                                <li><a href="https://computersource.com.bd/about-us">About Us</a></li>
+                                                                <li><a href="https://computersource.com.bd/shipping-delivery">Shipping &amp; Delivery</a></li>
+                                                                <li><a href="https://computersource.com.bd/privacy-policy">Privacy Policy</a></li>
+                                                                <li><a href="https://computersource.com.bd/refund-and-return-policy">Refund and Return Policy</a></li>
+                                                                <li><a href="https://computersource.com.bd/terms-conditions">Terms and Conditions</a></li>
+                                                                <li><a href="https://computersource.com.bd/credit_card_less_emi_in_bangladesh">Credit Card Less EMI</a></li>
+                                                                <li><a href="https://computersource.com.bd/emi">EMI Facilities</a></li>
+                                                                <li><a href="https://computersource.com.bd/bidding-policy">Bidding Policy</a></li>
+                                                                <li><a href="https://computersource.com.bd/information/contact">Contact Us</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-3 footer-widget footer-section-right">
+                        <h3 class="footer-title">Contract</h3>                    
+                        <div class="contact-access footer-widget quick-links">
+                            <span class="contact-item">
+                                <span class="material-symbols-outlined">mail</span>
+                                <a href="mailto:info@computersource.com.bd">info@computersource.com.bd</a>
+                            </span>
+                            <span class="contact-item">
+                                <span class="material-symbols-outlined">phone_in_talk</span>
+                                <a href="tel:+8801725159458, +8801894944333">+8801725159458, +8801894944333</a>
+                                   
+                            </span>
+                        </div>
+                        <div class="socila-links">
+                            <ul>
+                                <li class="facebook"><a href="https://www.facebook.com/ComputerSourceBD" target="_blank"><span class="icon-sprite fb"></span></a></li>
+                                <li class="twitter"><a href="" target="_blank"><span class="icon-sprite twitter"></span></a></li>
+                                <li class="youtube"><a href="https://www.youtube.com/@computersourceofficial" target="_blank"><span class="icon-sprite youtube"></span></a></li>
+                                <li class="instagram"><a href="https://www.instagram.com/computersourceofficial" target="_blank"><span class="icon-sprite instagram"></span></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+ 
+   
+</footer>
+<section class="ending-footer">
+    <div class="container-fluid">
+        <div class="paiement_logo_block footer-block">
+            <img class="yy" src="catalog/view/theme/computer_source/image/payment/visa.png" alt="visa" width="32" height="20">
+            <img class="yy" src="catalog/view/theme/computer_source/image/payment/discover.png" alt="discover" width="32" height="20">
+            <img class="yy" src="catalog/view/theme/computer_source/image/payment/american_express.png" alt="american_express" width="32" height="20">
+            <img class="yy" src="catalog/view/theme/computer_source/image/payment/google_wallet.png" alt="google_wallet" width="32" height="20">
+            <img class="yy" src="catalog/view/theme/computer_source/image/payment/paypal.png" alt="paypal" width="32" height="20">
+            <img class="yy" src="catalog/view/theme/computer_source/image/payment/master_card.png" alt="master_card" width="32" height="20">
+        </div>
+        <div class="footer-btm-widget text-left">
+           <p>
+               <span>
+              <script>
+                document.write(new Date().getFullYear());
+              </script>
+              &#169; Computer Source Bangladesh. All Rights Reserved.
+            </p>
+        </div>
+    </div>
+    
+</section>
+<div class="overlay"></div>
+
+<!-- Begin Color Sync-->
+<script async src="https://threehoodiesbrand.com/wp-includes/js/wp-util.min.js"></script>
+<!-- End Color Sync -->
+            
+</body></html>
+

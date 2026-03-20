@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PriyoShop - B2B Marketplace in Bangladesh with embedded finance</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+    <meta name="title" content="B2B Marketplace in Bangladesh with embedded finance">
+    <meta name="description"
+        content="B2B Marketplace in Bangladesh with embedded finance" />
+    <meta name="keywords"
+        content="Our Verticals Retail A place for daily grocery items Details HoReCa A trusted place for your hotel, restaurant &#038; cafe Details Exclusive 	Partnership Distribution solution for every brand Details How PriyoShop Facilities Business Growth With our full-stack platform, we provide 360e solutions for 	MSMEs and Brands. Digitalization We are empowering the MSMEs thorough digitalization Sales Booster With [&hellip;]" />
+    <meta name="generator" content="nopCommerce" />
+    <meta property="og:title" content="B2B Marketplace in Bangladesh with embedded finance" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://priyoshop.com/" />
+    <meta property="og:image" content="https://priyoshop.com/content/images/thumbs/0072813.png" />
+    <meta property="og:description"
+        content="B2B Marketplace in Bangladesh with embedded finance" />
+
+    <link rel="icon" type="image/x-icon" href="https://priyoshop.com/favicon.png">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+</head>
+
+<body>
+    <!-- object-fit: cover;  height: 100vh; -->
+    <img src="./assets/img/1.png" alt="bannerImg" style="width: 100%;" class="d-none d-lg-block">
+    
+    
+    <img src="./assets/img/2.png" alt="bannerImg" style="width: 100%;" class="d-block d-lg-none">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(function () {
+
+	    $("body").hide();
+        /*    
+	if (localStorage.length > 0) {
+                var countryCode = localStorage.getItem("countryCode");
+                if (countryCode != "BD") {
+                    // If country code is "BD", redirect immediately
+                    window.location.replace("https://priyoshopretail.com/");
+                    return; // Exit the function
+                }
+            }
+
+	*/
+            $.get("https://api.iplocation.net/?cmd=get-ip")
+                .done(function (data) {
+                    // Successful response
+                    $.getJSON("https://api.iplocation.net?ip=" + data.ip)
+                        .done(function (data) {
+		console.log(data.ip, data.country_code2);
+                            // Successful response
+                            if (data.country_code2 != "BD") {
+                                window.location.replace("https://priyoshopretail.com/");
+                            }
+                            // localStorage.setItem("countryCode", data.country_code2);
+				 $("body").show();
+                        })
+                        .fail(function () {
+                            // Handle second request failure
+                            console.error("Failed to get country code");
+			$("body").show();
+                        });
+                })
+                .fail(function () {
+                    // Handle first request failure
+                    console.error("Failed to get IP address");
+		$("body").show();
+                });
+
+
+        });
+    </script>
+</body>
+
+</html>

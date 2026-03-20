@@ -840,7 +840,7 @@ const parseGhorerbazar = (html: string, query: string, max: number): LiveOffer[]
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
-    return { domestic: [] as LiveOffer[], international: [] as LiveOffer[], errors: [] as string[] };
+    return { domestic: [] as LiveOffer[], international: [] as LiveOffer[], errors: [] as string[], coverage: '' };
   }
 
   const tasks: Array<Promise<{ seller: string; offers: LiveOffer[]; error?: string }>> = [
@@ -1094,10 +1094,85 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
 
   const settled = await Promise.all(tasks);
 
-  const allOffers = settled.flatMap((result) => result.offers);
-  const domestic = allOffers.filter((offer) => offer.sellerType === 'DOMESTIC');
-  const international = allOffers.filter((offer) => offer.sellerType === 'INTERNATIONAL');
-  const errors = settled.filter((result) => result.error).map((result) => `${result.seller}: ${result.error}`);
+  // Seller tier system: Priority determines sort order and fallback strategy
+  const SELLER_TIERS: Record<string, { tier: number; score: number }> = {
+    // Tier 1: Proven high-volume, international reach
+    'aliexpress': { tier: 1, score: 100 },
+    'amazon': { tier: 1, score: 100 },
+    'alibaba': { tier: 1, score: 95 },
 
-  return { domestic, international, errors };
+    // Tier 2: Proven domestic, strong data
+    'daraz': { tier: 2, score: 90 },
+    'rokomari': { tier: 2, score: 85 },
+
+    // Tier 3: Solid domestic performers
+    'chaldal': { tier: 3, score: 70 },
+    'startech': { tier: 3, score: 70 },
+    'techland': { tier: 3, score: 65 },
+    'pickaboo': { tier: 3, score: 60 },
+    'bagdoom': { tier: 3, score: 55 },
+    'ryans': { tier: 3, score: 55 },
+
+    // Tier 4: Moderate performers
+    'shajgoj': { tier: 4, score: 45 },
+    'yellow': { tier: 4, score: 40 },
+    'sailor': { tier: 4, score: 40 },
+    'cats-eye': { tier: 4, score: 40 },
+
+    // Tier 5: New/specialized
+    'easy': { tier: 5, score: 30 },
+    'top-ten': { tier: 5, score: 30 },
+    'computersource': { tier: 5, score: 30 },
+    'ghorerbazar': { tier: 5, score: 30 },
+  };
+
+  // Calculate seller result counts for dynamic scoring
+  const sellerResultCounts: Record<string, number> = {};
+  settled.forEach((result) => {
+    sellerResultCounts[result.seller] = result.offers.length;
+  });
+
+  // Sort offers with intelligent ranking
+  const sortOffers = (offers: LiveOffer[]): LiveOffer[] => {
+    return offers.sort((a, b) => {
+      // 1. Sort by seller tier (proven sellers first)
+      const tierA = SELLER_TIERS[a.platform]?.tier ?? 99;
+      const tierB = SELLER_TIERS[b.platform]?.tier ?? 99;
+      if (tierA !== tierB) return tierA - tierB;
+
+      // 2. Within same tier, sort by base score
+      const scoreA = SELLER_TIERS[a.platform]?.score ?? 0;
+      const scoreB = SELLER_TIERS[b.platform]?.score ?? 0;
+      if (scoreA !== scoreB) return scoreB - scoreA;
+
+      // 3. Prefer offers with images (better data quality)
+      const hasImageA = !!a.imageUrl ? 1 : 0;
+      const hasImageB = !!b.imageUrl ? 1 : 0;
+      if (hasImageA !== hasImageB) return hasImageB - hasImageA;
+
+      // 4. Prefer discounted items
+      const discountPercentA = ((a.originalPrice - a.currentPrice) / a.originalPrice) * 100;
+      const discountPercentB = ((b.originalPrice - b.currentPrice) / b.originalPrice) * 100;
+      if (Math.abs(discountPercentA - discountPercentB) > 5) return discountPercentB - discountPercentA;
+
+      // 5. For same tier/score, sort by price (ascending - cheaper first within same tier)
+      if (a.currentPrice !== b.currentPrice) return a.currentPrice - b.currentPrice;
+
+      // 6. By platform name for deterministic ordering
+      return a.platform.localeCompare(b.platform);
+    });
+  };
+
+  const allOffers = settled.flatMap((result) => result.offers);
+  const domestic = sortOffers(allOffers.filter((offer) => offer.sellerType === 'DOMESTIC'));
+  const international = sortOffers(allOffers.filter((offer) => offer.sellerType === 'INTERNATIONAL'));
+  const errors = settled.filter((result) => result.error).map((result) => `${result.seller}: ${result.offers.length === 0 ? result.error : ''}`).filter(Boolean);
+
+  // Log seller coverage for debugging
+  const coverage = settled
+    .filter((r) => r.offers.length > 0)
+    .map((r) => `${r.seller}: ${r.offers.length}`)
+    .join(', ');
+
+  return { domestic, international, errors, coverage };
 }
