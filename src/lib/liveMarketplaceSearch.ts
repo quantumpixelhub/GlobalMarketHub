@@ -551,6 +551,53 @@ const parseYellow = (html: string, query: string, max: number): LiveOffer[] => {
   return offers;
 };
 
+const parseSailorApi = (jsonText: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  let payload: unknown;
+
+  try {
+    payload = JSON.parse(jsonText);
+  } catch {
+    return offers;
+  }
+
+  const rows = Array.isArray((payload as { data?: unknown[] })?.data)
+    ? ((payload as { data: unknown[] }).data as Array<Record<string, unknown>>)
+    : [];
+  const seen = new Set<string>();
+
+  for (const row of rows) {
+    if (offers.length >= max) return offers;
+
+    const title = String(row.name || '').trim();
+    if (!title || !matchesQuery(title, query)) continue;
+
+    const currentRaw = Number(row.main_price || 0);
+    if (!Number.isFinite(currentRaw) || currentRaw <= 0) continue;
+
+    const originalRaw = Number(row.stroked_price || currentRaw);
+    const slug = String(row.slug || '').trim();
+    const id = String(row.id || '').trim();
+    const key = id || slug || title.toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+
+    offers.push({
+      platform: 'sailor',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl: slug ? `https://sailor.clothing/product/${slug}` : `https://sailor.clothing/search?search=${encodeURIComponent(title)}`,
+      imageUrl: String(row.thumbnail_image || '') || undefined,
+      currentPrice: Math.round(currentRaw),
+      originalPrice: Math.max(Math.round(originalRaw), Math.round(currentRaw)),
+      discountVerified: originalRaw > currentRaw,
+      sellerName: 'Sailor',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -668,6 +715,39 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'yellow', offers: parseYellow(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'yellow', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const urls = [
+          'https://backend.sailor.clothing/api/v2/products/category/8',
+          'https://backend.sailor.clothing/api/v2/products/category/9',
+          'https://backend.sailor.clothing/api/v2/products/category/12',
+          'https://backend.sailor.clothing/api/v2/products/category/100',
+          'https://backend.sailor.clothing/api/v2/products/category/136',
+          'https://backend.sailor.clothing/api/v2/products/category/225',
+        ];
+
+        const merged: LiveOffer[] = [];
+        const seen = new Set<string>();
+        for (const url of urls) {
+          const { status, text } = await fetchDirect(url);
+          if (status !== 200) continue;
+
+          const parsed = parseSailorApi(text, q, maxPerSeller);
+          for (const offer of parsed) {
+            if (merged.length >= maxPerSeller) break;
+            const key = offer.externalUrl.toLowerCase();
+            if (seen.has(key)) continue;
+            seen.add(key);
+            merged.push(offer);
+          }
+          if (merged.length >= maxPerSeller) break;
+        }
+
+        return { seller: 'sailor', offers: merged };
+      } catch (error) {
+        return { seller: 'sailor', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {

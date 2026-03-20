@@ -39,6 +39,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'objectstorage.ap-singapore-1.oraclecloud.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'storage.googleapis.com',
       },
       {

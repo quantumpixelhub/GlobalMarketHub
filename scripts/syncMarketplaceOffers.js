@@ -716,6 +716,55 @@ function parseYellow(html, query) {
   return offers;
 }
 
+function parseSailorApi(jsonText, query) {
+  const offers = [];
+  let payload;
+
+  try {
+    payload = JSON.parse(jsonText);
+  } catch {
+    return offers;
+  }
+
+  const rows = Array.isArray(payload?.data) ? payload.data : [];
+  const q = String(query || '').toLowerCase();
+  for (const row of rows) {
+    const title = normalizeText(row?.name);
+    if (!title || !title.toLowerCase().includes(q)) {
+      continue;
+    }
+
+    const currentPrice = Number(row?.main_price || 0);
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = Number(row?.stroked_price || currentPrice);
+    const externalId = row?.id ? `sailor-${row.id}` : `sailor-${shortHash(`${title}-${currentPrice}`)}`;
+    const slug = normalizeText(row?.slug);
+    const externalUrl = slug ? `https://sailor.clothing/product/${slug}` : null;
+    if (!externalUrl) {
+      continue;
+    }
+
+    offers.push({
+      platform: 'sailor',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'Sailor',
+      imageUrl: normalizeText(row?.thumbnail_image) || null,
+      categoryName: 'Fashion',
+      externalPrice: Math.round(currentPrice),
+      externalOriginalPrice: Math.max(Math.round(originalPrice), Math.round(currentPrice)),
+      externalRating: Number.isFinite(Number(row?.rating)) ? Number(row?.rating) : null,
+      externalReviewCount: parseIntSafe(row?.sales || 0),
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -783,10 +832,14 @@ const providers = {
     parse: parseYellow,
     fetch: fetchDirect,
   },
+  sailor: {
+    buildUrl: () => 'https://backend.sailor.clothing/api/v2/products/category/8',
+    parse: parseSailorApi,
+    fetch: fetchDirect,
+  },
   
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  sailor: unsupportedProvider((q) => `https://sailor.clothing/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   'cats-eye': unsupportedProvider((q) => `https://www.catseye.com.bd/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   ecstasy: unsupportedProvider((q) => `https://ecstasybd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   easy: unsupportedProvider((q) => `https://easyfashion.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
@@ -870,6 +923,15 @@ async function syncSeller(seller, query) {
             provider.buildUrl(query),
             `https://shop.shajgoj.com/product-category/${encodeURIComponent(String(query).trim().toLowerCase().replace(/\s+/g, '-'))}/`,
             'https://shop.shajgoj.com/product-category/face/',
+          ]
+      : seller === 'sailor'
+        ? [
+            'https://backend.sailor.clothing/api/v2/products/category/8',
+            'https://backend.sailor.clothing/api/v2/products/category/9',
+            'https://backend.sailor.clothing/api/v2/products/category/12',
+            'https://backend.sailor.clothing/api/v2/products/category/100',
+            'https://backend.sailor.clothing/api/v2/products/category/136',
+            'https://backend.sailor.clothing/api/v2/products/category/225',
           ]
       : [provider.buildUrl(query)];
 
