@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const DEFAULT_QUERY = process.env.SEARCH_QUERY || 'coffee';
 const MAX_PER_SELLER = Math.max(1, Number(process.env.MAX_PER_SELLER || 120));
-const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,aliexpress,alibaba,amazon')
+const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,pickaboo,aliexpress,alibaba,amazon')
   .split(',')
   .map((v) => v.trim().toLowerCase())
   .filter(Boolean);
@@ -342,6 +342,58 @@ function parseTechland(html, query) {
   return offers;
 }
 
+function parsePickaboo(markdown, query) {
+  const offers = [];
+  const queryTokens = String(query || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+  const broadPhoneQuery = /(phone|mobile|smartphone|android|iphone)/i.test(String(query || ''));
+  const regex = /!\[Image\s+\d+:[^\]]*\]\((https?:\/\/[^)]+)\)[\s\S]{0,220}?####\s+([^\n\r]+?)\s+৳\s*([0-9,]+)(?:~~৳\s*([0-9,]+)~~)?[\s\S]{0,220}?\]\((https?:\/\/www\.pickaboo\.com\/product-detail\/[^)\s]+)\)/gi;
+  const seen = new Set();
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const title = normalizeText(match[2]);
+    const titleLower = title.toLowerCase();
+    const relevant = broadPhoneQuery || queryTokens.some((token) => titleLower.includes(token));
+    if (!title || !relevant) {
+      continue;
+    }
+
+    const currentPrice = parsePrice(match[3]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = match[4] ? parsePrice(match[4]) : currentPrice;
+    const detailUrl = match[5].replace(/&amp;/g, '&');
+    const slug = detailUrl.split('/').pop() || shortHash(detailUrl);
+    const externalId = `pickaboo-${slug}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    offers.push({
+      platform: 'pickaboo',
+      externalId,
+      externalUrl: detailUrl,
+      title,
+      sellerName: 'Pickaboo',
+      imageUrl: match[1] || null,
+      categoryName: 'Electronics',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(originalPrice, currentPrice),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 function parseAliExpress(markdown, query) {
   const offers = [];
   const regex = /!\[Image\s+\d+[^\]]*\]\((https?:\/\/[^)]*aliexpress-media[^)]+)\)[\s\S]{0,600}?###\s+([^\n$]+?)\s+\$\s*([0-9.,]+)(?:\s+\$\s*([0-9.,]+))?[\s\S]{0,800}?\]\((https?:\/\/www\.aliexpress\.[^)\s]+)\)/gi;
@@ -612,7 +664,10 @@ const providers = {
   bikroy: unsupportedProvider((q) => `https://bikroy.com/en/ads/bangladesh?query=${encodeURIComponent(q)}`, 'Connector queued'),
   shwapno: unsupportedProvider((q) => `https://www.shwapno.com/search?text=${encodeURIComponent(q)}`, 'Connector queued'),
   boighar: unsupportedProvider((q) => `https://boighar.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
-  pickaboo: unsupportedProvider((q) => `https://www.pickaboo.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  pickaboo: {
+    buildUrl: (q) => `https://www.pickaboo.com/product/${encodeURIComponent(String(q).trim().toLowerCase().replace(/\s+/g, '-'))}`,
+    parse: parsePickaboo,
+  },
   
   'gadget-and-gear': unsupportedProvider((q) => `https://gadgetandgear.com/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
   aarong: unsupportedProvider((q) => `https://www.aarong.com/catalogsearch/result/?q=${encodeURIComponent(q)}`, 'Connector queued'),
@@ -692,6 +747,11 @@ async function syncSeller(seller, query) {
           `https://www.alibaba.com/trade/search?fsb=y&IndexArea=product_en&SearchText=${encodeURIComponent(query)}`,
           `https://www.alibaba.com/trade/search?SearchText=${encodeURIComponent(query)}`,
         ]
+      : seller === 'pickaboo'
+        ? [
+            'https://www.pickaboo.com/product/smartphone',
+            provider.buildUrl(query),
+          ]
       : [provider.buildUrl(query)];
 
   let status = 0;

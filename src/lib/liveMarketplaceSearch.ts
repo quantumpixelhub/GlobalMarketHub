@@ -252,6 +252,48 @@ const parseTechland = (html: string, query: string, max: number): LiveOffer[] =>
   return offers;
 };
 
+const parsePickaboo = (markdown: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  const queryTokens = String(query || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+  const broadPhoneQuery = /(phone|mobile|smartphone|android|iphone)/i.test(String(query || ''));
+  const regex = /!\[Image\s+\d+:[^\]]*\]\((https?:\/\/[^)]+)\)[\s\S]{0,220}?####\s+([^\n\r]+?)\s+৳\s*([0-9,]+)(?:~~৳\s*([0-9,]+)~~)?[\s\S]{0,220}?\]\((https?:\/\/www\.pickaboo\.com\/product-detail\/[^)\s]+)\)/gi;
+  const seen = new Set<string>();
+
+  let m;
+  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
+    const title = String(m[2] || '').trim();
+    const relevant = broadPhoneQuery || matchesQuery(title, query) || queryTokens.some((token) => title.toLowerCase().includes(token));
+    if (!title || !relevant) continue;
+
+    const currentPrice = parsePrice(m[3]);
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = m[4] ? parsePrice(m[4]) : currentPrice;
+    const externalUrl = String(m[5] || '').replace(/&amp;/g, '&');
+    const key = externalUrl.split('/').pop() || title.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    offers.push({
+      platform: 'pickaboo',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl: m[1],
+      currentPrice,
+      originalPrice: Math.max(originalPrice, currentPrice),
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Pickaboo',
+    });
+  }
+
+  return offers;
+};
+
 const parseAliExpress = (markdown: string, query: string, max: number): LiveOffer[] => {
   const regex = /!\[Image\s+\d+[^\]]*\]\((https?:\/\/[^)]*aliexpress-media[^)]+)\)[\s\S]{0,600}?###\s+([^\n$]+?)\s+\$\s*([0-9.,]+)(?:\s+\$\s*([0-9.,]+))?[\s\S]{0,800}?\]\((https?:\/\/www\.aliexpress\.[^)\s]+)\)/gi;
   const offers: LiveOffer[] = [];
@@ -491,6 +533,22 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'techland-bd', offers: parseTechland(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'techland-bd', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const slugQuery = encodeURIComponent(String(q).trim().toLowerCase().replace(/\s+/g, '-'));
+        const primary = await fetchViaJina(`https://www.pickaboo.com/product/${slugQuery}`);
+        const primaryOffers = primary.status === 200 ? parsePickaboo(primary.text, q, maxPerSeller) : [];
+        if (primaryOffers.length > 0) {
+          return { seller: 'pickaboo', offers: primaryOffers };
+        }
+
+        const fallback = await fetchViaJina('https://www.pickaboo.com/product/smartphone');
+        if (fallback.status !== 200) return { seller: 'pickaboo', offers: [], error: `HTTP ${fallback.status}` };
+        return { seller: 'pickaboo', offers: parsePickaboo(fallback.text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'pickaboo', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {
