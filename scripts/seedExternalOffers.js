@@ -24,6 +24,9 @@ const getAdjustedPrice = (basePrice, percentDelta) => {
 async function main() {
   console.log('Seeding external marketplace offers...');
 
+  const requestedLimit = Number(process.env.EXTERNAL_SEED_LIMIT || 0);
+  const seedLimit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : undefined;
+
   const products = await prisma.product.findMany({
     where: { isActive: true },
     select: {
@@ -34,7 +37,7 @@ async function main() {
       rating: true,
       reviewCount: true,
     },
-    take: 300,
+    ...(seedLimit ? { take: seedLimit } : {}),
     orderBy: { createdAt: 'asc' },
   });
 
@@ -44,6 +47,8 @@ async function main() {
   }
 
   let upsertCount = 0;
+  let failureCount = 0;
+  const failureSamples = [];
 
   for (let i = 0; i < products.length; i += 1) {
     const product = products[i];
@@ -87,41 +92,61 @@ async function main() {
     ];
 
     for (const offer of offers) {
-      await prisma.externalProduct.upsert({
-        where: {
-          platform_externalId: {
+      try {
+        await prisma.externalProduct.upsert({
+          where: {
+            platform_externalId: {
+              platform: offer.platform,
+              externalId: offer.externalId,
+            },
+          },
+          update: {
+            externalUrl: offer.externalUrl,
+            externalPrice: offer.externalPrice,
+            externalOriginalPrice: offer.externalOriginalPrice,
+            externalRating: offer.externalRating,
+            externalReviewCount: offer.externalReviewCount,
+            isTracked: true,
+            lastSyncedAt: new Date(),
+          },
+          create: {
+            productId: product.id,
             platform: offer.platform,
             externalId: offer.externalId,
+            externalUrl: offer.externalUrl,
+            externalPrice: offer.externalPrice,
+            externalOriginalPrice: offer.externalOriginalPrice,
+            externalRating: offer.externalRating,
+            externalReviewCount: offer.externalReviewCount,
+            isTracked: true,
+            lastSyncedAt: new Date(),
           },
-        },
-        update: {
-          externalUrl: offer.externalUrl,
-          externalPrice: offer.externalPrice,
-          externalOriginalPrice: offer.externalOriginalPrice,
-          externalRating: offer.externalRating,
-          externalReviewCount: offer.externalReviewCount,
-          isTracked: true,
-          lastSyncedAt: new Date(),
-        },
-        create: {
-          productId: product.id,
-          platform: offer.platform,
-          externalId: offer.externalId,
-          externalUrl: offer.externalUrl,
-          externalPrice: offer.externalPrice,
-          externalOriginalPrice: offer.externalOriginalPrice,
-          externalRating: offer.externalRating,
-          externalReviewCount: offer.externalReviewCount,
-          isTracked: true,
-          lastSyncedAt: new Date(),
-        },
-      });
+        });
 
-      upsertCount += 1;
+        upsertCount += 1;
+      } catch (error) {
+        failureCount += 1;
+        if (failureSamples.length < 10) {
+          failureSamples.push({
+            productId: product.id,
+            title: product.title,
+            platform: offer.platform,
+            error: error.message,
+          });
+        }
+      }
+    }
+
+    if ((i + 1) % 100 === 0) {
+      console.log(`Processed ${i + 1}/${products.length} products...`);
     }
   }
 
   console.log(`Done. Upserted ${upsertCount} external offers for ${products.length} products.`);
+  if (failureCount > 0) {
+    console.log(`Skipped ${failureCount} offers due to errors.`);
+    console.log('Failure samples:', JSON.stringify(failureSamples, null, 2));
+  }
 }
 
 main()

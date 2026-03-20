@@ -82,6 +82,79 @@ const compareListings = (mode: SortMode) => (a: SearchListing, b: SearchListing)
   return valueScoreB - valueScoreA;
 };
 
+const buildSearchWhere = (query: string, categoryId: string | null) => {
+  const trimmed = query.trim();
+  const tokens = trimmed
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+
+  const base: any = {
+    isActive: true,
+  };
+
+  if (categoryId) {
+    base.categoryId = categoryId;
+  }
+
+  if (!trimmed) {
+    return base;
+  }
+
+  const primaryOr: any[] = [
+    { title: { contains: trimmed, mode: 'insensitive' } },
+    { description: { contains: trimmed, mode: 'insensitive' } },
+    { category: { name: { contains: trimmed, mode: 'insensitive' } } },
+    { category: { slug: { contains: trimmed, mode: 'insensitive' } } },
+    { seller: { storeName: { contains: trimmed, mode: 'insensitive' } } },
+    {
+      externalProducts: {
+        some: {
+          isTracked: true,
+          platform: { contains: trimmed, mode: 'insensitive' },
+        },
+      },
+    },
+  ];
+
+  if (tokens.length > 1) {
+    const tokenOr = tokens.flatMap((token) => [
+      { title: { contains: token, mode: 'insensitive' } },
+      { description: { contains: token, mode: 'insensitive' } },
+      { category: { name: { contains: token, mode: 'insensitive' } } },
+      { category: { slug: { contains: token, mode: 'insensitive' } } },
+      { seller: { storeName: { contains: token, mode: 'insensitive' } } },
+      {
+        externalProducts: {
+          some: {
+            isTracked: true,
+            platform: { contains: token, mode: 'insensitive' },
+          },
+        },
+      },
+    ]);
+
+    return {
+      ...base,
+      OR: [
+        ...primaryOr,
+        {
+          AND: [
+            {
+              OR: tokenOr,
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  return {
+    ...base,
+    OR: primaryOr,
+  };
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -98,25 +171,18 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
-      isActive: true,
-      OR: [
-        { title: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-      ],
+    const productSearchWhere: any = buildSearchWhere(q, categoryId);
+    const localWhere: any = {
+      ...productSearchWhere,
     };
 
-    if (categoryId) {
-      where.categoryId = categoryId;
-    }
-
     if (minPrice || maxPrice) {
-      where.currentPrice = {};
+      localWhere.currentPrice = {};
       if (minPrice) {
-        where.currentPrice.gte = Number(minPrice);
+        localWhere.currentPrice.gte = Number(minPrice);
       }
       if (maxPrice) {
-        where.currentPrice.lte = Number(maxPrice);
+        localWhere.currentPrice.lte = Number(maxPrice);
       }
     }
 
@@ -134,30 +200,17 @@ export async function GET(request: NextRequest) {
 
     // Get products
     const products = await prisma.product.findMany({
-      where,
+      where: localWhere,
       skip,
       take: limit,
       orderBy,
       include: {
         category: { select: { id: true, name: true } },
         seller: { select: { id: true, storeName: true } },
-        externalProducts: {
-          where: { isTracked: true },
-          select: {
-            id: true,
-            platform: true,
-            externalUrl: true,
-            externalPrice: true,
-            externalOriginalPrice: true,
-            externalRating: true,
-            externalReviewCount: true,
-            lastSyncedAt: true,
-          },
-        },
       },
     });
 
-    const total = await prisma.product.count({ where });
+    const total = await prisma.product.count({ where: localWhere });
 
     const localInventory: SearchListing[] = products.map((product) => ({
       id: product.id,
@@ -177,11 +230,53 @@ export async function GET(request: NextRequest) {
       },
     }));
 
+    const externalWhere: any = {
+      isTracked: true,
+      product: productSearchWhere,
+    };
+
+    if (minPrice || maxPrice) {
+      externalWhere.externalPrice = {};
+      if (minPrice) {
+        externalWhere.externalPrice.gte = Number(minPrice);
+      }
+      if (maxPrice) {
+        externalWhere.externalPrice.lte = Number(maxPrice);
+      }
+    }
+
+    const externalOfferTake = Math.min(Math.max(limit * 12, 120), 360);
+
+    const externalOffers = await prisma.externalProduct.findMany({
+      where: externalWhere,
+      take: externalOfferTake,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      include: {
+        product: {
+          select: {
+            id: true,
+            title: true,
+            mainImage: true,
+            rating: true,
+            reviewCount: true,
+            isFeatured: true,
+            seller: { select: { id: true, storeName: true } },
+          },
+        },
+      },
+    });
+
     const domesticSellers: SearchListing[] = [];
     const internationalSellers: SearchListing[] = [];
 
-    products.forEach((product) => {
-      product.externalProducts.forEach((external) => {
+    externalOffers.forEach((external) => {
+      const product = external.product;
+      if (!product) {
+        return;
+      }
+
         const normalizedPlatform = normalizePlatform(external.platform);
         const listing: SearchListing = {
           id: `ext-${external.id}`,
@@ -214,7 +309,6 @@ export async function GET(request: NextRequest) {
         }
 
         domesticSellers.push(listing);
-      });
     });
 
     localInventory.sort(compareListings(sortMode));
