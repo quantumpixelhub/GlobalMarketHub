@@ -10,6 +10,12 @@
     }
   },
   "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/cron/marketplace-sync",
+      "schedule": "0 2 * * *"
+    }
+  ],
   "git": {
     "deploymentEnabled": true
   }

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const DEFAULT_QUERY = process.env.SEARCH_QUERY || 'coffee';
 const MAX_PER_SELLER = Math.max(1, Number(process.env.MAX_PER_SELLER || 120));
-const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,aliexpress')
+const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,aliexpress')
   .split(',')
   .map((v) => v.trim().toLowerCase())
   .filter(Boolean);
@@ -211,6 +211,44 @@ function parseRokomari(markdown, query) {
   return offers;
 }
 
+function parseStartech(markdown, query) {
+  const offers = [];
+  const regex = /\[!\[Image[^\]]*\]\((https?:\/\/[^)]+)\)\]\((https?:\/\/www\.startech\.com\.bd\/[^)]+)\)[\s\S]{0,300}?#### \[([^\]]+)\]\((https?:\/\/www\.startech\.com\.bd\/[^)]+)\)[\s\S]{0,220}?([0-9,]+)৳(?:([0-9,]+)৳)?/gi;
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const title = normalizeText(match[3]);
+    if (!title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const currentPrice = parsePrice(match[5]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = match[6] ? parsePrice(match[6]) : currentPrice;
+    const url = match[4];
+    const slug = url.split('/').pop() || url;
+
+    offers.push({
+      platform: 'startech',
+      externalId: `startech-${shortHash(slug)}`,
+      externalUrl: url,
+      title,
+      sellerName: 'Startech',
+      imageUrl: match[1] || null,
+      categoryName: 'Electronics',
+      externalPrice: currentPrice,
+      externalOriginalPrice: originalPrice,
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 function parseAliExpress(markdown, query) {
   const offers = [];
   const regex = /!\[Image\s+\d+[^\]]*\]\((https?:\/\/[^)]*aliexpress-media[^)]+)\)[\s\S]{0,600}?###\s+([^\n$]+?)\s+\$\s*([0-9.,]+)(?:\s+\$\s*([0-9.,]+))?[\s\S]{0,800}?\]\((https?:\/\/www\.aliexpress\.[^)\s]+)\)/gi;
@@ -266,6 +304,10 @@ const providers = {
   rokomari: {
     buildUrl: (q) => `https://www.rokomari.com/search?term=${encodeURIComponent(q)}`,
     parse: parseRokomari,
+  },
+  startech: {
+    buildUrl: (q) => `https://www.startech.com.bd/product/search?search=${encodeURIComponent(q)}`,
+    parse: parseStartech,
   },
   alibaba: {
     buildUrl: (q) => `https://www.alibaba.com/trade/search?SearchText=${encodeURIComponent(q)}`,

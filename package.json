@@ -24,7 +24,8 @@
     "db:tag-synthetic-external-offers": "node scripts/tagSyntheticExternalOffers.js",
     "db:import-real-external-offers": "node scripts/importRealExternalOffers.js",
     "db:purge-synthetic-external-offers": "node scripts/purgeSyntheticExternalOffers.js",
-    "db:sync-marketplace-offers": "node scripts/syncMarketplaceOffers.js"
+    "db:sync-marketplace-offers": "node scripts/syncMarketplaceOffers.js",
+    "db:sync-category-taxonomy": "node scripts/syncCategoryTaxonomy.js"
   },
   "dependencies": {
     "@next/font": "^14.1.4",
