@@ -59,6 +59,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 's.alicdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'www.startech.com.bd',
       },
     ],

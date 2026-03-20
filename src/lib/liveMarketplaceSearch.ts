@@ -239,6 +239,83 @@ const parseAliExpress = (markdown: string, query: string, max: number): LiveOffe
   return offers;
 };
 
+const parseAlibaba = (markdown: string, query: string, max: number): LiveOffer[] => {
+  const regex = /\[!\[Image\s+\d+[^\]]*\]\((https?:\/\/s\.alicdn\.com\/[^)]+)\)\]\((https?:\/\/www\.alibaba\.com\/product-detail\/[^)\s]+)\)[\s\S]{0,280}?##\s+\[([^\]]+)\]\((https?:\/\/www\.alibaba\.com\/product-detail\/[^)\s]+)\)[\s\S]{0,220}?\[\$([0-9.,]+)(?:-([0-9.,]+))?/gi;
+  const offers: LiveOffer[] = [];
+
+  let m;
+  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
+    const title = String(m[3] || '').replace(/!\[Image[^\]]*\]/g, '').trim();
+    if (!matchesQuery(title, query)) continue;
+
+    const usdCurrent = parsePrice(m[5]);
+    if (usdCurrent <= 0) continue;
+
+    const usdUpper = m[6] ? parsePrice(m[6]) : usdCurrent;
+    const bdtRate = 122;
+    const currentPrice = Math.round(usdCurrent * bdtRate);
+    const originalPrice = Math.max(currentPrice, Math.round(usdUpper * bdtRate));
+
+    offers.push({
+      platform: 'alibaba',
+      sellerType: 'INTERNATIONAL',
+      title,
+      externalUrl: String(m[4] || m[2] || '').replace(/&amp;/g, '&'),
+      imageUrl: m[1],
+      currentPrice,
+      originalPrice,
+      discountVerified: false,
+      sellerName: 'Alibaba Marketplace',
+    });
+  }
+
+  return offers;
+};
+
+const parseAmazon = (markdown: string, query: string, max: number): LiveOffer[] => {
+  const regex = /\[##\s+([^\]]+)\]\((https?:\/\/(?:www\.)?amazon\.[^)]*?\/dp\/\s*([A-Z0-9]{10})[^)]*)\)/gi;
+  const offers: LiveOffer[] = [];
+
+  let m;
+  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
+    const title = String(m[1] || '').trim();
+    if (!matchesQuery(title, query)) continue;
+
+    const externalUrl = String(m[2] || '').replace(/\s+/g, '').replace(/&amp;/g, '&');
+    if (!externalUrl || /aax-us-east-retail-direct/i.test(externalUrl)) continue;
+
+    const nearText = markdown.slice(m.index, m.index + 6000);
+    const priceMatch = nearText.match(/Price, product page\[\$([0-9,]+(?:\.[0-9]{1,2})?)(?:\$([0-9,]+(?:\.[0-9]{1,2})?))?/i);
+    if (!priceMatch) continue;
+
+    const usdCurrent = parsePrice(priceMatch[1]);
+    if (usdCurrent <= 0) continue;
+
+    const usdOriginal = priceMatch[2] ? parsePrice(priceMatch[2]) : usdCurrent;
+    const bdtRate = 122;
+    const currentPrice = Math.round(usdCurrent * bdtRate);
+    const originalPrice = Math.max(currentPrice, Math.round(usdOriginal * bdtRate));
+
+    const lookBehind = markdown.slice(Math.max(0, m.index - 520), m.index);
+    const imageMatches = [...lookBehind.matchAll(/!\[Image\s+\d+:[^\]]*\]\((https?:\/\/m\.media-amazon\.com\/[^)]+)\)/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][1] : undefined;
+
+    offers.push({
+      platform: 'amazon',
+      sellerType: 'INTERNATIONAL',
+      title,
+      externalUrl,
+      imageUrl,
+      currentPrice,
+      originalPrice,
+      discountVerified: usdOriginal > usdCurrent,
+      sellerName: 'Amazon Marketplace',
+    });
+  }
+
+  return offers;
+};
+
 const parseBagdoom = (markdown: string, query: string, max: number): LiveOffer[] => {
   const regex = /### \[([^\]]+)\]\((https?:\/\/www\.bagdoom\.com\/product\/[^\s)]+)[^)]*\)(?:[\s\S]{0,120}?~~৳([0-9.,]+)~~)?[\s\S]{0,100}?৳([0-9.,]+)/gi;
   const offers: LiveOffer[] = [];
@@ -368,6 +445,24 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'aliexpress', offers: parseAliExpress(text, q, maxPerSeller) };
       } catch (error) {
         return { seller: 'aliexpress', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchViaJina(`https://m.alibaba.com/trade/search?SearchText=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'alibaba', offers: [], error: `HTTP ${status}` };
+        return { seller: 'alibaba', offers: parseAlibaba(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'alibaba', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchViaJina(`https://www.amazon.com/s?k=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'amazon', offers: [], error: `HTTP ${status}` };
+        return { seller: 'amazon', offers: parseAmazon(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'amazon', offers: [], error: (error as Error).message };
       }
     })(),
   ];

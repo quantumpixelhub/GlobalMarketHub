@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const DEFAULT_QUERY = process.env.SEARCH_QUERY || 'coffee';
 const MAX_PER_SELLER = Math.max(1, Number(process.env.MAX_PER_SELLER || 120));
-const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,aliexpress')
+const SELLERS = (process.env.SELLERS || 'daraz,chaldal,rokomari,startech,aliexpress,alibaba,amazon')
   .split(',')
   .map((v) => v.trim().toLowerCase())
   .filter(Boolean);
@@ -46,6 +46,7 @@ const REGISTERED_SOURCES = [
   'take-and-talks-bd',
   'alibaba',
   'aliexpress',
+  'amazon',
 ];
 
 const normalizeText = (value) => String(value || '').trim();
@@ -331,6 +332,103 @@ function parseAliExpress(markdown, query) {
   return offers;
 }
 
+function parseAlibaba(markdown, query) {
+  const offers = [];
+  const regex = /\[!\[Image\s+\d+[^\]]*\]\((https?:\/\/s\.alicdn\.com\/[^)]+)\)\]\((https?:\/\/www\.alibaba\.com\/product-detail\/[^)\s]+)\)[\s\S]{0,280}?##\s+\[([^\]]+)\]\((https?:\/\/www\.alibaba\.com\/product-detail\/[^)\s]+)\)[\s\S]{0,220}?\[\$([0-9.,]+)(?:-([0-9.,]+))?/gi;
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const rawTitle = normalizeText(match[3]).replace(/!\[Image[^\]]*\]/g, '').trim();
+    if (!rawTitle || !rawTitle.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const usdCurrent = parsePrice(match[5]);
+    if (usdCurrent <= 0) {
+      continue;
+    }
+
+    const usdUpper = match[6] ? parsePrice(match[6]) : usdCurrent;
+    const bdtRate = 122;
+    const currentPrice = Math.round(usdCurrent * bdtRate);
+    const originalPrice = Math.max(currentPrice, Math.round(usdUpper * bdtRate));
+
+    const url = (match[4] || match[2]).replace(/&amp;/g, '&');
+    const itemIdMatch = url.match(/_(\d+)\.html/i);
+    const externalId = itemIdMatch ? `alibaba-${itemIdMatch[1]}` : `alibaba-${shortHash(url)}`;
+
+    offers.push({
+      platform: 'alibaba',
+      externalId,
+      externalUrl: url,
+      title: rawTitle,
+      sellerName: 'Alibaba Marketplace',
+      imageUrl: match[1] || null,
+      categoryName: 'Global Wholesale',
+      externalPrice: currentPrice,
+      externalOriginalPrice: originalPrice,
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
+function parseAmazon(markdown, query) {
+  const offers = [];
+  const regex = /\[##\s+([^\]]+)\]\((https?:\/\/(?:www\.)?amazon\.[^)]*?\/dp\/\s*([A-Z0-9]{10})[^)]*)\)/gi;
+
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const title = normalizeText(match[1]);
+    if (!title || !title.toLowerCase().includes(query.toLowerCase())) {
+      continue;
+    }
+
+    const url = (match[2] || '').replace(/\s+/g, '').replace(/&amp;/g, '&');
+    if (!url || /aax-us-east-retail-direct/i.test(url)) {
+      continue;
+    }
+
+    const nearText = markdown.slice(match.index, match.index + 6000);
+    const priceMatch = nearText.match(/Price, product page\[\$([0-9,]+(?:\.[0-9]{1,2})?)(?:\$([0-9,]+(?:\.[0-9]{1,2})?))?/i);
+    if (!priceMatch) {
+      continue;
+    }
+
+    const usdCurrent = parsePrice(priceMatch[1]);
+    if (usdCurrent <= 0) {
+      continue;
+    }
+
+    const usdOriginal = priceMatch[2] ? parsePrice(priceMatch[2]) : usdCurrent;
+    const bdtRate = 122;
+    const currentPrice = Math.round(usdCurrent * bdtRate);
+    const originalPrice = Math.max(currentPrice, Math.round(usdOriginal * bdtRate));
+
+    const lookBehind = markdown.slice(Math.max(0, match.index - 520), match.index);
+    const imageMatches = [...lookBehind.matchAll(/!\[Image\s+\d+:[^\]]*\]\((https?:\/\/m\.media-amazon\.com\/[^)]+)\)/gi)];
+    const imageUrl = imageMatches.length ? imageMatches[imageMatches.length - 1][1] : null;
+
+    offers.push({
+      platform: 'amazon',
+      externalId: `amazon-${match[3]}`,
+      externalUrl: url,
+      title,
+      sellerName: 'Amazon Marketplace',
+      imageUrl,
+      categoryName: 'Global Marketplace',
+      externalPrice: currentPrice,
+      externalOriginalPrice: originalPrice,
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 function parseBagdoom(markdown, query) {
   const offers = [];
   const regex = /### \[([^\]]+)\]\((https?:\/\/www\.bagdoom\.com\/product\/[^\s)]+)[^)]*\)(?:[\s\S]{0,120}?~~৳([0-9.,]+)~~)?[\s\S]{0,100}?৳([0-9.,]+)/gi;
@@ -433,12 +531,16 @@ const providers = {
     parse: parseStartech,
   },
   alibaba: {
-    buildUrl: (q) => `https://www.alibaba.com/trade/search?SearchText=${encodeURIComponent(q)}`,
-    parse: () => [],
+    buildUrl: (q) => `https://m.alibaba.com/trade/search?SearchText=${encodeURIComponent(q)}`,
+    parse: parseAlibaba,
   },
   aliexpress: {
     buildUrl: (q) => `https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(q)}`,
     parse: parseAliExpress,
+  },
+  amazon: {
+    buildUrl: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`,
+    parse: parseAmazon,
   },
   evaly: unsupportedProvider((q) => `https://evaly.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   ajkerdeal: unsupportedProvider((q) => `https://ajkerdeal.com/search?keyword=${encodeURIComponent(q)}`, 'Connector queued'),
