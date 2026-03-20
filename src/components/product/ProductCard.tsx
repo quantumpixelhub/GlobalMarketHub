@@ -46,7 +46,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToWishlist,
 }) => {
   const router = useRouter();
-  const discount = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+  const rawDiscount = originalPrice > 0 ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
+  const discount = rawDiscount > 0 && rawDiscount <= 90 ? rawDiscount : 0;
   const isOutOfStock = stock === 0;
   const [isWishlisted, setIsWishlisted] = React.useState(false);
   const [wishlistLoading, setWishlistLoading] = React.useState(false);

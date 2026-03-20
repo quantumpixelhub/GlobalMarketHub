@@ -155,6 +155,49 @@ const buildSearchWhere = (query: string, categoryId: string | null) => {
   };
 };
 
+const buildExternalSearchWhere = (query: string) => {
+  const trimmed = query.trim();
+  const tokens = trimmed
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+
+  const base: any = {
+    isTracked: true,
+    isSynthetic: false,
+  };
+
+  if (!trimmed) {
+    return base;
+  }
+
+  const primaryOr: any[] = [
+    { title: { contains: trimmed, mode: 'insensitive' } },
+    { sellerName: { contains: trimmed, mode: 'insensitive' } },
+    { categoryName: { contains: trimmed, mode: 'insensitive' } },
+    { platform: { contains: trimmed, mode: 'insensitive' } },
+  ];
+
+  if (tokens.length > 1) {
+    const tokenOr = tokens.flatMap((token) => [
+      { title: { contains: token, mode: 'insensitive' } },
+      { sellerName: { contains: token, mode: 'insensitive' } },
+      { categoryName: { contains: token, mode: 'insensitive' } },
+      { platform: { contains: token, mode: 'insensitive' } },
+    ]);
+
+    return {
+      ...base,
+      OR: [...primaryOr, { AND: [{ OR: tokenOr }] }],
+    };
+  }
+
+  return {
+    ...base,
+    OR: primaryOr,
+  };
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -230,10 +273,7 @@ export async function GET(request: NextRequest) {
       },
     }));
 
-    const externalWhere: any = {
-      isTracked: true,
-      product: productSearchWhere,
-    };
+    const externalWhere: any = buildExternalSearchWhere(q);
 
     if (minPrice || maxPrice) {
       externalWhere.externalPrice = {};
@@ -273,42 +313,45 @@ export async function GET(request: NextRequest) {
 
     externalOffers.forEach((external) => {
       const product = external.product;
-      if (!product) {
+      const listingTitle = external.title || product?.title;
+      const listingImage = external.imageUrl || product?.mainImage;
+
+      if (!listingTitle || !listingImage) {
         return;
       }
 
-        const normalizedPlatform = normalizePlatform(external.platform);
-        const listing: SearchListing = {
-          id: `ext-${external.id}`,
-          title: product.title,
-          currentPrice: Number(external.externalPrice),
-          originalPrice: Number(external.externalOriginalPrice || external.externalPrice),
-          mainImage: product.mainImage,
-          rating: Number(external.externalRating || product.rating),
-          reviewCount: clampReviewCount(external.externalReviewCount || product.reviewCount),
-          stock: 999,
-          isFeatured: product.isFeatured,
-          externalUrl: external.externalUrl,
-          sourceType: INTERNATIONAL_PLATFORMS.has(normalizedPlatform) ? 'INTERNATIONAL' : 'DOMESTIC',
-          sourcePlatform: external.platform,
-          lastSyncedAt: external.lastSyncedAt ? external.lastSyncedAt.toISOString() : undefined,
-          seller: {
-            id: product.seller.id,
-            storeName: product.seller.storeName,
-          },
-        };
+      const normalizedPlatform = normalizePlatform(external.platform);
+      const listing: SearchListing = {
+        id: `ext-${external.id}`,
+        title: listingTitle,
+        currentPrice: Number(external.externalPrice),
+        originalPrice: Number(external.externalOriginalPrice || external.externalPrice),
+        mainImage: listingImage,
+        rating: Number(external.externalRating || product?.rating || 0),
+        reviewCount: clampReviewCount(external.externalReviewCount || product?.reviewCount || 0),
+        stock: 999,
+        isFeatured: product?.isFeatured,
+        externalUrl: external.externalUrl,
+        sourceType: INTERNATIONAL_PLATFORMS.has(normalizedPlatform) ? 'INTERNATIONAL' : 'DOMESTIC',
+        sourcePlatform: external.platform,
+        lastSyncedAt: external.lastSyncedAt ? external.lastSyncedAt.toISOString() : undefined,
+        seller: {
+          id: product?.seller?.id || `ext-seller-${external.id}`,
+          storeName: external.sellerName || `${external.platform} marketplace`,
+        },
+      };
 
-        if (INTERNATIONAL_PLATFORMS.has(normalizedPlatform)) {
-          internationalSellers.push(listing);
-          return;
-        }
+      if (INTERNATIONAL_PLATFORMS.has(normalizedPlatform)) {
+        internationalSellers.push(listing);
+        return;
+      }
 
-        if (DOMESTIC_PLATFORMS.has(normalizedPlatform)) {
-          domesticSellers.push(listing);
-          return;
-        }
-
+      if (DOMESTIC_PLATFORMS.has(normalizedPlatform)) {
         domesticSellers.push(listing);
+        return;
+      }
+
+      domesticSellers.push(listing);
     });
 
     localInventory.sort(compareListings(sortMode));

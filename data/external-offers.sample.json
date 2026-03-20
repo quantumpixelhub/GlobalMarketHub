@@ -1,0 +1,28 @@
+[
+  {
+    "platform": "alibaba",
+    "externalId": "alibaba-1000001",
+    "externalUrl": "https://www.alibaba.com/product-detail/example_1000001.html",
+    "title": "Nescafe Classic Instant Coffee 200g",
+    "sellerName": "Global Beverage Trading Co.",
+    "imageUrl": "https://example-cdn.com/images/coffee-200g.jpg",
+    "categoryName": "Coffee & Tea",
+    "externalPrice": 490.6,
+    "externalOriginalPrice": 550,
+    "externalRating": 4.6,
+    "externalReviewCount": 128
+  },
+  {
+    "platform": "daraz",
+    "externalId": "daraz-2000001",
+    "externalUrl": "https://www.daraz.com.bd/products/example-2000001.html",
+    "title": "Nescafe Gold Blend 100g",
+    "sellerName": "Daraz Mall Store",
+    "imageUrl": "https://example-cdn.com/images/gold-100g.jpg",
+    "categoryName": "Groceries",
+    "externalPrice": 844,
+    "externalOriginalPrice": 1087,
+    "externalRating": 4.5,
+    "externalReviewCount": 25
+  }
+]

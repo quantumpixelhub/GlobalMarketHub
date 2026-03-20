@@ -469,13 +469,17 @@ model ProductComparison {
 
 model ExternalProduct {
   id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   
   // External source info
   platform  String   // 'daraz', 'pickaboo', 'sajgoj'
   externalId String
   externalUrl String
+  title      String?
+  sellerName String?
+  imageUrl   String?
+  categoryName String?
   
   // Price on external platform
   externalPrice Decimal @db.Decimal(12, 2)
@@ -487,6 +491,7 @@ model ExternalProduct {
   
   // Status
   isTracked Boolean @default(true)
+  isSynthetic Boolean @default(false)
   lastSyncedAt DateTime?
   
   createdAt DateTime @default(now())
