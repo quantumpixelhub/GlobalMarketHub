@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
@@ -39,9 +39,33 @@ interface SearchResponse {
   };
   results?: SearchListing[];
   sortMode?: SortMode;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+    sections?: {
+      localInventory: { total: number; pages: number; hasNext: boolean; hasPrev: boolean };
+      domesticSellers: { total: number; pages: number; hasNext: boolean; hasPrev: boolean };
+      internationalSellers: { total: number; pages: number; hasNext: boolean; hasPrev: boolean };
+    };
+  };
+  sourceStats?: {
+    domesticByPlatform: Record<string, number>;
+    internationalByPlatform: Record<string, number>;
+    coverage?: string;
+    errors?: string[];
+    generatedAt?: string;
+    fromCache?: boolean;
+    stale?: boolean;
+  };
 }
 
+const PAGE_SIZE = 24;
+
 function SearchContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   
@@ -49,8 +73,35 @@ function SearchContent() {
   const [domesticProducts, setDomesticProducts] = useState<SearchListing[]>([]);
   const [internationalProducts, setInternationalProducts] = useState<SearchListing[]>([]);
   const [sortMode, setSortMode] = useState<SortMode>('best_value');
+  const [page, setPage] = useState(Math.max(1, Number(searchParams.get('page') || '1')));
+  const [goToPageInput, setGoToPageInput] = useState('');
+  const [pagination, setPagination] = useState<SearchResponse['pagination']>();
+  const [sourceStats, setSourceStats] = useState<SearchResponse['sourceStats']>();
   const [loading, setLoading] = useState(true);
+  const pageCacheRef = useRef<Map<string, SearchResponse>>(new Map());
   const { showToast } = useToast();
+
+  const setPageWithUrl = (targetPage: number) => {
+    const safePage = Math.max(1, targetPage);
+    setPage(safePage);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(safePage));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    setPageWithUrl(1);
+    setGoToPageInput('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, sortMode]);
+
+  useEffect(() => {
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || '1'));
+    if (pageFromUrl !== page) {
+      setPage(pageFromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -63,11 +114,28 @@ function SearchContent() {
       }
       
       try {
+        const cacheKey = `${query}|${sortMode}|${page}|${PAGE_SIZE}`;
+        const cached = pageCacheRef.current.get(cacheKey);
+        if (cached) {
+          setPagination(cached.pagination);
+          setSourceStats(cached.sourceStats);
+          if (cached.sections) {
+            setLocalProducts(cached.sections.localInventory || []);
+            setDomesticProducts(cached.sections.domesticSellers || []);
+            setInternationalProducts(cached.sections.internationalSellers || []);
+            setLoading(false);
+            return;
+          }
+        }
+
         setLoading(true);
         const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}`,
+          `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}&page=${page}&limit=${PAGE_SIZE}`,
         );
         const data: SearchResponse = await res.json();
+        pageCacheRef.current.set(cacheKey, data);
+        setPagination(data.pagination);
+        setSourceStats(data.sourceStats);
 
         if (data.sections) {
           setLocalProducts(data.sections.localInventory || []);
@@ -79,18 +147,142 @@ function SearchContent() {
         setLocalProducts(data.results || []);
         setDomesticProducts([]);
         setInternationalProducts([]);
+        setPagination(undefined);
+        setSourceStats(undefined);
       } catch (error) {
         console.error('Search error:', error);
         setLocalProducts([]);
         setDomesticProducts([]);
         setInternationalProducts([]);
+        setPagination(undefined);
+        setSourceStats(undefined);
       } finally {
         setLoading(false);
       }
     };
 
     fetchResults();
-  }, [query, sortMode]);
+  }, [query, sortMode, page]);
+
+  const hasNextPage = Boolean(
+    pagination?.sections?.localInventory?.hasNext ||
+    pagination?.sections?.domesticSellers?.hasNext ||
+    pagination?.sections?.internationalSellers?.hasNext
+  );
+  const hasPrevPage = page > 1;
+  const knownPages = [
+    pagination?.sections?.localInventory?.pages ?? 0,
+    pagination?.sections?.domesticSellers?.pages ?? 0,
+    pagination?.sections?.internationalSellers?.pages ?? 0,
+  ];
+  const totalPages = Math.max(1, ...knownPages, hasNextPage ? page + 1 : page);
+  const pageWindowSize = 7;
+  const halfWindow = Math.floor(pageWindowSize / 2);
+  let startPage = Math.max(1, page - halfWindow);
+  let endPage = Math.min(totalPages, startPage + pageWindowSize - 1);
+  if (endPage - startPage + 1 < pageWindowSize) {
+    startPage = Math.max(1, endPage - pageWindowSize + 1);
+  }
+  const pageButtons = Array.from({ length: endPage - startPage + 1 }, (_, idx) => startPage + idx);
+
+  const goToPage = () => {
+    const parsed = Number(goToPageInput);
+    if (!Number.isFinite(parsed)) return;
+    const safePage = Math.max(1, Math.min(totalPages, Math.floor(parsed)));
+    setPageWithUrl(safePage);
+    setGoToPageInput('');
+  };
+
+  const renderPaginationControls = (position: 'top' | 'bottom') => (
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      <button
+        type="button"
+        onClick={() => setPageWithUrl(page - 1)}
+        disabled={loading || !hasPrevPage}
+        className="px-3 py-2 rounded border border-gray-300 bg-white disabled:opacity-50"
+      >
+        Previous
+      </button>
+      {startPage > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => setPageWithUrl(1)}
+            disabled={loading}
+            className="px-3 py-2 rounded border border-gray-300 bg-white disabled:opacity-50"
+          >
+            1
+          </button>
+          {startPage > 2 && <span className="px-1 text-gray-500">...</span>}
+        </>
+      )}
+
+      {pageButtons.map((pageNumber) => (
+        <button
+          key={pageNumber}
+          type="button"
+          onClick={() => setPageWithUrl(pageNumber)}
+          disabled={loading}
+          className={`px-3 py-2 rounded border disabled:opacity-50 ${
+            pageNumber === page
+              ? 'border-emerald-600 bg-emerald-600 text-white'
+              : 'border-gray-300 bg-white text-gray-700'
+          }`}
+        >
+          {pageNumber}
+        </button>
+      ))}
+
+      {endPage < totalPages && (
+        <>
+          {endPage < totalPages - 1 && <span className="px-1 text-gray-500">...</span>}
+          <button
+            type="button"
+            onClick={() => setPageWithUrl(totalPages)}
+            disabled={loading}
+            className="px-3 py-2 rounded border border-gray-300 bg-white disabled:opacity-50"
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
+
+      <span className="text-gray-600">Page {page} / {totalPages}</span>
+      <button
+        type="button"
+        onClick={() => setPageWithUrl(page + 1)}
+        disabled={loading || !hasNextPage}
+        className="px-3 py-2 rounded border border-gray-300 bg-white disabled:opacity-50"
+      >
+        Next
+      </button>
+
+      <div className="ml-2 flex items-center gap-2">
+        <label htmlFor={`goto-page-${position}`} className="text-gray-600">Go to</label>
+        <input
+          id={`goto-page-${position}`}
+          type="number"
+          min={1}
+          max={totalPages}
+          value={goToPageInput}
+          onChange={(e) => setGoToPageInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') goToPage();
+          }}
+          className="w-20 px-2 py-2 border border-gray-300 rounded"
+          placeholder="Page"
+        />
+        <button
+          type="button"
+          onClick={goToPage}
+          disabled={loading || !goToPageInput}
+          className="px-3 py-2 rounded border border-gray-300 bg-white disabled:opacity-50"
+        >
+          Go
+        </button>
+      </div>
+    </div>
+  );
 
   const handleAddToCart = async (productId: string) => {
     try {
@@ -175,12 +367,54 @@ function SearchContent() {
             <option value="most_reviews">Most Reviews</option>
             <option value="highest_rated">Highest Rated</option>
           </select>
+          <div className="ml-auto">{renderPaginationControls('top')}</div>
         </div>
+
+        {!!sourceStats && (
+          <section className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center justify-between mb-3 gap-3">
+              <h3 className="text-sm font-semibold text-gray-700">Source Coverage</h3>
+              <div className="text-xs text-gray-500">
+                {sourceStats.generatedAt ? `Updated ${new Date(sourceStats.generatedAt).toLocaleTimeString()}` : 'Updated just now'}
+                {sourceStats.fromCache ? ' (cache)' : ' (live)'}
+                {sourceStats.stale ? ' - stale' : ''}
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-emerald-700 mb-2">Domestic</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(sourceStats.domesticByPlatform || {})
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10)
+                    .map(([platform, count]) => (
+                      <span key={`dom-${platform}`} className="px-2 py-1 rounded bg-emerald-50 text-emerald-800 text-xs border border-emerald-200">
+                        {platform}: {count}
+                      </span>
+                    ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-blue-700 mb-2">International</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(sourceStats.internationalByPlatform || {})
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10)
+                    .map(([platform, count]) => (
+                      <span key={`intl-${platform}`} className="px-2 py-1 rounded bg-blue-50 text-blue-800 text-xs border border-blue-200">
+                        {platform}: {count}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Local Inventory</h2>
-            <span className="text-sm text-gray-500">{localProducts.length} items</span>
+            <span className="text-sm text-gray-500">{pagination?.sections?.localInventory?.total ?? localProducts.length} items</span>
           </div>
           <ProductGrid
             products={localProducts}
@@ -196,7 +430,7 @@ function SearchContent() {
               <h2 className="text-xl font-semibold text-emerald-800">Domestic Sellers</h2>
               <p className="text-xs text-emerald-700">Bangladesh platforms and local marketplaces</p>
             </div>
-            <span className="text-sm text-gray-500">{domesticProducts.length} items</span>
+            <span className="text-sm text-gray-500">{pagination?.sections?.domesticSellers?.total ?? domesticProducts.length} items</span>
           </div>
           <ProductGrid products={domesticProducts} loading={loading} columns={4} />
         </section>
@@ -207,10 +441,14 @@ function SearchContent() {
               <h2 className="text-xl font-semibold text-blue-800">International Sellers</h2>
               <p className="text-xs text-blue-700">Cross-border global marketplaces</p>
             </div>
-            <span className="text-sm text-gray-500">{internationalProducts.length} items</span>
+            <span className="text-sm text-gray-500">{pagination?.sections?.internationalSellers?.total ?? internationalProducts.length} items</span>
           </div>
           <ProductGrid products={internationalProducts} loading={loading} columns={4} />
         </section>
+
+        <div className="mb-10 flex justify-center">
+          {renderPaginationControls('bottom')}
+        </div>
 
         {!loading && localProducts.length === 0 && domesticProducts.length === 0 && internationalProducts.length === 0 && (
           <div className="text-center py-12">

@@ -1,3 +1,75 @@
+const parseTopTenShopify = (jsonText: string, query: string, max: number): LiveOffer[] => {
+  // Parse Shopify JSON API response (common format for Shopify stores)
+  const offers: LiveOffer[] = [];
+  const seen = new Set<string>();
+  
+  try {
+    // Try to parse as JSON
+    let data: any;
+    try {
+      data = JSON.parse(jsonText);
+    } catch {
+      // If JSON parse fails, return empty array
+      return [];
+    }
+    
+    // Handle different Shopify API response formats
+    const products = data.products || data.resources?.products || [];
+    
+    if (!Array.isArray(products)) return [];
+    
+    for (const product of products) {
+      if (offers.length >= max) break;
+      if (!product || typeof product !== 'object') continue;
+      
+      const title = product.title || product.name || '';
+      if (!title || !matchesQuery(title, query) || title.length < 5 || title.length > 200) continue;
+      
+      // Get price from variants or variants default price
+      let price = 0;
+      if (product.variants && Array.isArray(product.variants) && product.variants[0]) {
+        price = product.variants[0].price || product.variants[0].cost || 0;
+      } else if (product.price) {
+        price = product.price;
+      }
+      
+      if (typeof price === 'string') {
+        price = parsePrice(String(price));
+      } else if (typeof price === 'number') {
+        price = Math.round(price);
+      } else {
+        continue;
+      }
+      
+      if (price <= 0) continue;
+      
+      const { handle, id } = product;
+      const productId = handle || id || title.toLowerCase().replace(/\s+/g, '-');
+      if (seen.has(productId)) continue;
+      seen.add(productId);
+      
+      const imageUrl = product.featured_image?.src || product.image?.src || '';
+      const externalUrl = product.url || `https://toptenmartltd.com/products/${handle}`;
+      
+      offers.push({
+        platform: 'top-ten',
+        sellerType: 'DOMESTIC',
+        title,
+        externalUrl,
+        imageUrl,
+        currentPrice: price,
+        originalPrice: price,
+        discountVerified: false,
+        sellerName: 'Top Ten Mart',
+      });
+    }
+  } catch (error) {
+    // Silently fail and return empty array
+  }
+  
+  return offers;
+};
+
 type SellerType = 'DOMESTIC' | 'INTERNATIONAL';
 
 export type LiveOffer = {
@@ -15,11 +87,6 @@ export type LiveOffer = {
 const parsePrice = (value: string) => {
   const num = Number(String(value || '').replace(/[^0-9.]/g, ''));
   return Number.isFinite(num) ? num : 0;
-};
-
-const parseIntSafe = (value: string) => {
-  const num = Number(String(value || '').replace(/[^0-9]/g, ''));
-  return Number.isFinite(num) ? Math.round(num) : 0;
 };
 
 const normalize = (value: string) =>
@@ -70,36 +137,6 @@ const fetchDirect = async (url: string) => {
   return { status: res.status, text };
 };
 
-const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] => {
-  const regex = /\[!\[Image[^\]]*\]\((https?:\/\/[^)]+)\)\]\((https?:\/\/[^)]+)\)\s*\n\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\)\s*\n\s*৳\s*([0-9,]+)(?:\s*\n\s*([0-9]{1,2})% Off)?/gi;
-  const offers: LiveOffer[] = [];
-
-  let m;
-  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
-    const title = String(m[3] || '').trim();
-    if (!matchesQuery(title, query)) continue;
-
-    const currentPrice = parsePrice(m[5]);
-    if (currentPrice <= 0) continue;
-
-    const discount = parseIntSafe(m[6] || '0');
-    const originalPrice = discount > 0 ? Math.round(currentPrice / (1 - discount / 100)) : currentPrice;
-
-    offers.push({
-      platform: 'daraz',
-      sellerType: 'DOMESTIC',
-      title,
-      externalUrl: m[4],
-      imageUrl: m[1],
-      currentPrice,
-      originalPrice,
-      discountVerified: discount > 0,
-      sellerName: 'Daraz Marketplace',
-    });
-  }
-
-  return offers;
-};
 
 const parseChaldal = (markdown: string, query: string, max: number): LiveOffer[] => {
   const lines = markdown.split(/\r?\n/).map((l) => l.trim());
@@ -160,28 +197,81 @@ const parseChaldal = (markdown: string, query: string, max: number): LiveOffer[]
 };
 
 const parseRokomari = (markdown: string, query: string, max: number): LiveOffer[] => {
-  const regex = /\[!\[Image[^\]]*\]\((https?:\/\/[^)]+)\)[^\]]*####\s*([^\]]+?)\s*(?:Brand:[^\]]+)?(?:~~TK\.\s*([0-9,]+)~~\s*)?TK\.\s*([0-9,]+)\]\((https?:\/\/www\.rokomari\.com\/product\/[^\s)]+)[^)]*\)/gi;
+  // Robust parser for Rokomari - flexible line-by-line approach
+  const lines = markdown.split(/\r?\n/).map((l) => l.trim());
   const offers: LiveOffer[] = [];
+  const seen = new Set<string>();
 
-  let m;
-  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
-    const title = String(m[2] || '').replace(/\s+/g, ' ').trim();
+  for (let i = 0; i < lines.length && offers.length < max; i++) {
+    const line = lines[i];
+    
+    // Look for markdown links [text](url)
+    const linkMatch = line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/);
+    if (!linkMatch) continue;
+    
+    let title = linkMatch[1];
+    let url = linkMatch[2];
+    
+    // Clean up title and remove image placeholders
+    title = title.replace(/[#*_`\[\]!]/g, '').replace(/^Image\s+\d+:\s*/i, '').trim();
+    
+    // Must be rokomari URL or contain search term
+    if (!url.includes('rokomari.com') && !matchesQuery(title, query)) continue;
+    if (!title || title.match(/^image/i) || title.length < 5 || title.length > 200) continue;
+    
+    // If not rokomari URL yet, keep looking
+    if (!url.includes('rokomari.com')) {
+      let foundRokomariUrl = false;
+      for (let j = i + 1; j < Math.min(i + 8, lines.length); j++) {
+        const nextLink = lines[j].match(/\[(.*?)\]\((https?:\/\/www\.rokomari\.com\/[^)]+)\)/);
+        if (nextLink) {
+          url = nextLink[2];
+          foundRokomariUrl = true;
+          break;
+        }
+      }
+      if (!foundRokomariUrl) continue;
+    }
+    
     if (!matchesQuery(title, query)) continue;
-
-    const currentPrice = parsePrice(m[4]);
-    if (currentPrice <= 0) continue;
-
-    const originalPrice = m[3] ? parsePrice(m[3]) : currentPrice;
-
+    
+    // Look for price (TK. format)
+    let price = 0;
+    let imageUrl = '';
+    
+    for (let j = Math.max(0, i - 2); j <= Math.min(lines.length - 1, i + 10); j++) {
+      const priceLine = lines[j];
+      
+      // Look for TK. or ৳ price
+      if (priceLine.includes('TK.') || priceLine.includes('৳')) {
+        const priceMatch = priceLine.match(/(?:TK\.|৳)\s*([0-9,]+)/);
+        if (priceMatch) {
+          price = parsePrice(priceMatch[1]);
+          if (price > 0) break;
+        }
+      }
+      
+      // Look for image
+      if (!imageUrl && priceLine.match(/https?:\/\/[^\s)]*\.(?:jpg|jpeg|png|webp)/i)) {
+        imageUrl = priceLine.match(/https?:\/\/[^\s)]*\.(?:jpg|jpeg|png|webp)/i)?.[0] || '';
+      }
+    }
+    
+    if (price < 50) continue;
+    
+    const key = url.split('/').pop() || title;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    
     offers.push({
       platform: 'rokomari',
       sellerType: 'DOMESTIC',
       title,
-      externalUrl: m[5],
-      imageUrl: m[1],
-      currentPrice,
-      originalPrice,
-      discountVerified: originalPrice > currentPrice,
+      externalUrl: url,
+      imageUrl,
+      currentPrice: price,
+      originalPrice: price,
+      discountVerified: false,
       sellerName: 'Rokomari',
     });
   }
@@ -190,28 +280,71 @@ const parseRokomari = (markdown: string, query: string, max: number): LiveOffer[
 };
 
 const parseStartech = (markdown: string, query: string, max: number): LiveOffer[] => {
-  const regex = /\[!\[Image[^\]]*\]\((https?:\/\/[^)]+)\)\]\((https?:\/\/www\.startech\.com\.bd\/[^)]+)\)[\s\S]{0,300}?#### \[([^\]]+)\]\((https?:\/\/www\.startech\.com\.bd\/[^)]+)\)[\s\S]{0,220}?([0-9,]+)৳(?:([0-9,]+)৳)?/gi;
+  // Robust parser for Startech - flexible approach
+  const lines = markdown.split(/\r?\n/).map((l) => l.trim()).filter((l) => l);
   const offers: LiveOffer[] = [];
+  const seen = new Set<string>();
 
-  let m;
-  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
-    const title = String(m[3] || '').trim();
+  for (let i = 0; i < lines.length && offers.length < max; i++) {
+    const line = lines[i];
+    
+    // Look for markdown links [text](url)
+    const linkMatch = line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/);
+    if (!linkMatch) continue;
+    
+    let title = linkMatch[1];
+    const url = linkMatch[2];
+    
+    // Clean up title and filter out image references
+    title = title.replace(/[#*_`\[\]!]/g, '').replace(/^Image\s+\d+:\s*/i, '').trim();
+    
+    // Skip if it's just "Image" or invalid title
+    if (!title || title.match(/^image/i) || title.length < 5 || title.length > 200) continue;
+    
+    // Check if this is a startech product URL or matches query
+    if (!url.includes('startech.com')) continue;
     if (!matchesQuery(title, query)) continue;
-
-    const currentPrice = parsePrice(m[5]);
-    if (currentPrice <= 0) continue;
-
-    const originalPrice = m[6] ? parsePrice(m[6]) : currentPrice;
-
+    
+    // Skip cache/image URLs
+    if (url.includes('/cache/') || url.includes('image.cache') || !url.includes('/product')) continue;
+    
+    // Look for price in surrounding lines
+    let price = 0;
+    let imageUrl = '';
+    
+    for (let j = Math.max(0, i - 3); j <= Math.min(lines.length - 1, i + 12); j++) {
+      const priceLine = lines[j];
+      
+      // Look for ৳ price format
+      if (priceLine.includes('৳')) {
+        const priceMatch = priceLine.match(/([0-9,]+)\s*৳/);
+        if (priceMatch) {
+          price = parsePrice(priceMatch[1]);
+          if (price > 100) break; // Reasonable min price
+        }
+      }
+      
+      // Look for image (but skip cache URLs)
+      if (!imageUrl && priceLine.match(/https?:\/\/[^\s)]*\.(?:jpg|jpeg|png|webp)/i) && !priceLine.includes('/cache/')) {
+        imageUrl = priceLine.match(/https?:\/\/[^\s)]*\.(?:jpg|jpeg|png|webp)/i)?.[0] || '';
+      }
+    }
+    
+    if (price <= 0) continue;
+    
+    const key = `${title}|${price}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    
     offers.push({
       platform: 'startech',
       sellerType: 'DOMESTIC',
       title,
-      externalUrl: m[4],
-      imageUrl: m[1],
-      currentPrice,
-      originalPrice,
-      discountVerified: originalPrice > currentPrice,
+      externalUrl: url.split('?')[0].split('#')[0], // Remove query params
+      imageUrl,
+      currentPrice: price,
+      originalPrice: price,
+      discountVerified: false,
       sellerName: 'Startech',
     });
   }
@@ -253,40 +386,63 @@ const parseTechland = (html: string, query: string, max: number): LiveOffer[] =>
 };
 
 const parsePickaboo = (markdown: string, query: string, max: number): LiveOffer[] => {
+  // Robust parser for Pickaboo - more flexible approach
   const offers: LiveOffer[] = [];
-  const queryTokens = String(query || '')
-    .toLowerCase()
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter((token) => token.length > 2);
-  const broadPhoneQuery = /(phone|mobile|smartphone|android|iphone)/i.test(String(query || ''));
-  const regex = /!\[Image\s+\d+:[^\]]*\]\((https?:\/\/[^)]+)\)[\s\S]{0,220}?####\s+([^\n\r]+?)\s+৳\s*([0-9,]+)(?:~~৳\s*([0-9,]+)~~)?[\s\S]{0,220}?\]\((https?:\/\/www\.pickaboo\.com\/product-detail\/[^)\s]+)\)/gi;
+  const lines = markdown.split(/\r?\n/).map((l) => l.trim());
   const seen = new Set<string>();
 
-  let m;
-  while ((m = regex.exec(markdown)) !== null && offers.length < max) {
-    const title = String(m[2] || '').trim();
-    const relevant = broadPhoneQuery || matchesQuery(title, query) || queryTokens.some((token) => title.toLowerCase().includes(token));
-    if (!title || !relevant) continue;
-
-    const currentPrice = parsePrice(m[3]);
-    if (currentPrice <= 0) continue;
-
-    const originalPrice = m[4] ? parsePrice(m[4]) : currentPrice;
-    const externalUrl = String(m[5] || '').replace(/&amp;/g, '&');
-    const key = externalUrl.split('/').pop() || title.toLowerCase();
+  for (let i = 0; i < lines.length && offers.length < max; i++) {
+    const line = lines[i];
+    
+    // Look for markdown links - could be to pickaboo or any product URL
+    const linkMatch = line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/);
+    if (!linkMatch) continue;
+    
+    let title = linkMatch[1];
+    const url = linkMatch[2];
+    
+    // Clean up title formatting
+    title = title.replace(/<[^>]+>/g, '').replace(/[#*_`]/g, '').trim();
+    
+    // Must contain query
+    if (!matchesQuery(title, query) || title.length < 5 || title.length > 200) continue;
+    
+    // Look for price in surrounding lines
+    let price = 0;
+    let imageUrl = '';
+    
+    for (let j = Math.max(0, i - 3); j <= Math.min(lines.length - 1, i + 12); j++) {
+      const priceLine = lines[j];
+      
+      // Look for various price patterns
+      let priceMatch = priceLine.match(/[৳]\s*([0-9,]+)/);
+      if (priceMatch) {
+        price = parsePrice(priceMatch[1]);
+        if (price > 0) break;
+      }
+      
+      // Also try strikethrough price format for original price
+      if (!imageUrl && (priceLine.match(/https?:\/\/[^\s)]*\.(?:jpg|jpeg|png|webp)/i) || priceLine.includes('![Image'))) {
+        imageUrl = priceLine.match(/https?:\/\/[^\s)]*\.(?:jpg|jpeg|png|webp)/i)?.[0] || '';
+      }
+    }
+    
+    if (price <= 0) continue;
+    
+    // Deduplicate by URL
+    const key = url.split('/').pop() || title;
     if (seen.has(key)) continue;
     seen.add(key);
-
+    
     offers.push({
       platform: 'pickaboo',
       sellerType: 'DOMESTIC',
       title,
-      externalUrl,
-      imageUrl: m[1],
-      currentPrice,
-      originalPrice: Math.max(originalPrice, currentPrice),
-      discountVerified: originalPrice > currentPrice,
+      externalUrl: url.replace(/&amp;/g, '&'),
+      imageUrl,
+      currentPrice: price,
+      originalPrice: price,
+      discountVerified: false,
       sellerName: 'Pickaboo',
     });
   }
@@ -687,70 +843,119 @@ const parseEasyStoreApi = (jsonText: string, query: string, max: number): LiveOf
   return offers;
 };
 
-const parseTopTenShopify = (jsonText: string, query: string, max: number): LiveOffer[] => {
+const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] => {
+  // Fallback: If markdown is short or doesn't have expected format, return nothing
+  if (!markdown || markdown.length < 100) return [];
+  
+  // More robust parser - try multiple approaches
+  const lines = markdown.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && l.length > 2);
   const offers: LiveOffer[] = [];
-  let payload: unknown;
-
-  try {
-    payload = JSON.parse(jsonText);
-  } catch {
-    return offers;
-  }
-
-  const suggested = Array.isArray((payload as { resources?: { results?: { products?: unknown[] } } })?.resources?.results?.products)
-    ? (((payload as { resources: { results: { products: unknown[] } } }).resources.results.products as unknown[]) as Array<Record<string, unknown>>)
-    : [];
-  const catalog = Array.isArray((payload as { products?: unknown[] })?.products)
-    ? (((payload as { products: unknown[] }).products as unknown[]) as Array<Record<string, unknown>>)
-    : [];
-  const rows = suggested.length ? suggested : catalog;
   const seen = new Set<string>();
-
-  for (const row of rows) {
-    if (offers.length >= max) return offers;
-
-    const title = String(row?.title || row?.name || '').trim();
-    if (!title || !matchesQuery(title, query)) continue;
-
-    const currentPrice = parsePrice(String(row?.price || row?.price_min || (Array.isArray(row?.variants) ? (row.variants as Array<Record<string, unknown>>)[0]?.price : '') || '0'));
-    if (currentPrice <= 0) continue;
-
-    const originalPrice = parsePrice(String(row?.compare_at_price_min || row?.compare_at_price_max || (Array.isArray(row?.variants) ? (row.variants as Array<Record<string, unknown>>)[0]?.compare_at_price : '') || '0')) || currentPrice;
-    const rawUrl = String(row?.url || '').trim();
-    const handle = String(row?.handle || '').trim();
-    const externalUrl = rawUrl
-      ? (rawUrl.startsWith('http') ? rawUrl : `https://toptenmartltd.com${rawUrl}`)
-      : (handle ? `https://toptenmartltd.com/products/${handle}` : '');
-    if (!externalUrl) continue;
-
-    const key = String(row?.id || externalUrl).toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    const imageUrl = String(
-      row?.image ||
-      (row?.featured_image as { url?: string } | undefined)?.url ||
-      (row?.image as { src?: string } | undefined)?.src ||
-      (Array.isArray(row?.images) ? ((row.images as Array<Record<string, unknown>>)[0]?.src as string) : '') ||
-      ''
-    ).trim() || undefined;
-
-    offers.push({
-      platform: 'top-ten',
-      sellerType: 'DOMESTIC',
-      title,
-      externalUrl,
-      imageUrl,
-      currentPrice,
-      originalPrice: Math.max(originalPrice, currentPrice),
-      discountVerified: originalPrice > currentPrice,
-      sellerName: 'TopTen Mart',
-    });
+  
+  // Approach 1: Look for markdown links [text](url) with nearby prices
+  for (let i = 0; i < lines.length && offers.length < max; i++) {
+    const line = lines[i];
+    
+    // Skip image markdown and meta lines
+    if (line.startsWith('![') || line.startsWith('> ') || line === '') continue;
+    
+    // Look for markdown links [text](url)
+    const linkMatch = line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/);
+    if (!linkMatch) continue;
+    
+    let title = linkMatch[1];
+    const url = linkMatch[2];
+    
+    // Clean up title and validate
+    title = title.replace(/[#*_`\[\]!]/g, '').replace(/^Image\s+\d+:\s*/i, '').trim();
+    if (!title || title.match(/^image/i) || !matchesQuery(title, query) || title.length < 5 || title.length > 200) continue;
+    if (!url.includes('daraz')) continue; // Must be daraz URL
+    
+    // Look for price nearby
+    let price = 0;
+    let imageUrl = '';
+    
+    for (let j = Math.max(0, i - 5); j <= Math.min(lines.length - 1, i + 15); j++) {
+      if (j === i) continue;
+      const priceLine = lines[j];
+      
+      // Look for ৳ price
+      if (priceLine.includes('৳')) {
+        const priceMatch = priceLine.match(/৳\s*([0-9,]+)/);
+        if (priceMatch) {
+          price = parsePrice(priceMatch[1]);
+          if (price > 100) break; // Filter out prices that are too low
+        }
+      }
+      
+      // Look for image URLs (prioritize content images, not meta)
+      if (!imageUrl && priceLine.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp)/i)) {
+        imageUrl = priceLine.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp)/i)?.[0] || '';
+      }
+    }
+    
+    if (price > 100) { // Reasonable minimum for BD market
+      const key = `${title}|${price}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        offers.push({
+          platform: 'daraz',
+          sellerType: 'DOMESTIC',
+          title,
+          externalUrl: url.split('?')[0].split('#')[0],
+          imageUrl,
+          currentPrice: price,
+          originalPrice: price,
+          discountVerified: false,
+          sellerName: 'Daraz',
+        });
+      }
+    }
+  }
+  
+  // Approach 2: If limited results, look for daraz URLs directly  
+  if (offers.length < max * 0.5) {
+    const urlRegex = /https?:\/\/www\.daraz\.com\.bd\/[^\s)]+/g;
+    let match;
+    while ((match = urlRegex.exec(markdown)) !== null && offers.length < max) {
+      const url = match[0];
+      
+      // Find title: look before the URL in a reasonable window
+      const beforeUrl = markdown.substring(Math.max(0, match.index - 500), match.index);
+      const titleMatches = beforeUrl.match(/\[([^\]]{10,200})\]\s*(?:\(|$)/);
+      if (!titleMatches) continue;
+      
+      let title = titleMatches[1].replace(/[#*_`\[\]!]/g, '').replace(/^Image\s+\d+:\s*/i, '').trim();
+      if (!title || title.match(/^image/i) || !matchesQuery(title, query)) continue;
+      
+      // Find price after URL
+      const afterUrl = markdown.substring(match.index, Math.min(markdown.length, match.index + 500));
+      const priceMatch = afterUrl.match(/৳\s*([0-9,]+)/);
+      if (!priceMatch) continue;
+      
+      const price = parsePrice(priceMatch[1]);
+      if (price > 100) {
+        const key = `${title}|${price}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          offers.push({
+            platform: 'daraz',
+            sellerType: 'DOMESTIC',
+            title,
+            externalUrl: url.split('?')[0].split('#')[0],
+            imageUrl: '',
+            currentPrice: price,
+            originalPrice: price,
+            discountVerified: false,
+            sellerName: 'Daraz',
+          });
+        }
+      }
+    }
   }
 
   return offers;
 };
-
 const parseComputerSource = (html: string, query: string, max: number): LiveOffer[] => {
   const offers: LiveOffer[] = [];
   const blockRegex = /<div class="product-wrap">[\s\S]{0,12000}?<\/div>\s*<\/div>/gi;
@@ -846,9 +1051,61 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const tasks: Array<Promise<{ seller: string; offers: LiveOffer[]; error?: string }>> = [
     (async () => {
       try {
-        const { status, text } = await fetchViaJina(`https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`);
-        if (status !== 200) return { seller: 'daraz', offers: [], error: `HTTP ${status}` };
-        return { seller: 'daraz', offers: parseDaraz(text, q, maxPerSeller) };
+        const baseUrl = `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`;
+        const darazTarget = Math.min(1000, Math.max(maxPerSeller, maxPerSeller * 2));
+        const pagesToScan = Math.min(50, Math.max(2, Math.ceil(darazTarget / 22)));
+
+        const merged: LiveOffer[] = [];
+        const seen = new Set<string>();
+        let firstPageStatus = 0;
+        let consecutiveMissPages = 0;
+
+        for (let pageIndex = 0; pageIndex < pagesToScan; pageIndex += 1) {
+          if (merged.length >= darazTarget) break;
+          if (pageIndex > 6 && consecutiveMissPages >= 3) break;
+
+          const url = pageIndex === 0 ? baseUrl : `${baseUrl}&page=${pageIndex + 1}`;
+          let response: { status: number; text: string };
+          try {
+            response = await fetchViaJina(url);
+          } catch {
+            response = { status: 0, text: '' };
+          }
+
+          if (pageIndex === 0) {
+            firstPageStatus = response.status;
+          }
+
+          if (response.status !== 200 || !response.text) {
+            consecutiveMissPages += 1;
+            continue;
+          }
+
+          const parsed = parseDaraz(response.text, q, darazTarget);
+          let addedOnThisPage = 0;
+          for (const offer of parsed) {
+            if (merged.length >= darazTarget) break;
+            const key = `${offer.externalUrl.split('?')[0]}|${offer.currentPrice}`.toLowerCase();
+            if (seen.has(key)) continue;
+            seen.add(key);
+            merged.push(offer);
+            addedOnThisPage += 1;
+          }
+
+          if (addedOnThisPage === 0) {
+            consecutiveMissPages += 1;
+          } else {
+            consecutiveMissPages = 0;
+          }
+        }
+
+        if (merged.length === 0) {
+          if (firstPageStatus !== 200) {
+            return { seller: 'daraz', offers: [], error: `HTTP ${firstPageStatus || 0}` };
+          }
+        }
+
+        return { seller: 'daraz', offers: merged };
       } catch (error) {
         return { seller: 'daraz', offers: [], error: (error as Error).message };
       }
