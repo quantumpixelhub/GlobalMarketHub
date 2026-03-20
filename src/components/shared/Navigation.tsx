@@ -330,7 +330,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Category Links with Subcategories */}
         <div className="mt-5 md:mt-6 pb-2 border-b-2 border-blue-600">
-          <div className="flex items-start gap-2 md:gap-3">
+          <div className="flex items-end gap-2 md:gap-3">
             <div ref={linksContainerRef} className="relative flex-1 min-w-0">
               <div className="flex gap-2 md:gap-3 flex-wrap scrollbar-hide">
                 {mainCategories
@@ -385,7 +385,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             <Link
               href="/products"
-              className="text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors flex-shrink-0"
+              className="text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors flex-shrink-0 self-end"
             >
               See All →
             </Link>
