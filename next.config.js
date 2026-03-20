@@ -97,6 +97,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cdn.shopify.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'computersource.com.bd',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ghorerbazar.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'back-office.ghorerbazarbd.com',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

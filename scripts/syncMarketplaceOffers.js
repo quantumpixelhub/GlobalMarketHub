@@ -39,6 +39,18 @@ const REGISTERED_SOURCES = [
   'easy',
   'milan',
   'top-ten',
+  'bestelectronics',
+  'bdhardwarestore',
+  'totaltools-bd',
+  'ingco-bd',
+  'waltonplaza',
+  'computersource',
+  'hatil',
+  'otobi',
+  'regalfurniture',
+  'rflbestbuy',
+  'ghorerbazar',
+  'healthrevolutionbd',
   'shajgoj',
   'beauty-booth-bd',
   'bbb',
@@ -936,6 +948,113 @@ function parseTopTenShopify(jsonText, query) {
   return offers;
 }
 
+function parseComputerSource(html, query) {
+  const offers = [];
+  const queryLower = String(query || '').toLowerCase();
+  const blockRegex = /<div class="product-wrap">[\s\S]{0,12000}?<\/div>\s*<\/div>/gi;
+  const seen = new Set();
+
+  let blockMatch;
+  while ((blockMatch = blockRegex.exec(html)) !== null) {
+    const block = blockMatch[0];
+    const nameMatch = block.match(/<h4 class="name">\s*<a href="(https?:\/\/computersource\.com\.bd\/[^"\s]+)">([\s\S]{1,220}?)<\/a>/i);
+    if (!nameMatch) {
+      continue;
+    }
+
+    const externalUrl = normalizeText(nameMatch[1]).replace(/&amp;/g, '&');
+    const title = normalizeText(nameMatch[2]).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+    if (!externalUrl || !title || !title.toLowerCase().includes(queryLower)) {
+      continue;
+    }
+
+    const priceNewMatch = block.match(/class="price-new\s+price"[\s\S]{0,180}?<span>([0-9,]+)<\/span>/i);
+    const priceFallbackMatch = block.match(/class="price"[^>]*>[\s\S]{0,120}?<span>([0-9,]+)<\/span>/i);
+    const currentPrice = parsePrice((priceNewMatch && priceNewMatch[1]) || (priceFallbackMatch && priceFallbackMatch[1]) || '');
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const oldPriceMatch = block.match(/class="price-old\s+price"[\s\S]{0,180}?<span>([0-9,]+)<\/span>/i);
+    const originalPrice = parsePrice(oldPriceMatch && oldPriceMatch[1]) || currentPrice;
+    const externalId = `computersource-${shortHash(externalUrl)}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    const imageMatch = block.match(/<img\s+src="(https?:\/\/computersource\.com\.bd\/[^"\s]+)"/i);
+
+    offers.push({
+      platform: 'computersource',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'Computer Source',
+      imageUrl: imageMatch ? imageMatch[1] : null,
+      categoryName: 'Electronics',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(originalPrice, currentPrice),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
+function parseGhorerbazar(html, query) {
+  const offers = [];
+  const queryLower = String(query || '').toLowerCase();
+  const blockRegex = /<div class="tp-product-card">[\s\S]{0,12000}?<\/div>\s*<\/div>/gi;
+  const seen = new Set();
+
+  let blockMatch;
+  while ((blockMatch = blockRegex.exec(html)) !== null) {
+    const block = blockMatch[0];
+    const urlMatch = block.match(/<a href="(https?:\/\/ghorerbazar\.com\/products\/[^"\s]+)"\s+class="tp-product-img"/i);
+    const titleMatch = block.match(/class="tp-product-title">([\s\S]{1,220}?)<\/a>/i);
+    const externalUrl = normalizeText(urlMatch && urlMatch[1]).replace(/&amp;/g, '&');
+    const title = normalizeText(titleMatch && titleMatch[1]).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+    if (!externalUrl || !title || !title.toLowerCase().includes(queryLower)) {
+      continue;
+    }
+
+    const discountPriceMatch = block.match(/class="(?:disct-price|new-price)">[^0-9]*([0-9,]+)</i);
+    const regularPriceMatch = block.match(/class="(?:main-price|old-price)">[^0-9]*([0-9,]+)</i);
+    const currentPrice = parsePrice(discountPriceMatch && discountPriceMatch[1]);
+    if (currentPrice <= 0) {
+      continue;
+    }
+
+    const originalPrice = parsePrice(regularPriceMatch && regularPriceMatch[1]) || currentPrice;
+    const externalId = `ghorerbazar-${shortHash(externalUrl)}`;
+    if (seen.has(externalId)) {
+      continue;
+    }
+    seen.add(externalId);
+
+    const imageMatch = block.match(/<img[^>]+(?:data-src|src)="(https?:\/\/[^"\s]+)"/i);
+    const imageUrl = imageMatch ? imageMatch[1] : null;
+
+    offers.push({
+      platform: 'ghorerbazar',
+      externalId,
+      externalUrl,
+      title,
+      sellerName: 'Ghorer Bazar',
+      imageUrl,
+      categoryName: 'Groceries & Household',
+      externalPrice: currentPrice,
+      externalOriginalPrice: Math.max(originalPrice, currentPrice),
+      externalRating: null,
+      externalReviewCount: 0,
+    });
+  }
+
+  return offers;
+}
+
 const providers = {
   daraz: {
     buildUrl: (q) => `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`,
@@ -1028,6 +1147,26 @@ const providers = {
     parse: parseTopTenShopify,
     fetch: fetchDirect,
   },
+  bestelectronics: unsupportedProvider((q) => `https://www.bestelectronics.com.bd/?s=${encodeURIComponent(q)}&post_type=product`, 'Connector queued'),
+  bdhardwarestore: unsupportedProvider((q) => `https://www.bdhardwarestore.com/index.php?route=product/search&search=${encodeURIComponent(q)}`, 'Connector queued'),
+  'totaltools-bd': unsupportedProvider((q) => `https://totaltools.com.bd/search?type=product&q=${encodeURIComponent(q)}`, 'Connector queued'),
+  'ingco-bd': unsupportedProvider((q) => `https://www.ingco.com/bd/search?query=${encodeURIComponent(q)}`, 'Connector queued'),
+  waltonplaza: unsupportedProvider((q) => `https://waltonplaza.com.bd/search?keyword=${encodeURIComponent(q)}`, 'Connector queued'),
+  computersource: {
+    buildUrl: (q) => `https://computersource.com.bd/index.php?route=product/search&search=${encodeURIComponent(q)}`,
+    parse: parseComputerSource,
+    fetch: fetchDirect,
+  },
+  hatil: unsupportedProvider((q) => `https://www.hatil.com/search?query=${encodeURIComponent(q)}`, 'Connector queued'),
+  otobi: unsupportedProvider((q) => `https://www.otobi.com/search?query=${encodeURIComponent(q)}`, 'Connector queued'),
+  regalfurniture: unsupportedProvider((q) => `https://regalfurniturebd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  rflbestbuy: unsupportedProvider((q) => `https://www.rflbestbuy.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
+  ghorerbazar: {
+    buildUrl: (q) => `https://ghorerbazar.com/?s=${encodeURIComponent(q)}&post_type=product`,
+    parse: parseGhorerbazar,
+    fetch: fetchDirect,
+  },
+  healthrevolutionbd: unsupportedProvider((q) => `https://healthrevolutionbd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   'beauty-booth-bd': unsupportedProvider((q) => `https://beautybooth.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   bbb: unsupportedProvider((q) => `https://bbb.com.bd/search?q=${encodeURIComponent(q)}`, 'Connector queued'),
   livewire: unsupportedProvider((q) => `https://livewirebd.com/search?q=${encodeURIComponent(q)}`, 'Connector queued'),

@@ -751,6 +751,92 @@ const parseTopTenShopify = (jsonText: string, query: string, max: number): LiveO
   return offers;
 };
 
+const parseComputerSource = (html: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  const blockRegex = /<div class="product-wrap">[\s\S]{0,12000}?<\/div>\s*<\/div>/gi;
+  const seen = new Set<string>();
+
+  let m;
+  while ((m = blockRegex.exec(html)) !== null && offers.length < max) {
+    const block = m[0];
+    const nameMatch = block.match(/<h4 class="name">\s*<a href="(https?:\/\/computersource\.com\.bd\/[^"\s]+)">([\s\S]{1,220}?)<\/a>/i);
+    if (!nameMatch) continue;
+
+    const externalUrl = String(nameMatch[1] || '').trim().replace(/&amp;/g, '&');
+    const title = String(nameMatch[2] || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!title || !matchesQuery(title, query)) continue;
+
+    const priceNewMatch = block.match(/class="price-new\s+price"[\s\S]{0,180}?<span>([0-9,]+)<\/span>/i);
+    const priceFallbackMatch = block.match(/class="price"[^>]*>[\s\S]{0,120}?<span>([0-9,]+)<\/span>/i);
+    const currentPrice = parsePrice((priceNewMatch?.[1] || priceFallbackMatch?.[1] || '').trim());
+    if (currentPrice <= 0) continue;
+
+    const oldPriceMatch = block.match(/class="price-old\s+price"[\s\S]{0,180}?<span>([0-9,]+)<\/span>/i);
+    const originalPrice = parsePrice(String(oldPriceMatch?.[1] || '')) || currentPrice;
+    const key = externalUrl.toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+
+    const imageMatch = block.match(/<img\s+src="(https?:\/\/computersource\.com\.bd\/[^"\s]+)"/i);
+
+    offers.push({
+      platform: 'computersource',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl: imageMatch?.[1],
+      currentPrice,
+      originalPrice: Math.max(originalPrice, currentPrice),
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Computer Source',
+    });
+  }
+
+  return offers;
+};
+
+const parseGhorerbazar = (html: string, query: string, max: number): LiveOffer[] => {
+  const offers: LiveOffer[] = [];
+  const blockRegex = /<div class="tp-product-card">[\s\S]{0,12000}?<\/div>\s*<\/div>/gi;
+  const seen = new Set<string>();
+
+  let m;
+  while ((m = blockRegex.exec(html)) !== null && offers.length < max) {
+    const block = m[0];
+    const urlMatch = block.match(/<a href="(https?:\/\/ghorerbazar\.com\/products\/[^"\s]+)"\s+class="tp-product-img"/i);
+    const titleMatch = block.match(/class="tp-product-title">([\s\S]{1,220}?)<\/a>/i);
+    const externalUrl = String(urlMatch?.[1] || '').trim().replace(/&amp;/g, '&');
+    const title = String(titleMatch?.[1] || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!externalUrl || !title || !matchesQuery(title, query)) continue;
+
+    const discountPriceMatch = block.match(/class="(?:disct-price|new-price)">[^0-9]*([0-9,]+)</i);
+    const regularPriceMatch = block.match(/class="(?:main-price|old-price)">[^0-9]*([0-9,]+)</i);
+    const currentPrice = parsePrice(String(discountPriceMatch?.[1] || ''));
+    if (currentPrice <= 0) continue;
+
+    const originalPrice = parsePrice(String(regularPriceMatch?.[1] || '')) || currentPrice;
+    const key = externalUrl.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const imageMatch = block.match(/<img[^>]+(?:data-src|src)="(https?:\/\/[^"\s]+)"/i);
+
+    offers.push({
+      platform: 'ghorerbazar',
+      sellerType: 'DOMESTIC',
+      title,
+      externalUrl,
+      imageUrl: imageMatch?.[1],
+      currentPrice,
+      originalPrice: Math.max(originalPrice, currentPrice),
+      discountVerified: originalPrice > currentPrice,
+      sellerName: 'Ghorer Bazar',
+    });
+  }
+
+  return offers;
+};
+
 export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
   const q = String(query || '').trim();
   if (!q) {
@@ -954,6 +1040,24 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'top-ten', offers: [] };
       } catch (error) {
         return { seller: 'top-ten', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchDirect(`https://computersource.com.bd/index.php?route=product/search&search=${encodeURIComponent(q)}`);
+        if (status !== 200) return { seller: 'computersource', offers: [], error: `HTTP ${status}` };
+        return { seller: 'computersource', offers: parseComputerSource(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'computersource', offers: [], error: (error as Error).message };
+      }
+    })(),
+    (async () => {
+      try {
+        const { status, text } = await fetchDirect(`https://ghorerbazar.com/?s=${encodeURIComponent(q)}&post_type=product`);
+        if (status !== 200) return { seller: 'ghorerbazar', offers: [], error: `HTTP ${status}` };
+        return { seller: 'ghorerbazar', offers: parseGhorerbazar(text, q, maxPerSeller) };
+      } catch (error) {
+        return { seller: 'ghorerbazar', offers: [], error: (error as Error).message };
       }
     })(),
     (async () => {
