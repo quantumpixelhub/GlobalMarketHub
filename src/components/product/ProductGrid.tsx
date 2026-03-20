@@ -19,6 +19,7 @@ interface Product {
   sourcePlatform?: string;
   externalUrl?: string;
   lastSyncedAt?: string;
+  discountVerified?: boolean;
 }
 
 interface ProductGridProps {

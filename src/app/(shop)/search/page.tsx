@@ -24,6 +24,7 @@ interface SearchListing {
   sourcePlatform?: string;
   externalUrl?: string;
   lastSyncedAt?: string;
+  discountVerified?: boolean;
   seller: {
     id: string;
     storeName: string;
@@ -189,17 +190,23 @@ function SearchContent() {
           />
         </section>
 
-        <section className="mb-10">
+        <section className="mb-10 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 md:p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Domestic Sellers</h2>
+            <div>
+              <h2 className="text-xl font-semibold text-emerald-800">Domestic Sellers</h2>
+              <p className="text-xs text-emerald-700">Bangladesh platforms and local marketplaces</p>
+            </div>
             <span className="text-sm text-gray-500">{domesticProducts.length} items</span>
           </div>
           <ProductGrid products={domesticProducts} loading={loading} columns={4} />
         </section>
 
-        <section className="mb-10">
+        <section className="mb-10 rounded-xl border border-blue-200 bg-blue-50/40 p-4 md:p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">International Sellers</h2>
+            <div>
+              <h2 className="text-xl font-semibold text-blue-800">International Sellers</h2>
+              <p className="text-xs text-blue-700">Cross-border global marketplaces</p>
+            </div>
             <span className="text-sm text-gray-500">{internationalProducts.length} items</span>
           </div>
           <ProductGrid products={internationalProducts} loading={loading} columns={4} />

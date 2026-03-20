@@ -20,6 +20,7 @@ type SearchListing = {
   sourceType: 'LOCAL' | 'DOMESTIC' | 'INTERNATIONAL';
   sourcePlatform: string;
   lastSyncedAt?: string;
+  discountVerified?: boolean;
   seller: {
     id: string;
     storeName: string;
@@ -268,6 +269,7 @@ export async function GET(request: NextRequest) {
       isFeatured: product.isFeatured,
       sourceType: 'LOCAL',
       sourcePlatform: 'globalmarkethub',
+      discountVerified: true,
       seller: {
         id: product.seller.id,
         storeName: product.seller.storeName,
@@ -336,6 +338,7 @@ export async function GET(request: NextRequest) {
         sourceType: INTERNATIONAL_PLATFORMS.has(normalizedPlatform) ? 'INTERNATIONAL' : 'DOMESTIC',
         sourcePlatform: external.platform,
         lastSyncedAt: external.lastSyncedAt ? external.lastSyncedAt.toISOString() : undefined,
+        discountVerified: false,
         seller: {
           id: product?.seller?.id || `ext-seller-${external.id}`,
           storeName: external.sellerName || `${external.platform} marketplace`,
@@ -376,6 +379,7 @@ export async function GET(request: NextRequest) {
               sourceType: 'DOMESTIC',
               sourcePlatform: offer.platform,
               lastSyncedAt: new Date().toISOString(),
+              discountVerified: offer.discountVerified,
               seller: {
                 id: `live-${offer.platform}`,
                 storeName: offer.sellerName,
@@ -400,6 +404,7 @@ export async function GET(request: NextRequest) {
               sourceType: 'INTERNATIONAL',
               sourcePlatform: offer.platform,
               lastSyncedAt: new Date().toISOString(),
+              discountVerified: offer.discountVerified,
               seller: {
                 id: `live-${offer.platform}`,
                 storeName: offer.sellerName,

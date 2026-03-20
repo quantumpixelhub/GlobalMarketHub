@@ -19,6 +19,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'img.drz.lazcdn.com',
+      },
+      {
+        protocol: 'https',
         hostname: '**.pickaboo.com',
       },
       {
@@ -36,6 +40,26 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn.dummyjson.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.chaldn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'rokbucket.rokomari.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ae-pic-a1.aliexpress-media.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ae01.alicdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.startech.com.bd',
       },
     ],
     formats: ['image/webp', 'image/avif'],

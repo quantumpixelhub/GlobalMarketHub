@@ -8,6 +8,7 @@ export type LiveOffer = {
   imageUrl?: string;
   currentPrice: number;
   originalPrice: number;
+  discountVerified: boolean;
   sellerName: string;
 };
 
@@ -79,6 +80,7 @@ const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] =
       imageUrl: m[1],
       currentPrice,
       originalPrice,
+      discountVerified: discount > 0,
       sellerName: 'Daraz Marketplace',
     });
   }
@@ -136,6 +138,7 @@ const parseChaldal = (markdown: string, query: string, max: number): LiveOffer[]
       imageUrl: imageMatch?.[1],
       currentPrice: price,
       originalPrice: price,
+      discountVerified: false,
       sellerName: 'Chaldal',
     });
   }
@@ -165,6 +168,7 @@ const parseRokomari = (markdown: string, query: string, max: number): LiveOffer[
       imageUrl: m[1],
       currentPrice,
       originalPrice,
+      discountVerified: originalPrice > currentPrice,
       sellerName: 'Rokomari',
     });
   }
@@ -194,6 +198,7 @@ const parseStartech = (markdown: string, query: string, max: number): LiveOffer[
       imageUrl: m[1],
       currentPrice,
       originalPrice,
+      discountVerified: originalPrice > currentPrice,
       sellerName: 'Startech',
     });
   }
@@ -226,6 +231,7 @@ const parseAliExpress = (markdown: string, query: string, max: number): LiveOffe
       imageUrl: m[1],
       currentPrice,
       originalPrice,
+      discountVerified: usdOriginal > usdCurrent,
       sellerName: 'AliExpress Marketplace',
     });
   }

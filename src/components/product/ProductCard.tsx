@@ -23,6 +23,7 @@ interface ProductCardProps {
   sourcePlatform?: string;
   externalUrl?: string;
   lastSyncedAt?: string;
+  discountVerified?: boolean;
   onAddToCart?: (productId: string) => void;
   onAddToWishlist?: (productId: string) => void;
 }
@@ -42,16 +43,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   sourcePlatform,
   externalUrl,
   lastSyncedAt,
+  discountVerified = false,
   onAddToCart,
   onAddToWishlist,
 }) => {
   const router = useRouter();
   const rawDiscount = originalPrice > 0 ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
   const discount = rawDiscount > 0 && rawDiscount <= 90 ? rawDiscount : 0;
+  const showDiscountBadge = discount > 0 && (sourceType === 'LOCAL' || discountVerified);
   const isOutOfStock = stock === 0;
   const [isWishlisted, setIsWishlisted] = React.useState(false);
   const [wishlistLoading, setWishlistLoading] = React.useState(false);
+  const [imageSrc, setImageSrc] = React.useState(mainImage);
   const isExternalListing = Boolean(externalUrl);
+
+  React.useEffect(() => {
+    setImageSrc(mainImage);
+  }, [mainImage]);
 
   const freshnessLabel = React.useMemo(() => {
     if (!lastSyncedAt) return null;
@@ -152,15 +160,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="relative bg-gray-100 overflow-hidden group">
         <div className="relative h-56 w-full">
           <Image
-            src={mainImage}
+            src={imageSrc || 'https://via.placeholder.com/600x600?text=No+Image'}
             alt={title}
             fill
             className="object-cover group-hover:scale-105 transition-transform"
+            onError={() => {
+              setImageSrc('https://via.placeholder.com/600x600?text=No+Image');
+            }}
           />
         </div>
 
         {/* Discount Badge */}
-        {discount > 0 && (
+        {showDiscountBadge && (
           <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
             -{discount}%
           </div>
