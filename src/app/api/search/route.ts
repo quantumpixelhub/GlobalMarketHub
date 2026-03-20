@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { liveMarketplaceSearch } from "@/lib/liveMarketplaceSearch";
 
 export const dynamic = 'force-dynamic';
 
@@ -353,6 +354,63 @@ export async function GET(request: NextRequest) {
 
       domesticSellers.push(listing);
     });
+
+    // If DB has no external matches for the query yet, fetch live results directly from source pages.
+    if (q.trim() && (domesticSellers.length === 0 || internationalSellers.length === 0)) {
+      try {
+        const live = await liveMarketplaceSearch(q, Math.min(Math.max(limit, 12), 24));
+
+        if (domesticSellers.length === 0) {
+          live.domestic.forEach((offer, index) => {
+            domesticSellers.push({
+              id: `live-domestic-${index}-${offer.platform}`,
+              title: offer.title,
+              currentPrice: offer.currentPrice,
+              originalPrice: offer.originalPrice,
+              mainImage: offer.imageUrl || '/images/placeholder-product.svg',
+              rating: 0,
+              reviewCount: 0,
+              stock: 999,
+              isFeatured: false,
+              externalUrl: offer.externalUrl,
+              sourceType: 'DOMESTIC',
+              sourcePlatform: offer.platform,
+              lastSyncedAt: new Date().toISOString(),
+              seller: {
+                id: `live-${offer.platform}`,
+                storeName: offer.sellerName,
+              },
+            });
+          });
+        }
+
+        if (internationalSellers.length === 0) {
+          live.international.forEach((offer, index) => {
+            internationalSellers.push({
+              id: `live-international-${index}-${offer.platform}`,
+              title: offer.title,
+              currentPrice: offer.currentPrice,
+              originalPrice: offer.originalPrice,
+              mainImage: offer.imageUrl || '/images/placeholder-product.svg',
+              rating: 0,
+              reviewCount: 0,
+              stock: 999,
+              isFeatured: false,
+              externalUrl: offer.externalUrl,
+              sourceType: 'INTERNATIONAL',
+              sourcePlatform: offer.platform,
+              lastSyncedAt: new Date().toISOString(),
+              seller: {
+                id: `live-${offer.platform}`,
+                storeName: offer.sellerName,
+              },
+            });
+          });
+        }
+      } catch (liveError) {
+        console.error('Live marketplace fallback error:', liveError);
+      }
+    }
 
     localInventory.sort(compareListings(sortMode));
     domesticSellers.sort(compareListings(sortMode));
