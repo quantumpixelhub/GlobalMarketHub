@@ -29,6 +29,29 @@ const TOP_20_CATEGORIES = [
   { name: 'Travel & Luggage', slug: 'travel-luggage-top20', queries: ['travel bag', 'backpack', 'luggage trolley', 'neck pillow'] },
 ];
 
+const TARGET_CATEGORY_SLUG_BY_TOP20 = {
+  smartphones: 'electronics-gadgets',
+  'mobile-accessories': 'electronics-gadgets',
+  'laptops-computers-top20': 'electronics-gadgets',
+  'audio-earbuds': 'electronics-gadgets',
+  'men-fashion-top20': 'fashion-apparel',
+  'women-fashion-top20': 'fashion-apparel',
+  'beauty-skincare-top20': 'beauty-personal-care',
+  'makeup-personal-care-top20': 'beauty-personal-care',
+  'groceries-top20': 'food-grocery-beverages',
+  'beverages-top20': 'food-grocery-beverages',
+  'home-decor-top20': 'home-furniture-living',
+  'kitchen-essentials-top20': 'home-furniture-living',
+  'home-appliances-top20': 'home-furniture-living',
+  'baby-kids-top20': 'toys-kids-baby',
+  'toys-games-top20': 'toys-kids-baby',
+  'health-wellness-top20': 'health-wellness',
+  'sports-outdoor-top20': 'sports-outdoor',
+  'automotive-tools-top20': 'automotive-tools',
+  'office-stationery-top20': 'office-business-stationery',
+  'travel-luggage-top20': 'travel-luggage-lifestyle',
+};
+
 const slugify = (value) =>
   String(value || '')
     .toLowerCase()
@@ -111,29 +134,29 @@ async function ensureImportSeller() {
   });
 }
 
-async function ensureTopCategories() {
-  const created = [];
+async function resolveTop20Targets() {
+  const targetSlugs = Array.from(new Set(Object.values(TARGET_CATEGORY_SLUG_BY_TOP20)));
+  const targetCategories = await prisma.category.findMany({
+    where: { slug: { in: targetSlugs } },
+    select: { id: true, slug: true, name: true },
+  });
 
-  for (const item of TOP_20_CATEGORIES) {
-    const category = await prisma.category.upsert({
-      where: { slug: item.slug },
-      update: {
-        name: item.name,
-        description: `Top internet-demand category: ${item.name}`,
-        parentId: null,
-      },
-      create: {
-        name: item.name,
-        slug: item.slug,
-        description: `Top internet-demand category: ${item.name}`,
-        parentId: null,
-      },
-    });
+  const targetBySlug = new Map(targetCategories.map((c) => [c.slug, c]));
 
-    created.push({ ...item, id: category.id });
-  }
+  return TOP_20_CATEGORIES.map((item) => {
+    const targetSlug = TARGET_CATEGORY_SLUG_BY_TOP20[item.slug];
+    const target = targetBySlug.get(targetSlug);
+    if (!target) {
+      throw new Error(`Missing existing target category: ${targetSlug}`);
+    }
 
-  return created;
+    return {
+      ...item,
+      id: target.id,
+      targetSlug: target.slug,
+      targetName: target.name,
+    };
+  });
 }
 
 async function importForCategory(category, sellerId) {
@@ -161,13 +184,13 @@ async function importForCategory(category, sellerId) {
   for (const offer of uniqueByUrl.values()) {
     const idHash = hash(offer.url);
     const sku = `TOP20-${category.slug.toUpperCase().slice(0, 12)}-${idHash}`;
-    const uniqueSlug = `${category.slug}-${idHash}`;
+    const uniqueSlug = `${category.targetSlug}-${idHash}`;
 
     await prisma.product.upsert({
       where: { sku },
       update: {
         title: offer.title,
-        description: `${offer.title} (Top20 imported product for ${category.name})`,
+        description: `${offer.title} (Top20 imported product for ${category.targetName})`,
         originalPrice: offer.originalPrice > 0 ? offer.originalPrice : offer.currentPrice,
         currentPrice: offer.currentPrice,
         mainImage: offer.image || `https://picsum.photos/seed/${idHash}/800/800`,
@@ -182,7 +205,7 @@ async function importForCategory(category, sellerId) {
           source: 'daraz',
           sourceUrl: offer.url,
           importedAt: new Date().toISOString(),
-          importedCategory: category.slug,
+          importedCategory: category.targetSlug,
           importedQuery: offer.importedQuery,
         },
         certifications: ['live-imported', 'top20-import'],
@@ -192,7 +215,7 @@ async function importForCategory(category, sellerId) {
         title: offer.title,
         slug: uniqueSlug,
         sku,
-        description: `${offer.title} (Top20 imported product for ${category.name})`,
+        description: `${offer.title} (Top20 imported product for ${category.targetName})`,
         originalPrice: offer.originalPrice > 0 ? offer.originalPrice : offer.currentPrice,
         currentPrice: offer.currentPrice,
         mainImage: offer.image || `https://picsum.photos/seed/${idHash}/800/800`,
@@ -207,7 +230,7 @@ async function importForCategory(category, sellerId) {
           source: 'daraz',
           sourceUrl: offer.url,
           importedAt: new Date().toISOString(),
-          importedCategory: category.slug,
+          importedCategory: category.targetSlug,
           importedQuery: offer.importedQuery,
         },
         certifications: ['live-imported', 'top20-import'],
@@ -226,11 +249,11 @@ async function main() {
   console.log(`Importing top 20 categories with target ${TARGET_PER_CATEGORY} products each...`);
 
   const seller = await ensureImportSeller();
-  const categories = await ensureTopCategories();
+  const categories = await resolveTop20Targets();
 
   for (const category of categories) {
     const result = await importForCategory(category, seller.id);
-    console.log(`- ${category.name}: imported=${result.imported}, collected=${result.collected}`);
+    console.log(`- ${category.name} -> ${category.targetName}: imported=${result.imported}, collected=${result.collected}`);
   }
 
   console.log('Top20 import complete.');
