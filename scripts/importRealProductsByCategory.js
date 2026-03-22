@@ -5,23 +5,36 @@ const prisma = new PrismaClient();
 
 const PER_CATEGORY = Math.max(5, Number(process.env.REAL_IMPORT_PER_CATEGORY || 40));
 const DARAZ_PAGES = Math.max(1, Number(process.env.REAL_IMPORT_DARAZ_PAGES || 3));
+const PRIORITY_PER_CATEGORY = Math.max(
+  PER_CATEGORY,
+  Number(process.env.PRIORITY_PER_CATEGORY || Math.max(PER_CATEGORY * 2, 60)),
+);
+const PRIORITY_CATEGORY_SLUGS = new Set(
+  String(
+    process.env.PRIORITY_CATEGORY_SLUGS ||
+      'electronics-gadgets,fashion-apparel,beauty-personal-care,home-furniture-living,food-grocery-beverages'
+  )
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean)
+);
 
 const CATEGORY_QUERY_MAP = {
-  'fashion-apparel': 'mens tshirt',
-  'electronics-gadgets': 'smartphone',
-  'home-furniture-living': 'home decor',
-  'beauty-personal-care': 'skin care',
-  'food-grocery-beverages': 'coffee',
-  'health-wellness': 'vitamin',
-  'sports-outdoor': 'dumbbell',
-  'toys-kids-baby': 'kids toy',
-  'automotive-tools': 'car accessories',
-  'pet-supplies': 'cat food',
-  'books-media-education': 'english book',
-  'tools-hardware-industrial': 'drill machine',
-  'office-business-stationery': 'office stationery',
-  'travel-luggage-lifestyle': 'travel bag',
-  'digital-products-services': 'headphone',
+  'fashion-apparel': ['mens tshirt', 'women dress', 'panjabi', 'sneakers'],
+  'electronics-gadgets': ['smartphone', 'wireless earbuds', 'smart watch', 'laptop bag'],
+  'home-furniture-living': ['home decor', 'bedsheet', 'kitchen organizer', 'sofa cover'],
+  'beauty-personal-care': ['skin care', 'face wash', 'sunscreen', 'hair serum'],
+  'food-grocery-beverages': ['coffee', 'green tea', 'snacks', 'honey'],
+  'health-wellness': ['vitamin', 'protein powder', 'omega 3', 'bp machine'],
+  'sports-outdoor': ['dumbbell', 'yoga mat', 'football', 'camping tent'],
+  'toys-kids-baby': ['kids toy', 'baby diapers', 'lego', 'remote car'],
+  'automotive-tools': ['car accessories', 'helmet', 'tool kit', 'car polish'],
+  'pet-supplies': ['cat food', 'dog food', 'pet leash', 'pet shampoo'],
+  'books-media-education': ['english book', 'islamic book', 'kids story book', 'notebook'],
+  'tools-hardware-industrial': ['drill machine', 'hand tools', 'safety gloves', 'multimeter'],
+  'office-business-stationery': ['office stationery', 'printer ink', 'stapler', 'file folder'],
+  'travel-luggage-lifestyle': ['travel bag', 'luggage trolley', 'backpack', 'neck pillow'],
+  'digital-products-services': ['headphone', 'usb flash drive', 'keyboard', 'gaming mouse'],
 };
 
 const TARGET_MAIN_CATEGORY_SLUGS = Object.keys(CATEGORY_QUERY_MAP);
@@ -113,14 +126,28 @@ async function ensureImportSeller() {
 }
 
 async function importForCategory(category, sellerId) {
-  const query = CATEGORY_QUERY_MAP[category.slug] || category.name;
-  const offers = await fetchDarazOffers(query);
+  const queryList = CATEGORY_QUERY_MAP[category.slug] || [category.name];
+  const targetCount = PRIORITY_CATEGORY_SLUGS.has(category.slug) ? PRIORITY_PER_CATEGORY : PER_CATEGORY;
+  const offers = [];
+  const seenUrls = new Set();
+
+  for (const query of queryList) {
+    if (offers.length >= targetCount) break;
+
+    const queryOffers = await fetchDarazOffers(query);
+    for (const offer of queryOffers) {
+      if (offers.length >= targetCount) break;
+      if (seenUrls.has(offer.url)) continue;
+      seenUrls.add(offer.url);
+      offers.push({ ...offer, importedCategoryQuery: query });
+    }
+  }
 
   let imported = 0;
   let scanned = 0;
 
   for (const offer of offers) {
-    if (imported >= PER_CATEGORY) break;
+    if (imported >= targetCount) break;
     scanned += 1;
 
     const idHash = hash(offer.url);
@@ -145,7 +172,7 @@ async function importForCategory(category, sellerId) {
           source: 'daraz',
           sourceUrl: offer.url,
           importedAt: new Date().toISOString(),
-          importedCategoryQuery: query,
+          importedCategoryQuery: offer.importedCategoryQuery,
           importedSellerName: offer.sellerName,
         },
         certifications: ['live-imported'],
@@ -170,7 +197,7 @@ async function importForCategory(category, sellerId) {
           source: 'daraz',
           sourceUrl: offer.url,
           importedAt: new Date().toISOString(),
-          importedCategoryQuery: query,
+          importedCategoryQuery: offer.importedCategoryQuery,
           importedSellerName: offer.sellerName,
         },
         certifications: ['live-imported'],
@@ -182,7 +209,7 @@ async function importForCategory(category, sellerId) {
     imported += 1;
   }
 
-  return { query, imported, scanned };
+  return { query: queryList.join(' | '), imported, scanned, targetCount };
 }
 
 async function main() {
@@ -206,7 +233,7 @@ async function main() {
   for (const category of mainCategories) {
     const result = await importForCategory(category, seller.id);
     summary.push({ category: category.name, ...result });
-    console.log(`- ${category.name}: imported ${result.imported} (query="${result.query}")`);
+    console.log(`- ${category.name}: imported ${result.imported}/${result.targetCount} (queries="${result.query}")`);
   }
 
   const counts = await prisma.category.findMany({
