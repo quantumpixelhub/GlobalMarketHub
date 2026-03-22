@@ -48,18 +48,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToWishlist,
 }) => {
   const router = useRouter();
+  const fallbackImage = 'https://via.placeholder.com/600x600?text=No+Image';
+
+  const normalizeImageUrl = React.useCallback((url: string) => {
+    const raw = String(url || '').trim();
+    if (!raw) return fallbackImage;
+    if (raw.startsWith('//')) return `https:${raw}`;
+    if (raw.startsWith('http://')) return raw.replace('http://', 'https://');
+    if (raw.startsWith('https://')) return raw;
+    return fallbackImage;
+  }, []);
+
   const rawDiscount = originalPrice > 0 ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
   const discount = rawDiscount > 0 && rawDiscount <= 90 ? rawDiscount : 0;
   const showDiscountBadge = discount > 0 && (sourceType === 'LOCAL' || discountVerified);
   const isOutOfStock = stock === 0;
   const [isWishlisted, setIsWishlisted] = React.useState(false);
   const [wishlistLoading, setWishlistLoading] = React.useState(false);
-  const [imageSrc, setImageSrc] = React.useState(mainImage);
+  const [imageSrc, setImageSrc] = React.useState(() => normalizeImageUrl(mainImage));
   const isExternalListing = Boolean(externalUrl);
 
   React.useEffect(() => {
-    setImageSrc(mainImage);
-  }, [mainImage]);
+    setImageSrc(normalizeImageUrl(mainImage));
+  }, [mainImage, normalizeImageUrl]);
 
   const freshnessLabel = React.useMemo(() => {
     if (!lastSyncedAt) return null;
@@ -160,12 +171,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="relative bg-gray-100 overflow-hidden group">
         <div className="relative h-56 w-full">
           <Image
-            src={imageSrc || 'https://via.placeholder.com/600x600?text=No+Image'}
+            src={imageSrc}
             alt={title}
             fill
             className="object-cover group-hover:scale-105 transition-transform"
             onError={() => {
-              setImageSrc('https://via.placeholder.com/600x600?text=No+Image');
+              setImageSrc(fallbackImage);
             }}
           />
         </div>

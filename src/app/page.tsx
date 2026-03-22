@@ -60,7 +60,10 @@ const computeMoq = (stock: number) => {
 
 export default function HomePage() {
   const BANNER_CARD_STEP = 236;
+  const FEATURED_INITIAL_COUNT = 16;
+  const FEATURED_LOAD_STEP = 16;
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [visibleFeaturedCount, setVisibleFeaturedCount] = useState(FEATURED_INITIAL_COUNT);
   const [loading, setLoading] = useState(true);
   const [activeBanner, setActiveBanner] = useState<'topSell' | 'topRanking' | 'topReviews' | 'random'>('topSell');
   const [randomBannerProducts, setRandomBannerProducts] = useState<Product[]>([]);
@@ -76,7 +79,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products?limit=36');
+        const res = await fetch('/api/products?limit=120');
         if (res.ok) {
           const data = await res.json();
           setFeaturedProducts(data.products || []);
@@ -90,6 +93,10 @@ export default function HomePage() {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    setVisibleFeaturedCount(FEATURED_INITIAL_COUNT);
+  }, [featuredProducts]);
 
   useEffect(() => {
     const fetchMarketing = async () => {
@@ -147,6 +154,8 @@ export default function HomePage() {
   };
 
   const newArrivals = featuredProducts.slice(6, 12);
+  const visibleFeaturedProducts = featuredProducts.slice(0, visibleFeaturedCount);
+  const hasMoreFeaturedProducts = visibleFeaturedCount < featuredProducts.length;
 
   const getBannerPageStep = (container: HTMLDivElement) => {
     const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
@@ -619,11 +628,22 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 py-12 w-full" id="featured-products">
         <h2 className="text-3xl font-bold mb-8">Featured Products</h2>
         <ProductGrid
-          products={featuredProducts}
+          products={visibleFeaturedProducts}
           loading={loading}
           onAddToCart={handleAddToCart}
           columns={4}
         />
+        {!loading && hasMoreFeaturedProducts && (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleFeaturedCount((prev) => prev + FEATURED_LOAD_STEP)}
+              className="rounded-lg bg-emerald-600 px-8 py-3 text-white font-semibold hover:bg-emerald-700 transition"
+            >
+              Load More Products
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Categories Showcase */}
