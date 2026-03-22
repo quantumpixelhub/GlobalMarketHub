@@ -1,0 +1,42 @@
+name: Night Real Products Sync
+
+on:
+  schedule:
+    # Every 30 minutes during BD night window (20:00-05:59 Asia/Dhaka)
+    # UTC equivalent: 14:00-23:59 and 00:00-23:59 with hour filter below.
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  night-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check BD time window
+        id: window
+        run: |
+          HOUR_BD=$(TZ=Asia/Dhaka date +%H)
+          if [ "$HOUR_BD" -ge 20 ] || [ "$HOUR_BD" -le 5 ]; then
+            echo "run_sync=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_sync=false" >> $GITHUB_OUTPUT
+          fi
+          echo "BD hour: $HOUR_BD"
+
+      - name: Trigger Night Sync Endpoint
+        if: steps.window.outputs.run_sync == 'true'
+        env:
+          SYNC_URL: ${{ secrets.NIGHT_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          URL=${SYNC_URL:-https://globalmarkethub-jade.vercel.app/api/cron/night-real-products-sync}
+          if [ -n "$CRON_SECRET" ]; then
+            curl -sS -X GET "$URL" -H "Authorization: Bearer $CRON_SECRET" -o response.json
+          else
+            curl -sS -X GET "$URL" -o response.json
+          fi
+          cat response.json
+
+      - name: Skip outside night window
+        if: steps.window.outputs.run_sync != 'true'
+        run: |
+          echo "Skipping sync: outside night window in Asia/Dhaka"
