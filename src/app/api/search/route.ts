@@ -175,26 +175,32 @@ type BuildSectionPoolArgs = {
 
 const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }: BuildSectionPoolArgs) => {
   const externalOfferTake = Math.min(sectionFetchTarget, MAX_SECTION_RESULTS);
-  const externalOffers = await prisma.externalProduct.findMany({
-    where: externalWhere,
-    take: externalOfferTake,
-    orderBy: {
-      updatedAt: 'desc',
-    },
-    include: {
-      product: {
-        select: {
-          id: true,
-          title: true,
-          mainImage: true,
-          rating: true,
-          reviewCount: true,
-          isFeatured: true,
-          seller: { select: { id: true, storeName: true } },
+  let externalOffers: any[] = [];
+  try {
+    externalOffers = await prisma.externalProduct.findMany({
+      where: externalWhere,
+      take: externalOfferTake,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      include: {
+        product: {
+          select: {
+            id: true,
+            title: true,
+            mainImage: true,
+            rating: true,
+            reviewCount: true,
+            isFeatured: true,
+            seller: { select: { id: true, storeName: true } },
+          },
         },
       },
-    },
-  });
+    });
+  } catch (externalOfferError) {
+    console.error('External offer query failed:', externalOfferError);
+    externalOffers = [];
+  }
 
   let domesticSellers: SearchListing[] = [];
   let internationalSellers: SearchListing[] = [];
@@ -827,15 +833,21 @@ export async function GET(request: NextRequest) {
           ]),
         ];
 
-        const fallbackRows = await prisma.externalProduct.findMany({
-          where: {
-            OR: fallbackOr,
-          },
-          take: 300,
-          orderBy: {
-            updatedAt: 'desc',
-          },
-        });
+        let fallbackRows: any[] = [];
+        try {
+          fallbackRows = await prisma.externalProduct.findMany({
+            where: {
+              OR: fallbackOr,
+            },
+            take: 300,
+            orderBy: {
+              updatedAt: 'desc',
+            },
+          });
+        } catch (fallbackDbError) {
+          console.error('Fallback external query failed:', fallbackDbError);
+          fallbackRows = [];
+        }
 
         fallbackRows.forEach((row, idx) => {
           if (!row.title || !row.externalPrice) return;
