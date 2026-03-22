@@ -96,6 +96,7 @@ function SearchContent() {
   const [sourceStats, setSourceStats] = useState<SearchResponse['sourceStats']>();
   const [loading, setLoading] = useState(true);
   const pageCacheRef = useRef<Map<string, CachedSearchEntry>>(new Map());
+  const requestSeqRef = useRef(0);
   const { showToast } = useToast();
 
   const setPageWithUrl = (targetPage: number) => {
@@ -121,6 +122,9 @@ function SearchContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    const requestId = ++requestSeqRef.current;
+    const controller = new AbortController();
+
     const fetchResults = async () => {
       if (!query) {
         setLocalProducts([]);
@@ -149,12 +153,18 @@ function SearchContent() {
         setLoading(true);
         const res = await fetch(
           `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}&page=${page}&limit=${PAGE_SIZE}`,
-          { cache: 'no-store' }
+          { cache: 'no-store', signal: controller.signal }
         );
         if (!res.ok) {
           throw new Error(`Search request failed with status ${res.status}`);
         }
         const data: SearchResponse = await res.json();
+
+        // Ignore stale responses from older requests when query/page changed.
+        if (requestId !== requestSeqRef.current) {
+          return;
+        }
+
         if (hasAnyResults(data)) {
           pageCacheRef.current.set(cacheKey, { createdAt: Date.now(), data });
         } else {
@@ -176,6 +186,9 @@ function SearchContent() {
         setPagination(undefined);
         setSourceStats(undefined);
       } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
         console.error('Search error:', error);
         setLocalProducts([]);
         setDomesticProducts([]);
@@ -183,11 +196,17 @@ function SearchContent() {
         setPagination(undefined);
         setSourceStats(undefined);
       } finally {
-        setLoading(false);
+        if (requestId === requestSeqRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchResults();
+
+    return () => {
+      controller.abort();
+    };
   }, [query, sortMode, page]);
 
   const hasNextPage = Boolean(
