@@ -309,7 +309,9 @@ export default function ProductsPage() {
             const categoryProducts = getProductsForCategory(category.id);
             const isExpanded = expandedCategories.has(category.id);
             const isLoading = loadingCategory === category.id;
-            const productCount = category._count?.products || 0;
+            const productCount = isExpanded && !isLoading
+              ? categoryProducts.length
+              : (category._count?.products || 0);
 
             return (
               <div key={category.id} className="bg-white rounded-lg shadow overflow-hidden">

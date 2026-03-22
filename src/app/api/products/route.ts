@@ -22,11 +22,14 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const category = searchParams.get('category');
+    const categoryId = searchParams.get('categoryId');
     const sortBy = searchParams.get('sort') || 'createdAt';
 
     // Build where clause
     const where: any = { isActive: true };
-    if (category) {
+    if (categoryId) {
+      where.categoryId = categoryId;
+    } else if (category) {
       where.category = { slug: category };
     }
 
