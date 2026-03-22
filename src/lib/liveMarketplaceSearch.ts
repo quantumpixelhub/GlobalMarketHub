@@ -851,6 +851,61 @@ const parseEasyStoreApi = (jsonText: string, query: string, max: number): LiveOf
   return offers;
 };
 
+const parseDarazAjax = (jsonText: string, query: string, max: number): LiveOffer[] => {
+  if (!jsonText || jsonText.length < 20) return [];
+
+  try {
+    const parsed = JSON.parse(jsonText);
+    const items = parsed?.mods?.listItems;
+    if (!Array.isArray(items)) return [];
+
+    const offers: LiveOffer[] = [];
+    const seen = new Set<string>();
+
+    for (const item of items) {
+      if (offers.length >= max) break;
+      if (!item || typeof item !== 'object') continue;
+
+      const title = String(item.name || '').trim();
+      if (!title || title.length < 4 || title.length > 240) continue;
+      if (!matchesQuery(title, query)) continue;
+
+      const price = typeof item.price === 'number' ? item.price : parsePrice(String(item.priceShow || item.price || ''));
+      if (price <= 0) continue;
+
+      let externalUrl = String(item.itemUrl || item.productUrl || '').trim();
+      if (!externalUrl) continue;
+      if (externalUrl.startsWith('//')) externalUrl = `https:${externalUrl}`;
+      if (externalUrl.startsWith('/')) externalUrl = `https://www.daraz.com.bd${externalUrl}`;
+
+      const imageUrl = String(item.image || '').trim();
+      const originalPrice = typeof item.originalPrice === 'number'
+        ? item.originalPrice
+        : parsePrice(String(item.originalPriceShow || item.originalPrice || item.priceShow || ''));
+
+      const key = `${externalUrl.split('?')[0]}|${price}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      offers.push({
+        platform: 'daraz',
+        sellerType: 'DOMESTIC',
+        title,
+        externalUrl,
+        imageUrl,
+        currentPrice: price,
+        originalPrice: Math.max(originalPrice || price, price),
+        discountVerified: (originalPrice || price) > price,
+        sellerName: String(item.sellerName || 'Daraz'),
+      });
+    }
+
+    return offers;
+  } catch {
+    return [];
+  }
+};
+
 const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] => {
   // Fallback: If markdown is short or doesn't have expected format, return nothing
   if (!markdown || markdown.length < 100) return [];
@@ -1109,26 +1164,47 @@ export async function liveMarketplaceSearch(
 
         for (let pageIndex = 0; pageIndex < pagesToScan; pageIndex += 1) {
           if (merged.length >= darazTarget) break;
-          if (pageIndex > 6 && consecutiveMissPages >= 3) break;
+          if (pageIndex > 10 && consecutiveMissPages >= 4) break;
 
-          const url = pageIndex === 0 ? baseUrl : `${baseUrl}&page=${pageIndex + 1}`;
-          let response: { status: number; text: string };
+          const pageNum = pageIndex + 1;
+          const ajaxUrl = `${baseUrl}${pageIndex === 0 ? '' : `&page=${pageNum}`}&ajax=true`;
+          const fallbackUrl = pageIndex === 0 ? baseUrl : `${baseUrl}&page=${pageNum}`;
+
+          // Primary: direct Daraz ajax endpoint (returns structured JSON listItems)
+          let parsed: LiveOffer[] = [];
+          let status = 0;
           try {
-            response = await fetchViaJina(url);
+            const direct = await fetchDirect(ajaxUrl);
+            status = direct.status;
+            if (direct.status === 200 && direct.text) {
+              parsed = parseDarazAjax(direct.text, q, darazTarget);
+            }
           } catch {
-            response = { status: 0, text: '' };
+            // Ignore and fall back to jina parser below
+          }
+
+          // Secondary fallback: jina markdown parser when ajax path returns no parsed items
+          if (parsed.length === 0) {
+            try {
+              const viaJina = await fetchViaJina(fallbackUrl);
+              status = status || viaJina.status;
+              if (viaJina.status === 200 && viaJina.text) {
+                parsed = parseDaraz(viaJina.text, q, darazTarget);
+              }
+            } catch {
+              // Keep parsed empty
+            }
           }
 
           if (pageIndex === 0) {
-            firstPageStatus = response.status;
+            firstPageStatus = status;
           }
 
-          if (response.status !== 200 || !response.text) {
+          if (parsed.length === 0) {
             consecutiveMissPages += 1;
             continue;
           }
 
-          const parsed = parseDaraz(response.text, q, darazTarget);
           let addedOnThisPage = 0;
           for (const offer of parsed) {
             if (merged.length >= darazTarget) break;
