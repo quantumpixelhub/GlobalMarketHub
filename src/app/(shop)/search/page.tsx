@@ -62,6 +62,23 @@ interface SearchResponse {
 }
 
 const PAGE_SIZE = 24;
+const CLIENT_CACHE_TTL_MS = 60 * 1000;
+
+type CachedSearchEntry = {
+  createdAt: number;
+  data: SearchResponse;
+};
+
+const hasAnyResults = (data: SearchResponse) => {
+  if (data.sections) {
+    return (
+      (data.sections.localInventory?.length || 0) > 0 ||
+      (data.sections.domesticSellers?.length || 0) > 0 ||
+      (data.sections.internationalSellers?.length || 0) > 0
+    );
+  }
+  return (data.results?.length || 0) > 0;
+};
 
 function SearchContent() {
   const router = useRouter();
@@ -78,7 +95,7 @@ function SearchContent() {
   const [pagination, setPagination] = useState<SearchResponse['pagination']>();
   const [sourceStats, setSourceStats] = useState<SearchResponse['sourceStats']>();
   const [loading, setLoading] = useState(true);
-  const pageCacheRef = useRef<Map<string, SearchResponse>>(new Map());
+  const pageCacheRef = useRef<Map<string, CachedSearchEntry>>(new Map());
   const { showToast } = useToast();
 
   const setPageWithUrl = (targetPage: number) => {
@@ -116,13 +133,14 @@ function SearchContent() {
       try {
         const cacheKey = `${query}|${sortMode}|${page}|${PAGE_SIZE}`;
         const cached = pageCacheRef.current.get(cacheKey);
-        if (cached) {
-          setPagination(cached.pagination);
-          setSourceStats(cached.sourceStats);
-          if (cached.sections) {
-            setLocalProducts(cached.sections.localInventory || []);
-            setDomesticProducts(cached.sections.domesticSellers || []);
-            setInternationalProducts(cached.sections.internationalSellers || []);
+        const cachedIsFresh = Boolean(cached && Date.now() - cached.createdAt < CLIENT_CACHE_TTL_MS);
+        if (cached && cachedIsFresh && hasAnyResults(cached.data)) {
+          setPagination(cached.data.pagination);
+          setSourceStats(cached.data.sourceStats);
+          if (cached.data.sections) {
+            setLocalProducts(cached.data.sections.localInventory || []);
+            setDomesticProducts(cached.data.sections.domesticSellers || []);
+            setInternationalProducts(cached.data.sections.internationalSellers || []);
             setLoading(false);
             return;
           }
@@ -131,9 +149,17 @@ function SearchContent() {
         setLoading(true);
         const res = await fetch(
           `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}&page=${page}&limit=${PAGE_SIZE}`,
+          { cache: 'no-store' }
         );
+        if (!res.ok) {
+          throw new Error(`Search request failed with status ${res.status}`);
+        }
         const data: SearchResponse = await res.json();
-        pageCacheRef.current.set(cacheKey, data);
+        if (hasAnyResults(data)) {
+          pageCacheRef.current.set(cacheKey, { createdAt: Date.now(), data });
+        } else {
+          pageCacheRef.current.delete(cacheKey);
+        }
         setPagination(data.pagination);
         setSourceStats(data.sourceStats);
 
