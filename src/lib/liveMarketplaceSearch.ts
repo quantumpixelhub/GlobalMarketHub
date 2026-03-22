@@ -883,7 +883,7 @@ const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] =
     let price = 0;
     let imageUrl = '';
     
-    for (let j = Math.max(0, i - 5); j <= Math.min(lines.length - 1, i + 15); j++) {
+    for (let j = Math.max(0, i - 5); j <= Math.min(lines.length - 1, i + 20); j++) {
       if (j === i) continue;
       const priceLine = lines[j];
       
@@ -892,17 +892,20 @@ const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] =
         const priceMatch = priceLine.match(/৳\s*([0-9,]+)/);
         if (priceMatch) {
           price = parsePrice(priceMatch[1]);
-          if (price > 100) break; // Filter out prices that are too low
+          if (price > 1) break; // Accept any positive price
         }
       }
       
-      // Look for image URLs (prioritize content images, not meta)
-      if (!imageUrl && priceLine.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp)/i)) {
-        imageUrl = priceLine.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp)/i)?.[0] || '';
+      // Look for image URLs with multiple patterns
+      if (!imageUrl) {
+        const imgMatch = priceLine.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp|gif)/i);
+        if (imgMatch) {
+          imageUrl = imgMatch[0];
+        }
       }
     }
     
-    if (price > 100) { // Reasonable minimum for BD market
+    if (price > 1) { // Accept any positive price
       const key = `${title}|${price}`;
       if (!seen.has(key)) {
         seen.add(key);
@@ -942,7 +945,15 @@ const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] =
       if (!priceMatch) continue;
       
       const price = parsePrice(priceMatch[1]);
-      if (price > 100) {
+      
+      // Extract image URL if available in the nearby context
+      let imageUrl = '';
+      const imgMatch = afterUrl.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp|gif)/i);
+      if (imgMatch) {
+        imageUrl = imgMatch[0];
+      }
+      
+      if (price > 1) { // Accept any positive price
         const key = `${title}|${price}`;
         if (!seen.has(key)) {
           seen.add(key);
@@ -951,7 +962,7 @@ const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] =
             sellerType: 'DOMESTIC',
             title,
             externalUrl: url.split('?')[0].split('#')[0],
-            imageUrl: '',
+            imageUrl,
             currentPrice: price,
             originalPrice: price,
             discountVerified: false,

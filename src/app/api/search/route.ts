@@ -281,6 +281,55 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
             liveResults.errors = [...darazFirst.errors, ...expanded.errors];
           }
 
+      // Try to enrich live results with images from catalog where missing
+      let catalogOffers: Array<{ title: string; imageUrl: string | null }> = [];
+      try {
+        catalogOffers = await prisma.externalProduct.findMany({
+          where: {
+            title: { contains: q.trim(), mode: 'insensitive' },
+            imageUrl: { not: null },
+          },
+          select: { title: true, imageUrl: true },
+          take: 1000,
+        });
+      } catch (enrichError) {
+        console.error('Image enrichment query failed:', enrichError);
+      }
+
+      // Helper function to extract key keywords for fuzzy matching
+      const extractKeywords = (title: string): string[] => {
+        return title
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((word) => word.length > 2 && !/^(and|the|for|with|or|in|to)$/i.test(word));
+      };
+
+      const findBestImageFromCatalog = (liveTitle: string): string | undefined => {
+        const liveKeywords = extractKeywords(liveTitle);
+        if (liveKeywords.length === 0) return undefined;
+
+        let bestMatch: { imageUrl: string; score: number } | null = null;
+
+        for (const catalogItem of catalogOffers) {
+          const catalogKeywords = extractKeywords(catalogItem.title);
+          if (!catalogItem.imageUrl) continue;
+
+          // Calculate match score (how many keywords overlap)
+          const matchedKeywords = liveKeywords.filter((keyword) =>
+            catalogKeywords.some((ck) => ck.includes(keyword) || keyword.includes(ck))
+          );
+
+          const score = matchedKeywords.length / Math.max(liveKeywords.length, catalogKeywords.length);
+
+          // Match if at least 50% of keywords match
+          if (score >= 0.5 && (!bestMatch || score > bestMatch.score)) {
+            bestMatch = { imageUrl: catalogItem.imageUrl, score };
+          }
+        }
+
+        return bestMatch?.imageUrl;
+      };
+
       liveResults.domestic.forEach((offer, index) => {
         // Ignore obvious non-matching title leakage from very broad marketplaces.
         if (!cleanListingTitle(offer.title).toLowerCase().includes(q.trim().split(/\s+/)[0].toLowerCase())) {
@@ -289,12 +338,22 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
         }
         const title = cleanListingTitle(offer.title);
         if (isNoisyListingTitle(title)) return;
+        
+        // Try to enhance image from catalog if missing
+        let finalImage = offer.imageUrl;
+        if (!finalImage || finalImage.includes('placeholder')) {
+          const catalogImage = findBestImageFromCatalog(title);
+          if (catalogImage) {
+            finalImage = catalogImage;
+          }
+        }
+        
         domesticSellers.push({
           id: `live-domestic-${index}-${offer.platform}`,
           title,
           currentPrice: offer.currentPrice,
           originalPrice: offer.originalPrice,
-          mainImage: offer.imageUrl || '/images/placeholder-product.svg',
+          mainImage: finalImage || '/images/placeholder-product.svg',
           rating: 0,
           reviewCount: 0,
           stock: 999,
