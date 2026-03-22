@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus } from 'lucide-react';
+import { Edit2, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastProvider';
 
 interface Product {
@@ -22,6 +22,13 @@ interface Product {
   };
 }
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  _count?: { products: number };
+}
+
 interface OptionItem {
   id: string;
   name: string;
@@ -35,10 +42,13 @@ const asNumber = (value: unknown, fallback = 0): number => {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [loadingCategory, setLoadingCategory] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
-  const [categories, setCategories] = useState<OptionItem[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<OptionItem[]>([]);
   const [sellers, setSellers] = useState<OptionItem[]>([]);
   const [formData, setFormData] = useState({
     title: '',
@@ -52,66 +62,98 @@ export default function ProductsPage() {
   });
   const { showToast } = useToast();
 
+  // Fetch all categories
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchCategories = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) {
-          window.location.href = '/login';
-          return;
-        }
+        if (!token) return;
 
-        const res = await fetch('/api/products?limit=100', {
+        const res = await fetch('/api/admin/categories', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (res.ok) {
           const data = await res.json();
-          const normalized = (data.products || []).map((product: any) => ({
-            ...product,
-            currentPrice: asNumber(product.currentPrice),
-            originalPrice: asNumber(product.originalPrice),
-            stock: asNumber(product.stock),
-            rating: asNumber(product.rating),
-            reviewCount: asNumber(product.reviewCount),
-            seller: product.seller || { storeName: 'N/A' },
-          }));
-          setProducts(normalized);
-        } else if (res.status === 403) {
-          showToast('Admin access required', 'error');
-          window.location.href = '/login';
+          const sorted = (data.categories || []).sort((a: Category, b: Category) =>
+            a.name.localeCompare(b.name)
+          );
+          setCategories(sorted);
+          setCategoryOptions(sorted.map((c: Category) => ({ id: c.id, name: c.name })));
         }
       } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching categories:', error);
       }
     };
 
-    fetchProducts();
+    fetchCategories();
+  }, []);
 
-    const fetchDropdowns = async () => {
+  // Fetch products for a specific category
+  const fetchProductsByCategory = async (categoryId: string) => {
+    try {
+      setLoadingCategory(categoryId);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch(`/api/products?categoryId=${categoryId}&limit=100`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const normalized = (data.products || []).map((product: any) => ({
+          ...product,
+          currentPrice: asNumber(product.currentPrice),
+          originalPrice: asNumber(product.originalPrice),
+          stock: asNumber(product.stock),
+          rating: asNumber(product.rating),
+          reviewCount: asNumber(product.reviewCount),
+          seller: product.seller || { storeName: 'N/A' },
+        }));
+        
+        // Merge with existing products
+        setProducts((prev) => {
+          const filtered = prev.filter((p) => p.category?.id !== categoryId);
+          return [...filtered, ...normalized];
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoadingCategory(null);
+    }
+  };
+
+  // Handle category expand/collapse
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+      // Fetch products for this category
+      fetchProductsByCategory(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  // Fetch sellers for dropdown
+  useEffect(() => {
+    const fetchSellers = async () => {
       try {
-        const [catRes, sellerRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/sellers'),
-        ]);
-
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          setCategories((catData.categories || []).map((c: any) => ({ id: c.id, name: c.name })));
-        }
-
-        if (sellerRes.ok) {
-          const sellerData = await sellerRes.json();
-          setSellers((sellerData.sellers || []).map((s: any) => ({ id: s.id, name: s.storeName })));
+        const res = await fetch('/api/sellers');
+        if (res.ok) {
+          const data = await res.json();
+          setSellers((data.sellers || []).map((s: any) => ({ id: s.id, name: s.storeName })));
         }
       } catch (error) {
-        console.error('Error loading form options:', error);
+        console.error('Error loading sellers:', error);
       }
     };
 
-    fetchDropdowns();
+    fetchSellers();
+    setLoading(false);
   }, []);
 
   const resetForm = () => {
@@ -121,7 +163,7 @@ export default function ProductsPage() {
       originalPrice: '',
       currentPrice: '',
       stock: '',
-      categoryId: categories[0]?.id || '',
+      categoryId: categoryOptions[0]?.id || '',
       sellerId: sellers[0]?.id || '',
       mainImage: '',
     });
@@ -234,27 +276,16 @@ export default function ProductsPage() {
     }
   };
 
-  // Group and sort products by category, then by title ascending
-  const groupedProducts = products
-    .sort((a, b) => a.title.localeCompare(b.title)) // Sort by title ascending
-    .reduce((acc, product) => {
-      const categoryName = product.category?.name || 'Uncategorized';
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(product);
-      return acc;
-    }, {} as Record<string, Product[]>);
-
-  // Sort categories alphabetically
-  const sortedCategories = Object.keys(groupedProducts).sort();
+  const getProductsForCategory = (categoryId: string): Product[] => {
+    return products.filter((p) => p.category?.id === categoryId);
+  };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Products Management</h1>
-          <p className="text-gray-600 mt-2">Manage your product catalog</p>
+          <p className="text-gray-600 mt-2">Manage your product catalog by category</p>
         </div>
         <button
           onClick={openCreateModal}
@@ -266,73 +297,108 @@ export default function ProductsPage() {
       </div>
 
       {loading ? (
-        <p>Loading products...</p>
+        <p>Loading categories...</p>
+      ) : categories.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+          No categories found
+        </div>
       ) : (
-        <div className="space-y-6">
-          {sortedCategories.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-              No products found
-            </div>
-          ) : (
-            sortedCategories.map((category) => (
-              <div key={category} className="bg-white rounded-lg shadow overflow-hidden">
-                {/* Category Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3">
-                  <h2 className="text-lg font-bold text-white">{category}</h2>
-                  <p className="text-orange-100 text-sm">{groupedProducts[category].length} product{groupedProducts[category].length !== 1 ? 's' : ''}</p>
-                </div>
+        <div className="space-y-3">
+          {categories.map((category) => {
+            const categoryProducts = getProductsForCategory(category.id);
+            const isExpanded = expandedCategories.has(category.id);
+            const isLoading = loadingCategory === category.id;
+            const productCount = category._count?.products || 0;
 
-                {/* Products Table */}
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Title</th>
-                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Price</th>
-                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Stock</th>
-                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Rating</th>
-                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Seller</th>
-                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupedProducts[category].map((product) => (
-                      <tr key={product.id} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-gray-800">{product.title}</td>
-                        <td className="px-6 py-4 text-gray-600">৳{product.currentPrice.toLocaleString()}</td>
-                        <td className="px-6 py-4">
-                          <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                            {product.stock > 0 ? `${product.stock} units` : 'Out of stock'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="flex items-center gap-1">
-                            ⭐ {product.rating.toFixed(1)} ({product.reviewCount})
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">{product.seller?.storeName || 'N/A'}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => openEditModal(product)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                            >
-                              <Edit2 size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            return (
+              <div key={category.id} className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Category Header - Clickable */}
+                <button
+                  onClick={() => toggleCategory(category.id)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between hover:from-orange-600 hover:to-orange-700 transition"
+                >
+                  <div className="flex items-center gap-3 text-left">
+                    {isExpanded ? (
+                      <ChevronDown size={20} className="text-white flex-shrink-0" />
+                    ) : (
+                      <ChevronRight size={20} className="text-white flex-shrink-0" />
+                    )}
+                    <div>
+                      <h2 className="text-lg font-bold text-white">{category.name}</h2>
+                      <p className="text-orange-100 text-sm">
+                        {isLoading ? 'Loading...' : `${productCount} product${productCount !== 1 ? 's' : ''}`}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Products Table - Expanded */}
+                {isExpanded && (
+                  <div>
+                    {isLoading ? (
+                      <div className="px-6 py-4 text-center text-gray-500">
+                        Loading products...
+                      </div>
+                    ) : categoryProducts.length === 0 ? (
+                      <div className="px-6 py-4 text-center text-gray-500">
+                        No products in this category
+                      </div>
+                    ) : (
+                      <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
+                          <tr>
+                            <th className="text-left px-6 py-4 font-semibold text-gray-700">Title</th>
+                            <th className="text-left px-6 py-4 font-semibold text-gray-700">Price</th>
+                            <th className="text-left px-6 py-4 font-semibold text-gray-700">Stock</th>
+                            <th className="text-left px-6 py-4 font-semibold text-gray-700">Rating</th>
+                            <th className="text-left px-6 py-4 font-semibold text-gray-700">Seller</th>
+                            <th className="text-left px-6 py-4 font-semibold text-gray-700">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categoryProducts
+                            .sort((a, b) => a.title.localeCompare(b.title))
+                            .map((product) => (
+                              <tr key={product.id} className="border-b hover:bg-gray-50">
+                                <td className="px-6 py-4 font-medium text-gray-800">{product.title}</td>
+                                <td className="px-6 py-4 text-gray-600">৳{product.currentPrice.toLocaleString()}</td>
+                                <td className="px-6 py-4">
+                                  <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
+                                    {product.stock > 0 ? `${product.stock} units` : 'Out of stock'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="flex items-center gap-1">
+                                    ⭐ {product.rating.toFixed(1)} ({product.reviewCount})
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-gray-600">{product.seller?.storeName || 'N/A'}</td>
+                                <td className="px-6 py-4">
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => openEditModal(product)}
+                                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                                    >
+                                      <Edit2 size={18} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteProduct(product.id)}
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                                    >
+                                      <Trash2 size={18} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
               </div>
-            ))
-          )}
+            );
+          })}
         </div>
       )}
 
