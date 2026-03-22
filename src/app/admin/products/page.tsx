@@ -35,6 +35,24 @@ interface OptionItem {
   name: string;
 }
 
+const LIVE_MAIN_CATEGORY_SLUGS = new Set([
+  'fashion-apparel',
+  'electronics-gadgets',
+  'home-furniture-living',
+  'beauty-personal-care',
+  'food-grocery-beverages',
+  'health-wellness',
+  'sports-outdoor',
+  'toys-kids-baby',
+  'automotive-tools',
+  'pet-supplies',
+  'books-media-education',
+  'tools-hardware-industrial',
+  'office-business-stationery',
+  'travel-luggage-lifestyle',
+  'digital-products-services',
+]);
+
 const asNumber = (value: unknown, fallback = 0): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -77,7 +95,7 @@ export default function ProductsPage() {
         if (res.ok) {
           const data = await res.json();
           const sorted = (data.categories || [])
-            .filter((c: Category) => !c.parentId) // Only main categories (like live site)
+            .filter((c: Category) => !c.parentId && LIVE_MAIN_CATEGORY_SLUGS.has(c.slug))
             .sort((a: Category, b: Category) => a.name.localeCompare(b.name));
           setCategories(sorted);
           setCategoryOptions(sorted.map((c: Category) => ({ id: c.id, name: c.name })));

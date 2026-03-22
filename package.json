@@ -23,6 +23,7 @@
     "db:seed-external-offers": "node scripts/seedExternalOffers.js",
     "db:tag-synthetic-external-offers": "node scripts/tagSyntheticExternalOffers.js",
     "db:import-real-external-offers": "node scripts/importRealExternalOffers.js",
+    "db:import-real-products-by-category": "node scripts/importRealProductsByCategory.js",
     "db:purge-synthetic-external-offers": "node scripts/purgeSyntheticExternalOffers.js",
     "db:sync-marketplace-offers": "node scripts/syncMarketplaceOffers.js",
     "db:sync-category-taxonomy": "node scripts/syncCategoryTaxonomy.js"
