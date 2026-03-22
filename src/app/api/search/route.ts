@@ -463,10 +463,7 @@ const buildExternalSearchWhere = (query: string) => {
     .map((token) => token.trim())
     .filter((token) => token.length >= 2);
 
-  const base: any = {
-    isTracked: true,
-    isSynthetic: false,
-  };
+  const base: any = {};
 
   if (!trimmed) {
     return base;
