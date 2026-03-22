@@ -64,6 +64,7 @@ export default function HomePage() {
   const FEATURED_LOAD_STEP = 16;
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [visibleFeaturedCount, setVisibleFeaturedCount] = useState(FEATURED_INITIAL_COUNT);
+  const [isLoadingMoreFeatured, setIsLoadingMoreFeatured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeBanner, setActiveBanner] = useState<'topSell' | 'topRanking' | 'topReviews' | 'random'>('topSell');
   const [randomBannerProducts, setRandomBannerProducts] = useState<Product[]>([]);
@@ -156,6 +157,16 @@ export default function HomePage() {
   const newArrivals = featuredProducts.slice(6, 12);
   const visibleFeaturedProducts = featuredProducts.slice(0, visibleFeaturedCount);
   const hasMoreFeaturedProducts = visibleFeaturedCount < featuredProducts.length;
+
+  const handleLoadMoreFeatured = () => {
+    if (isLoadingMoreFeatured || !hasMoreFeaturedProducts) return;
+    setIsLoadingMoreFeatured(true);
+
+    window.setTimeout(() => {
+      setVisibleFeaturedCount((prev) => prev + FEATURED_LOAD_STEP);
+      setIsLoadingMoreFeatured(false);
+    }, 350);
+  };
 
   const getBannerPageStep = (container: HTMLDivElement) => {
     const cardsPerPage = Math.max(1, Math.floor(container.clientWidth / BANNER_CARD_STEP));
@@ -633,14 +644,23 @@ export default function HomePage() {
           onAddToCart={handleAddToCart}
           columns={4}
         />
+        {!loading && featuredProducts.length > 0 && (
+          <p className="mt-5 text-center text-sm text-gray-600">
+            Showing {visibleFeaturedProducts.length} of {featuredProducts.length} products
+          </p>
+        )}
         {!loading && hasMoreFeaturedProducts && (
           <div className="mt-8 flex justify-center">
             <button
               type="button"
-              onClick={() => setVisibleFeaturedCount((prev) => prev + FEATURED_LOAD_STEP)}
-              className="rounded-lg bg-emerald-600 px-8 py-3 text-white font-semibold hover:bg-emerald-700 transition"
+              onClick={handleLoadMoreFeatured}
+              disabled={isLoadingMoreFeatured}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3 text-white font-semibold hover:bg-emerald-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Load More Products
+              {isLoadingMoreFeatured && (
+                <span className="h-4 w-4 rounded-full border-2 border-white/60 border-t-white animate-spin" />
+              )}
+              {isLoadingMoreFeatured ? 'Loading...' : 'Load More Products'}
             </button>
           </div>
         )}
