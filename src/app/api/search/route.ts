@@ -284,7 +284,7 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
       // Try to enrich live results with images from catalog where missing
       let catalogOffers: Array<{ title: string; imageUrl: string | null }> = [];
       try {
-        catalogOffers = await prisma.externalProduct.findMany({
+        const rawOffers = await prisma.externalProduct.findMany({
           where: {
             title: { contains: q.trim(), mode: 'insensitive' },
             imageUrl: { not: null },
@@ -292,6 +292,7 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
           select: { title: true, imageUrl: true },
           take: 1000,
         });
+        catalogOffers = rawOffers.filter((o) => o.title && o.imageUrl) as Array<{ title: string; imageUrl: string | null }>;
       } catch (enrichError) {
         console.error('Image enrichment query failed:', enrichError);
       }
