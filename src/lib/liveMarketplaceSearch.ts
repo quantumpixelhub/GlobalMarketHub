@@ -113,7 +113,7 @@ const matchesQuery = (title: string, query: string) => {
 const fetchViaJina = async (url: string) => {
   const wrapped = `https://r.jina.ai/http://${url.replace(/^https?:\/\//i, '')}`;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 18000);
+  const timeout = setTimeout(() => controller.abort(), 9000);
   const res = await fetch(wrapped, {
     headers: {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -130,7 +130,7 @@ const fetchViaJina = async (url: string) => {
 
 const fetchDirect = async (url: string) => {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 18000);
+  const timeout = setTimeout(() => controller.abort(), 9000);
   const res = await fetch(url, {
     headers: {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',

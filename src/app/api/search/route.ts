@@ -30,6 +30,10 @@ type SearchListing = {
 const INTERNATIONAL_PLATFORMS = new Set(['amazon', 'alibaba', 'aliexpress']);
 const DEFAULT_PAGE_SIZE = 24;
 const MAX_PAGE_SIZE = 24;
+const LIVE_DARAZ_TIMEOUT_MS = 9000;
+const LIVE_EXPANDED_TIMEOUT_MS = 10000;
+const EMERGENCY_DARAZ_TIMEOUT_MS = 7000;
+const EMERGENCY_EXPANDED_TIMEOUT_MS = 7000;
 const MAX_SECTION_RESULTS = 1000;
 const SECTION_CACHE_TTL_MS = 3 * 60 * 1000;
 const SECTION_STALE_MAX_MS = 20 * 60 * 1000;
@@ -246,7 +250,7 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
           const darazTarget = Math.min(700, Math.max(220, Math.ceil(sectionFetchTarget * 0.8)));
           const darazFirst = await withTimeout(
             liveMarketplaceSearch(q, darazTarget, { darazOnly: true }),
-            18000,
+            LIVE_DARAZ_TIMEOUT_MS,
             { domestic: [], international: [], coverage: '', errors: ['daraz-timeout'] }
           );
 
@@ -260,7 +264,7 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
             const livePerSellerTarget = Math.min(420, Math.max(120, Math.ceil(sectionFetchTarget / 3)));
             const expanded = await withTimeout(
               liveMarketplaceSearch(q, livePerSellerTarget),
-              20000,
+              LIVE_EXPANDED_TIMEOUT_MS,
               { domestic: [], international: [], coverage: '', errors: ['live-search-timeout'] }
             );
 
@@ -718,7 +722,7 @@ export async function GET(request: NextRequest) {
       } else {
         const emergencyDaraz = await withTimeout(
           liveMarketplaceSearch(q, 260, { darazOnly: true }),
-          20000,
+          EMERGENCY_DARAZ_TIMEOUT_MS,
           { domestic: [], international: [], coverage: '', errors: ['emergency-daraz-timeout'] }
         );
 
@@ -726,7 +730,7 @@ export async function GET(request: NextRequest) {
         if (emergencyDaraz.domestic.length < 24) {
           const emergencyExpanded = await withTimeout(
             liveMarketplaceSearch(q, 64),
-            18000,
+            EMERGENCY_EXPANDED_TIMEOUT_MS,
             { domestic: [], international: [], coverage: '', errors: ['emergency-live-timeout'] }
           );
           emergencyLive = {
