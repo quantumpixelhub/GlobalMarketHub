@@ -52,15 +52,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-100 flex-col">
-      {/* Top Header with Logo */}
+      {/* Top Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <Logo size="sm" className="max-w-[200px]" />
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1 hover:bg-gray-200 rounded text-gray-900 md:hidden"
-        >
-          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">Welcome Back!</h2>
+          <p className="text-xs text-gray-500">Manage your store and track performance</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-800">Admin User</p>
+              <p className="text-xs text-gray-500">Administrator</p>
+            </div>
+            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow">
+              A
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-1">
@@ -70,11 +85,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           sidebarOpen ? 'w-64' : 'w-20'
         } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
       >
-        {/* Sidebar Toggle */}
-        <div className="p-4 border-b border-gray-700 flex items-center justify-center">
+        {/* Logo & Sidebar Toggle */}
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          {sidebarOpen && (
+            <Logo size="sm" className="max-w-[180px] origin-left" />
+          )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 hover:bg-gray-800 rounded hidden md:block"
+            className="p-1 hover:bg-gray-800 rounded flex-shrink-0"
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -95,36 +113,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Link>
           ))}
         </nav>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="mx-4 mb-4 mt-2 flex items-center gap-3 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition w-auto justify-center"
-        >
-          <LogOut size={20} />
-          {sidebarOpen && <span>Logout</span>}
-        </button>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-800">Welcome Back!</h2>
-            <p className="text-xs text-gray-500">Manage your store and track performance</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-800">Admin User</p>
-              <p className="text-xs text-gray-500">Administrator</p>
-            </div>
-            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow">
-              A
-            </div>
-          </div>
-        </div>
-
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-6 bg-gray-50">{children}</div>
       </div>

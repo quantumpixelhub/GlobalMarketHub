@@ -26,6 +26,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  parentId?: string | null;
   _count?: { products: number };
 }
 
@@ -75,9 +76,9 @@ export default function ProductsPage() {
 
         if (res.ok) {
           const data = await res.json();
-          const sorted = (data.categories || []).sort((a: Category, b: Category) =>
-            a.name.localeCompare(b.name)
-          );
+          const sorted = (data.categories || [])
+            .filter((c: Category) => !c.parentId) // Only main categories (like live site)
+            .sort((a: Category, b: Category) => a.name.localeCompare(b.name));
           setCategories(sorted);
           setCategoryOptions(sorted.map((c: Category) => ({ id: c.id, name: c.name })));
         }
