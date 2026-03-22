@@ -26,7 +26,8 @@
     "db:import-real-products-by-category": "node scripts/importRealProductsByCategory.js",
     "db:purge-synthetic-external-offers": "node scripts/purgeSyntheticExternalOffers.js",
     "db:sync-marketplace-offers": "node scripts/syncMarketplaceOffers.js",
-    "db:sync-category-taxonomy": "node scripts/syncCategoryTaxonomy.js"
+    "db:sync-category-taxonomy": "node scripts/syncCategoryTaxonomy.js",
+    "db:import-top20-categories": "node scripts/importTop20Categories150.js"
   },
   "dependencies": {
     "@next/font": "^14.1.4",
