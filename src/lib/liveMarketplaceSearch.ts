@@ -112,26 +112,34 @@ const matchesQuery = (title: string, query: string) => {
 
 const fetchViaJina = async (url: string) => {
   const wrapped = `https://r.jina.ai/http://${url.replace(/^https?:\/\//i, '')}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 18000);
   const res = await fetch(wrapped, {
     headers: {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
       'accept-language': 'en-US,en;q=0.9',
     },
     cache: 'no-store',
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
 
   const text = await res.text();
   return { status: res.status, text };
 };
 
 const fetchDirect = async (url: string) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 18000);
   const res = await fetch(url, {
     headers: {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
       'accept-language': 'en-US,en;q=0.9',
     },
     cache: 'no-store',
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
 
   const text = await res.text();
   return { status: res.status, text };
@@ -1042,14 +1050,17 @@ const parseGhorerbazar = (html: string, query: string, max: number): LiveOffer[]
   return offers;
 };
 
-export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
+export async function liveMarketplaceSearch(
+  query: string,
+  maxPerSeller = 16,
+  options?: { darazOnly?: boolean }
+) {
   const q = String(query || '').trim();
   if (!q) {
     return { domestic: [] as LiveOffer[], international: [] as LiveOffer[], errors: [] as string[], coverage: '' };
   }
 
-  const tasks: Array<Promise<{ seller: string; offers: LiveOffer[]; error?: string }>> = [
-    (async () => {
+  const createDarazTask = async () => {
       try {
         const baseUrl = `https://www.daraz.com.bd/catalog/?q=${encodeURIComponent(q)}`;
         const darazTarget = Math.min(1000, Math.max(maxPerSeller, maxPerSeller * 2));
@@ -1109,7 +1120,14 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
       } catch (error) {
         return { seller: 'daraz', offers: [], error: (error as Error).message };
       }
-    })(),
+  };
+
+  const tasks: Array<Promise<{ seller: string; offers: LiveOffer[]; error?: string }>> = [
+    createDarazTask(),
+  ];
+
+  if (!options?.darazOnly) {
+    tasks.push(
     (async () => {
       try {
         const { status, text } = await fetchViaJina(`https://www.bagdoom.com/search?query=${encodeURIComponent(q)}`);
@@ -1347,7 +1365,8 @@ export async function liveMarketplaceSearch(query: string, maxPerSeller = 16) {
         return { seller: 'amazon', offers: [], error: (error as Error).message };
       }
     })(),
-  ];
+    );
+  }
 
   const settled = await Promise.all(tasks);
 

@@ -80,7 +80,7 @@ const cleanListingTitle = (value: string) =>
 const isNoisyListingTitle = (title: string) => {
   const normalized = cleanListingTitle(title).toLowerCase();
   if (!normalized) return true;
-  if (normalized.length < 6 || normalized.length > 220) return true;
+  if (normalized.length < 6 || normalized.length > 420) return true;
   if (/^image\b/.test(normalized)) return true;
   if (/^(page not found|search for products|categories|my account|cart|home)$/.test(normalized)) return true;
   if (/^(https?:\/\/|www\.)/.test(normalized)) return true;
@@ -110,7 +110,8 @@ const dedupeListings = (items: SearchListing[]) => {
       .replace(/[^a-z0-9\s]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    const titleKey = `${String(item.sourcePlatform || 'unknown').toLowerCase()}|${normalizedTitle}`;
+    const priceBand = Math.max(1, Math.round(item.currentPrice / 100));
+    const titleKey = `${String(item.sourcePlatform || 'unknown').toLowerCase()}|${normalizedTitle}|${priceBand}`;
 
     const candidate: SearchListing = {
       ...item,
@@ -144,6 +145,20 @@ const buildPlatformCountMap = (items: SearchListing[]) => {
     counts[key] = (counts[key] || 0) + 1;
   }
   return counts;
+};
+
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => resolve(fallback), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 };
 
 type BuildSectionPoolArgs = {
@@ -225,17 +240,42 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
     domesticSellers.push(listing);
   });
 
-  const shouldFetchLive = Boolean(q.trim()) && page === 1;
+      const shouldFetchLive = Boolean(q.trim()) && page === 1;
   if (shouldFetchLive) {
     try {
-      const livePerSellerTarget = Math.min(500, Math.max(160, Math.ceil(sectionFetchTarget / 2)));
-      const live = await liveMarketplaceSearch(q, livePerSellerTarget);
-      liveResults.domestic = live.domestic;
-      liveResults.international = live.international;
-      liveResults.coverage = live.coverage;
-      liveResults.errors = live.errors;
+          const darazTarget = Math.min(700, Math.max(220, Math.ceil(sectionFetchTarget * 0.8)));
+          const darazFirst = await withTimeout(
+            liveMarketplaceSearch(q, darazTarget, { darazOnly: true }),
+            18000,
+            { domestic: [], international: [], coverage: '', errors: ['daraz-timeout'] }
+          );
 
-      live.domestic.forEach((offer, index) => {
+          liveResults.domestic = darazFirst.domestic;
+          liveResults.international = darazFirst.international;
+          liveResults.coverage = darazFirst.coverage;
+          liveResults.errors = darazFirst.errors;
+
+          // If Daraz-only result is still thin, expand to full multi-source fetch.
+          if (darazFirst.domestic.length < Math.min(120, DEFAULT_PAGE_SIZE * 6)) {
+            const livePerSellerTarget = Math.min(420, Math.max(120, Math.ceil(sectionFetchTarget / 3)));
+            const expanded = await withTimeout(
+              liveMarketplaceSearch(q, livePerSellerTarget),
+              20000,
+              { domestic: [], international: [], coverage: '', errors: ['live-search-timeout'] }
+            );
+
+            liveResults.domestic = [...darazFirst.domestic, ...expanded.domestic];
+            liveResults.international = expanded.international;
+            liveResults.coverage = [darazFirst.coverage, expanded.coverage].filter(Boolean).join(', ');
+            liveResults.errors = [...darazFirst.errors, ...expanded.errors];
+          }
+
+      liveResults.domestic.forEach((offer, index) => {
+        // Ignore obvious non-matching title leakage from very broad marketplaces.
+        if (!cleanListingTitle(offer.title).toLowerCase().includes(q.trim().split(/\s+/)[0].toLowerCase())) {
+          // keep daraz broad matching intact, filter only non-daraz weak matches
+          if (offer.platform !== 'daraz') return;
+        }
         const title = cleanListingTitle(offer.title);
         if (isNoisyListingTitle(title)) return;
         domesticSellers.push({
@@ -260,7 +300,7 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
         });
       });
 
-      live.international.forEach((offer, index) => {
+      liveResults.international.forEach((offer, index) => {
         const title = cleanListingTitle(offer.title);
         if (isNoisyListingTitle(title)) return;
         internationalSellers.push({
@@ -475,7 +515,14 @@ export async function GET(request: NextRequest) {
       minPrice || '',
       maxPrice || '',
     ].join('|');
-    const cached = sectionResultCache.get(sectionCacheKey);
+    let cached = sectionResultCache.get(sectionCacheKey);
+
+    // Drop weak first-page caches so they don't keep recycling low-coverage pools.
+    if (cached && page === 1 && cached.domestic.length < 180) {
+      sectionResultCache.delete(sectionCacheKey);
+      cached = sectionResultCache.get(sectionCacheKey);
+    }
+
     const hasFreshCache = Boolean(cached && (Date.now() - cached.createdAt) < SECTION_CACHE_TTL_MS);
     const usingStaleCache = Boolean(cached && !hasFreshCache);
     const cacheAgeMs = cached ? Date.now() - cached.createdAt : Number.MAX_SAFE_INTEGER;
@@ -575,8 +622,10 @@ export async function GET(request: NextRequest) {
       stale: false,
     };
 
+    // Avoid serving weak page-1 caches; force rebuild to improve domestic coverage quality.
+    const weakPageOneCache = Boolean(cached && page === 1 && cached.domestic.length < 180);
     // Serve cached pools when available, then refresh in background for page 1 if cache is stale.
-    const serveFromCache = hasReusableCache && (page > 1 || hasFreshCache || usingStaleCache);
+    const serveFromCache = hasReusableCache && !weakPageOneCache && (page > 1 || hasFreshCache || usingStaleCache);
 
     if (serveFromCache) {
       domesticSellers = cached!.domestic.slice();
@@ -615,21 +664,216 @@ export async function GET(request: NextRequest) {
         sectionRebuildLocks.set(sectionCacheKey, rebuildPromise);
       }
     } else {
-      const rebuilt = await buildSectionPools({
-        q,
-        page,
-        limit,
-        sectionFetchTarget,
-        externalWhere,
-      });
-      domesticSellers = rebuilt.domesticSellers;
-      internationalSellers = rebuilt.internationalSellers;
-      sourceStats = rebuilt.sourceStats;
+      try {
+        const rebuilt = await buildSectionPools({
+          q,
+          page,
+          limit,
+          sectionFetchTarget,
+          externalWhere,
+        });
+        domesticSellers = rebuilt.domesticSellers;
+        internationalSellers = rebuilt.internationalSellers;
+        sourceStats = rebuilt.sourceStats;
+      } catch (sectionBuildError) {
+        console.error('Section pool build failed:', sectionBuildError);
+        if (cached) {
+          domesticSellers = cached.domestic.slice();
+          internationalSellers = cached.international.slice();
+          sourceStats = {
+            ...(cached.sourceStats || sourceStats),
+            fromCache: true,
+            stale: true,
+          };
+        } else {
+          domesticSellers = [];
+          internationalSellers = [];
+          sourceStats = {
+            ...sourceStats,
+            errors: [...(sourceStats.errors || []), 'section-build-failed'],
+            fromCache: false,
+            stale: false,
+          };
+        }
+      }
     }
 
     localInventory.sort(compareListings(sortMode));
     domesticSellers.sort(compareListings(sortMode));
     internationalSellers.sort(compareListings(sortMode));
+
+    // Guardrail: avoid returning an all-zero marketplace response for valid queries.
+    if (q.trim() && domesticSellers.length === 0 && internationalSellers.length === 0) {
+      const minCacheForFallback = page === 1 ? 180 : limit;
+      const hasMeaningfulCache = Boolean(cached && (cached.domestic.length + cached.international.length) >= minCacheForFallback);
+      if (hasReusableCache && hasMeaningfulCache && cached) {
+        domesticSellers = cached.domestic.slice();
+        internationalSellers = cached.international.slice();
+        sourceStats = {
+          ...(cached.sourceStats || sourceStats),
+          fromCache: true,
+          stale: true,
+          errors: [...(sourceStats.errors || []), 'zero-result-fallback-cache'],
+        };
+      } else {
+        const emergencyDaraz = await withTimeout(
+          liveMarketplaceSearch(q, 260, { darazOnly: true }),
+          20000,
+          { domestic: [], international: [], coverage: '', errors: ['emergency-daraz-timeout'] }
+        );
+
+        let emergencyLive = emergencyDaraz;
+        if (emergencyDaraz.domestic.length < 24) {
+          const emergencyExpanded = await withTimeout(
+            liveMarketplaceSearch(q, 64),
+            18000,
+            { domestic: [], international: [], coverage: '', errors: ['emergency-live-timeout'] }
+          );
+          emergencyLive = {
+            domestic: [...emergencyDaraz.domestic, ...emergencyExpanded.domestic],
+            international: emergencyExpanded.international,
+            coverage: [emergencyDaraz.coverage, emergencyExpanded.coverage].filter(Boolean).join(', '),
+            errors: [...emergencyDaraz.errors, ...emergencyExpanded.errors],
+          };
+        }
+
+        if (emergencyLive.domestic.length > 0 || emergencyLive.international.length > 0) {
+          emergencyLive.domestic.slice(0, 120).forEach((offer, index) => {
+            domesticSellers.push({
+              id: `live-emergency-domestic-${index}-${offer.platform}`,
+              title: cleanListingTitle(offer.title),
+              currentPrice: offer.currentPrice,
+              originalPrice: offer.originalPrice,
+              mainImage: offer.imageUrl || '/images/placeholder-product.svg',
+              rating: 0,
+              reviewCount: 0,
+              stock: 999,
+              isFeatured: false,
+              externalUrl: offer.externalUrl,
+              sourceType: 'DOMESTIC',
+              sourcePlatform: offer.platform,
+              lastSyncedAt: new Date().toISOString(),
+              discountVerified: offer.discountVerified,
+              seller: {
+                id: `live-emergency-${offer.platform}`,
+                storeName: offer.sellerName,
+              },
+            });
+          });
+
+          emergencyLive.international.slice(0, 120).forEach((offer, index) => {
+            internationalSellers.push({
+              id: `live-emergency-international-${index}-${offer.platform}`,
+              title: cleanListingTitle(offer.title),
+              currentPrice: offer.currentPrice,
+              originalPrice: offer.originalPrice,
+              mainImage: offer.imageUrl || '/images/placeholder-product.svg',
+              rating: 0,
+              reviewCount: 0,
+              stock: 999,
+              isFeatured: false,
+              externalUrl: offer.externalUrl,
+              sourceType: 'INTERNATIONAL',
+              sourcePlatform: offer.platform,
+              lastSyncedAt: new Date().toISOString(),
+              discountVerified: offer.discountVerified,
+              seller: {
+                id: `live-emergency-${offer.platform}`,
+                storeName: offer.sellerName,
+              },
+            });
+          });
+
+          domesticSellers = dedupeListings(domesticSellers).sort(compareListings(sortMode));
+          internationalSellers = dedupeListings(internationalSellers).sort(compareListings(sortMode));
+
+          sourceStats = {
+            ...sourceStats,
+            domesticByPlatform: buildPlatformCountMap(domesticSellers),
+            internationalByPlatform: buildPlatformCountMap(internationalSellers),
+            coverage: sourceStats.coverage || emergencyLive.coverage,
+            errors: [...(sourceStats.errors || []), ...emergencyLive.errors, 'zero-result-fallback-live'],
+            fromCache: false,
+            stale: false,
+          };
+        }
+      }
+
+      // Final fallback: use tracked external catalog (including synthetic entries) so users don't see all-zero results.
+      if (domesticSellers.length === 0 && internationalSellers.length === 0) {
+        const fallbackTokens = q
+          .trim()
+          .split(/\s+/)
+          .map((token) => token.trim())
+          .filter((token) => token.length >= 2);
+
+        const fallbackOr = [
+          { title: { contains: q.trim(), mode: 'insensitive' as const } },
+          { sellerName: { contains: q.trim(), mode: 'insensitive' as const } },
+          { categoryName: { contains: q.trim(), mode: 'insensitive' as const } },
+          ...fallbackTokens.flatMap((token) => [
+            { title: { contains: token, mode: 'insensitive' as const } },
+            { sellerName: { contains: token, mode: 'insensitive' as const } },
+            { categoryName: { contains: token, mode: 'insensitive' as const } },
+          ]),
+        ];
+
+        const fallbackRows = await prisma.externalProduct.findMany({
+          where: {
+            OR: fallbackOr,
+          },
+          take: 300,
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        });
+
+        fallbackRows.forEach((row, idx) => {
+          if (!row.title || !row.externalPrice) return;
+          const title = cleanListingTitle(row.title);
+          if (isNoisyListingTitle(title)) return;
+          const sourcePlatform = String(row.platform || 'unknown').toLowerCase();
+          const listing: SearchListing = {
+            id: `fallback-ext-${row.id}-${idx}`,
+            title,
+            currentPrice: Number(row.externalPrice),
+            originalPrice: Number(row.externalOriginalPrice || row.externalPrice),
+            mainImage: row.imageUrl || '/images/placeholder-product.svg',
+            rating: Number(row.externalRating || 0),
+            reviewCount: clampReviewCount(row.externalReviewCount || 0),
+            stock: 999,
+            isFeatured: false,
+            externalUrl: row.externalUrl,
+            sourceType: INTERNATIONAL_PLATFORMS.has(sourcePlatform) ? 'INTERNATIONAL' : 'DOMESTIC',
+            sourcePlatform,
+            lastSyncedAt: row.lastSyncedAt ? row.lastSyncedAt.toISOString() : undefined,
+            discountVerified: false,
+            seller: {
+              id: `fallback-seller-${row.id}`,
+              storeName: row.sellerName || `${sourcePlatform} marketplace`,
+            },
+          };
+
+          if (listing.sourceType === 'INTERNATIONAL') {
+            internationalSellers.push(listing);
+          } else {
+            domesticSellers.push(listing);
+          }
+        });
+
+        domesticSellers = dedupeListings(domesticSellers).sort(compareListings(sortMode));
+        internationalSellers = dedupeListings(internationalSellers).sort(compareListings(sortMode));
+
+        sourceStats = {
+          ...sourceStats,
+          domesticByPlatform: buildPlatformCountMap(domesticSellers),
+          internationalByPlatform: buildPlatformCountMap(internationalSellers),
+          errors: [...(sourceStats.errors || []), 'zero-result-fallback-db'],
+          fromCache: false,
+          stale: false,
+        };
+      }
+    }
 
     // If a fresh cache exists and a live rebuild came back sparse, keep the stable cached pool.
     if (!serveFromCache && hasFreshCache && domesticSellers.length < limit && (cached?.domestic.length || 0) >= limit) {
