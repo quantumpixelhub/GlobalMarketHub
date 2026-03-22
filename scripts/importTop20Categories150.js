@@ -184,7 +184,7 @@ async function importForCategory(category, sellerId) {
   for (const offer of uniqueByUrl.values()) {
     const idHash = hash(offer.url);
     const sku = `TOP20-${category.slug.toUpperCase().slice(0, 12)}-${idHash}`;
-    const uniqueSlug = `${category.targetSlug}-${idHash}`;
+    const uniqueSlug = `${category.targetSlug}-${category.slug}-${idHash}`;
 
     await prisma.product.upsert({
       where: { sku },
