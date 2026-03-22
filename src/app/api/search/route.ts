@@ -559,20 +559,28 @@ export async function GET(request: NextRequest) {
       orderBy.createdAt = sortOrder;
     }
 
-    // Get local inventory in parallel for faster response.
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where: localWhere,
-        skip,
-        take: limit,
-        orderBy,
-        include: {
-          category: { select: { id: true, name: true } },
-          seller: { select: { id: true, storeName: true } },
-        },
-      }),
-      prisma.product.count({ where: localWhere }),
-    ]);
+    // Get local inventory in parallel for faster response, but degrade gracefully if DB pool is saturated.
+    let products: any[] = [];
+    let total = 0;
+    try {
+      [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where: localWhere,
+          skip,
+          take: limit,
+          orderBy,
+          include: {
+            category: { select: { id: true, name: true } },
+            seller: { select: { id: true, storeName: true } },
+          },
+        }),
+        prisma.product.count({ where: localWhere }),
+      ]);
+    } catch (localQueryError) {
+      console.error('Local inventory query failed:', localQueryError);
+      products = [];
+      total = 0;
+    }
 
     const localInventory: SearchListing[] = products.map((product) => ({
       id: product.id,
