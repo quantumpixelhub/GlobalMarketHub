@@ -883,25 +883,50 @@ const parseDaraz = (markdown: string, query: string, max: number): LiveOffer[] =
     let price = 0;
     let imageUrl = '';
     
-    for (let j = Math.max(0, i - 5); j <= Math.min(lines.length - 1, i + 20); j++) {
+    // Search in a wider range for image URLs
+    const searchStart = Math.max(0, i - 10);
+    const searchEnd = Math.min(lines.length - 1, i + 30);
+    
+    for (let j = searchStart; j <= searchEnd; j++) {
       if (j === i) continue;
-      const priceLine = lines[j];
+      const line = lines[j];
       
       // Look for ৳ price
-      if (priceLine.includes('৳')) {
-        const priceMatch = priceLine.match(/৳\s*([0-9,]+)/);
+      if (!price && line.includes('৳')) {
+        const priceMatch = line.match(/৳\s*([0-9,]+)/);
         if (priceMatch) {
           price = parsePrice(priceMatch[1]);
           if (price > 1) break; // Accept any positive price
         }
       }
       
-      // Look for image URLs with multiple patterns
+      // Look for image URLs - multiple patterns
       if (!imageUrl) {
-        const imgMatch = priceLine.match(/https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp|gif)/i);
+        // Pattern 1: Daraz/Lazada CDN images
+        if (line.includes('img.drz.lazcdn.com') || line.includes('lazcdn')) {
+          const imgMatch = line.match(/https?:\/\/[^\s)'"<>]+\.(?:jpg|jpeg|png|webp|gif)/i);
+          if (imgMatch) {
+            imageUrl = imgMatch[0];
+            continue;
+          }
+        }
+        
+        // Pattern 2: Any image URL in the line
+        const imgMatch = line.match(/https?:\/\/[^\s)'"<>]+\.(?:jpg|jpeg|png|webp|gif)/i);
         if (imgMatch) {
           imageUrl = imgMatch[0];
         }
+      }
+    }
+    
+    // Fallback: Try to extract from URL if no image found
+    // Daraz product pages have images, we can hint at Daraz to show a placeholder with the right structure
+    if (!imageUrl && url.includes('daraz')) {
+      // Try to extract product ID and form a Daraz image URL
+      const productIdMatch = url.match(/(?:products|item)\/[^\/]*-i(\d+)/);
+      if (productIdMatch) {
+        // Don't create a fake URL, but mark for later enrichment
+        imageUrl = '';
       }
     }
     
