@@ -51,24 +51,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 flex-col">
+      {/* Top Header with Logo */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <Logo size="sm" className="max-w-[200px]" />
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-1 hover:bg-gray-200 rounded text-gray-900 md:hidden"
+        >
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      <div className="flex flex-1">
       {/* Sidebar */}
       <div
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
         } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
       >
-        {/* Logo */}
-        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-          {sidebarOpen && (
-            <div>
-              <Logo size="sm" tone="light" className="max-w-[220px] origin-left scale-[1.35]" />
-              <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
-            </div>
-          )}
+        {/* Sidebar Toggle */}
+        <div className="p-4 border-b border-gray-700 flex items-center justify-center">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 hover:bg-gray-800 rounded"
+            className="p-1 hover:bg-gray-800 rounded hidden md:block"
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -121,6 +127,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-6 bg-gray-50">{children}</div>
+      </div>
       </div>
     </div>
   );

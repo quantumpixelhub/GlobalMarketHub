@@ -234,6 +234,21 @@ export default function ProductsPage() {
     }
   };
 
+  // Group and sort products by category, then by title ascending
+  const groupedProducts = products
+    .sort((a, b) => a.title.localeCompare(b.title)) // Sort by title ascending
+    .reduce((acc, product) => {
+      const categoryName = product.category?.name || 'Uncategorized';
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+      acc[categoryName].push(product);
+      return acc;
+    }, {} as Record<string, Product[]>);
+
+  // Sort categories alphabetically
+  const sortedCategories = Object.keys(groupedProducts).sort();
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -253,54 +268,71 @@ export default function ProductsPage() {
       {loading ? (
         <p>Loading products...</p>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left px-6 py-4 font-semibold text-gray-700">Title</th>
-                <th className="text-left px-6 py-4 font-semibold text-gray-700">Price</th>
-                <th className="text-left px-6 py-4 font-semibold text-gray-700">Stock</th>
-                <th className="text-left px-6 py-4 font-semibold text-gray-700">Rating</th>
-                <th className="text-left px-6 py-4 font-semibold text-gray-700">Seller</th>
-                <th className="text-left px-6 py-4 font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr key={product.id} className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-800">{product.title}</td>
-                  <td className="px-6 py-4 text-gray-600">৳{product.currentPrice.toLocaleString()}</td>
-                  <td className="px-6 py-4">
-                    <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                      {product.stock > 0 ? `${product.stock} units` : 'Out of stock'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="flex items-center gap-1">
-                      ⭐ {product.rating.toFixed(1)} ({product.reviewCount})
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{product.seller?.storeName || 'N/A'}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEditModal(product)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-6">
+          {sortedCategories.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+              No products found
+            </div>
+          ) : (
+            sortedCategories.map((category) => (
+              <div key={category} className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Category Header */}
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3">
+                  <h2 className="text-lg font-bold text-white">{category}</h2>
+                  <p className="text-orange-100 text-sm">{groupedProducts[category].length} product{groupedProducts[category].length !== 1 ? 's' : ''}</p>
+                </div>
+
+                {/* Products Table */}
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Title</th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Price</th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Stock</th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Rating</th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Seller</th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupedProducts[category].map((product) => (
+                      <tr key={product.id} className="border-b hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium text-gray-800">{product.title}</td>
+                        <td className="px-6 py-4 text-gray-600">৳{product.currentPrice.toLocaleString()}</td>
+                        <td className="px-6 py-4">
+                          <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
+                            {product.stock > 0 ? `${product.stock} units` : 'Out of stock'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="flex items-center gap-1">
+                            ⭐ {product.rating.toFixed(1)} ({product.reviewCount})
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">{product.seller?.storeName || 'N/A'}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => openEditModal(product)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                            >
+                              <Edit2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product.id)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          )}
         </div>
       )}
 
