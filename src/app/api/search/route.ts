@@ -37,6 +37,7 @@ const EMERGENCY_EXPANDED_TIMEOUT_MS = 7000;
 const MAX_SECTION_RESULTS = 1000;
 const SECTION_CACHE_TTL_MS = 3 * 60 * 1000;
 const SECTION_STALE_MAX_MS = 20 * 60 * 1000;
+const PAGE_ONE_MIN_STABLE_CACHE = 48;
 
 type SectionCacheEntry = {
   createdAt: number;
@@ -525,7 +526,7 @@ export async function GET(request: NextRequest) {
     let cached = sectionResultCache.get(sectionCacheKey);
 
     // Drop weak first-page caches so they don't keep recycling low-coverage pools.
-    if (cached && page === 1 && cached.domestic.length < 180) {
+    if (cached && page === 1 && cached.domestic.length < PAGE_ONE_MIN_STABLE_CACHE) {
       sectionResultCache.delete(sectionCacheKey);
       cached = sectionResultCache.get(sectionCacheKey);
     }
@@ -637,8 +638,8 @@ export async function GET(request: NextRequest) {
       stale: false,
     };
 
-    // Avoid serving weak page-1 caches; force rebuild to improve domestic coverage quality.
-    const weakPageOneCache = Boolean(cached && page === 1 && cached.domestic.length < 180);
+    // Avoid serving very weak page-1 caches; keep moderately sized pools to reduce oscillation.
+    const weakPageOneCache = Boolean(cached && page === 1 && cached.domestic.length < PAGE_ONE_MIN_STABLE_CACHE);
     // Serve cached pools when available, then refresh in background for page 1 if cache is stale.
     const serveFromCache = hasReusableCache && !weakPageOneCache && (page > 1 || hasFreshCache || usingStaleCache);
 
@@ -719,7 +720,7 @@ export async function GET(request: NextRequest) {
 
     // Guardrail: avoid returning an all-zero marketplace response for valid queries.
     if (q.trim() && domesticSellers.length === 0 && internationalSellers.length === 0) {
-      const minCacheForFallback = page === 1 ? 180 : limit;
+      const minCacheForFallback = page === 1 ? PAGE_ONE_MIN_STABLE_CACHE : limit;
       const hasMeaningfulCache = Boolean(cached && (cached.domestic.length + cached.international.length) >= minCacheForFallback);
       if (hasReusableCache && hasMeaningfulCache && cached) {
         domesticSellers = cached.domestic.slice();
