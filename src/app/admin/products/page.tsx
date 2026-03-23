@@ -20,6 +20,23 @@ interface Product {
     id?: string;
     name?: string;
   };
+  variants?: ProductVariant[];
+}
+
+interface ProductVariant {
+  id?: string;
+  attributes?: Record<string, string>;
+  price: number;
+  stock: number;
+  sku: string;
+}
+
+interface VariantFormRow {
+  attributeName: 'size' | 'color' | 'weight';
+  attributeValue: string;
+  price: string;
+  stock: string;
+  sku: string;
 }
 
 interface Category {
@@ -79,7 +96,25 @@ export default function ProductsPage() {
     sellerId: '',
     mainImage: '',
   });
+  const [variants, setVariants] = useState<VariantFormRow[]>([]);
   const { showToast } = useToast();
+
+  const normalizeProduct = (product: any): Product => ({
+    ...product,
+    currentPrice: asNumber(product.currentPrice),
+    originalPrice: asNumber(product.originalPrice),
+    stock: asNumber(product.stock),
+    rating: asNumber(product.rating),
+    reviewCount: asNumber(product.reviewCount),
+    seller: product.seller || { storeName: 'N/A' },
+    variants: Array.isArray(product.variants)
+      ? product.variants.map((variant: any) => ({
+          ...variant,
+          price: asNumber(variant.price),
+          stock: asNumber(variant.stock),
+        }))
+      : [],
+  });
 
   // Fetch all categories
   useEffect(() => {
@@ -121,15 +156,7 @@ export default function ProductsPage() {
 
       if (res.ok) {
         const data = await res.json();
-        const normalized = (data.products || []).map((product: any) => ({
-          ...product,
-          currentPrice: asNumber(product.currentPrice),
-          originalPrice: asNumber(product.originalPrice),
-          stock: asNumber(product.stock),
-          rating: asNumber(product.rating),
-          reviewCount: asNumber(product.reviewCount),
-          seller: product.seller || { storeName: 'N/A' },
-        }));
+        const normalized = (data.products || []).map(normalizeProduct);
         
         // Merge with existing products
         setProducts((prev) => {
@@ -186,6 +213,7 @@ export default function ProductsPage() {
       sellerId: sellers[0]?.id || '',
       mainImage: '',
     });
+    setVariants([]);
   };
 
   const openCreateModal = () => {
@@ -206,7 +234,39 @@ export default function ProductsPage() {
       sellerId: (product as any).sellerId || product.seller?.id || '',
       mainImage: (product as any).mainImage || '',
     });
+    const mappedVariants = (product.variants || []).map((variant) => {
+      const attrs = variant.attributes || {};
+      const entry = Object.entries(attrs)[0] || ['size', ''];
+      const normalizedName = (entry[0] || 'size').toLowerCase();
+      const attributeName = (
+        normalizedName === 'color' || normalizedName === 'weight' ? normalizedName : 'size'
+      ) as VariantFormRow['attributeName'];
+
+      return {
+        attributeName,
+        attributeValue: String(entry[1] || ''),
+        price: String(variant.price ?? ''),
+        stock: String(variant.stock ?? ''),
+        sku: variant.sku || '',
+      };
+    });
+    setVariants(mappedVariants);
     setShowModal(true);
+  };
+
+  const addVariantRow = () => {
+    setVariants((prev) => [
+      ...prev,
+      { attributeName: 'size', attributeValue: '', price: '', stock: '0', sku: '' },
+    ]);
+  };
+
+  const updateVariantRow = (index: number, key: keyof VariantFormRow, value: string) => {
+    setVariants((prev) => prev.map((variant, idx) => (idx === index ? { ...variant, [key]: value } : variant)));
+  };
+
+  const removeVariantRow = (index: number) => {
+    setVariants((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -228,6 +288,15 @@ export default function ProductsPage() {
         categoryId: formData.categoryId,
         sellerId: formData.sellerId,
         mainImage: formData.mainImage,
+        variants: variants
+          .filter((variant) => variant.attributeValue.trim() && variant.price.trim() && variant.sku.trim())
+          .map((variant) => ({
+            attributeName: variant.attributeName,
+            attributeValue: variant.attributeValue.trim(),
+            price: Number(variant.price),
+            stock: Number(variant.stock || 0),
+            sku: variant.sku.trim(),
+          })),
       };
 
       const endpoint = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
@@ -256,15 +325,7 @@ export default function ProductsPage() {
       });
       if (refreshed.ok) {
         const data = await refreshed.json();
-        const normalized = (data.products || []).map((product: any) => ({
-          ...product,
-          currentPrice: asNumber(product.currentPrice),
-          originalPrice: asNumber(product.originalPrice),
-          stock: asNumber(product.stock),
-          rating: asNumber(product.rating),
-          reviewCount: asNumber(product.reviewCount),
-          seller: product.seller || { storeName: 'N/A' },
-        }));
+        const normalized = (data.products || []).map(normalizeProduct);
         setProducts(normalized);
       }
     } catch (error) {
@@ -481,6 +542,91 @@ export default function ProductsPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="mt-6 border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-800">Variants (Size / Color / Weight)</h3>
+                <button
+                  type="button"
+                  onClick={addVariantRow}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                >
+                  <Plus size={16} />
+                  Add Variant
+                </button>
+              </div>
+
+              {variants.length === 0 ? (
+                <p className="text-sm text-gray-500">No variants added. Product-level price and stock will be used.</p>
+              ) : (
+                <div className="space-y-3">
+                  {variants.map((variant, index) => (
+                    <div key={`${variant.sku || 'variant'}-${index}`} className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-gray-50 border rounded p-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Type</label>
+                        <select
+                          value={variant.attributeName}
+                          onChange={(e) => updateVariantRow(index, 'attributeName', e.target.value)}
+                          className="w-full border rounded px-2 py-2"
+                        >
+                          <option value="size">Size</option>
+                          <option value="color">Color</option>
+                          <option value="weight">Weight</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Value</label>
+                        <input
+                          value={variant.attributeValue}
+                          onChange={(e) => updateVariantRow(index, 'attributeValue', e.target.value)}
+                          placeholder="e.g. XL / Red / 500g"
+                          className="w-full border rounded px-2 py-2"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Price</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={variant.price}
+                          onChange={(e) => updateVariantRow(index, 'price', e.target.value)}
+                          className="w-full border rounded px-2 py-2"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Stock</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={variant.stock}
+                          onChange={(e) => updateVariantRow(index, 'stock', e.target.value)}
+                          className="w-full border rounded px-2 py-2"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium mb-1">Variant SKU</label>
+                        <div className="flex gap-2">
+                          <input
+                            value={variant.sku}
+                            onChange={(e) => updateVariantRow(index, 'sku', e.target.value)}
+                            className="w-full border rounded px-2 py-2"
+                            placeholder="e.g. SKU-SHIRT-XL-RED"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeVariantRow(index)}
+                            className="px-3 py-2 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                            aria-label="Remove variant"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex gap-3">

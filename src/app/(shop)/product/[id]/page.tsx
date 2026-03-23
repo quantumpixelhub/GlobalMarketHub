@@ -29,6 +29,15 @@ interface Product {
     rating: number;
     reviewCount: number;
   };
+  variants?: ProductVariant[];
+}
+
+interface ProductVariant {
+  id: string;
+  attributes: Record<string, string>;
+  sku: string;
+  price: number;
+  stock: number;
 }
 
 const asNumber = (value: unknown, fallback = 0): number => {
@@ -46,6 +55,7 @@ export default function ProductDetailPage() {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [mediaTab, setMediaTab] = useState<'photos' | 'video'>('photos');
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -67,8 +77,20 @@ export default function ProductDetailPage() {
               rating: asNumber(data.product.seller?.rating),
               reviewCount: asNumber(data.product.seller?.reviewCount),
             },
+            variants: Array.isArray(data.product.variants)
+              ? data.product.variants.map((variant: any) => ({
+                  ...variant,
+                  price: asNumber(variant.price),
+                  stock: asNumber(variant.stock),
+                }))
+              : [],
           };
           setProduct(normalized);
+
+          const firstInStockVariant = normalized.variants?.find((variant) => variant.stock > 0) || normalized.variants?.[0];
+          if (firstInStockVariant?.attributes) {
+            setSelectedAttributes(firstInStockVariant.attributes);
+          }
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -86,16 +108,30 @@ export default function ProductDetailPage() {
     const currentProduct = product;
     if (!currentProduct) return;
 
+    const selectedVariant = resolveSelectedVariant(currentProduct);
+    const effectivePrice = selectedVariant?.price ?? currentProduct.currentPrice;
+    const variantLabel = selectedVariant
+      ? Object.entries(selectedVariant.attributes)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(', ')
+      : undefined;
+
     const token = localStorage.getItem('token');
     if (!token) {
       addToGuestCart(
         {
           id: currentProduct.id,
-          title: currentProduct.title,
+          title: variantLabel ? `${currentProduct.title} (${variantLabel})` : currentProduct.title,
           mainImage: currentProduct.mainImage,
-          currentPrice: currentProduct.currentPrice,
+          currentPrice: effectivePrice,
+          variantLabel,
         },
-        quantity
+        quantity,
+        {
+          variantId: selectedVariant?.id,
+          variantLabel,
+          cartKey: selectedVariant ? `${currentProduct.id}:${selectedVariant.id}` : currentProduct.id,
+        }
       );
       showToast(`Added ${quantity} item(s) to cart as guest.`, 'success');
       setQuantity(1);
@@ -112,7 +148,8 @@ export default function ProductDetailPage() {
         body: JSON.stringify({
           productId: currentProduct.id,
           quantity: quantity,
-          priceSnapshot: currentProduct.currentPrice,
+          variantId: selectedVariant?.id,
+          priceSnapshot: effectivePrice,
         }),
       });
 
@@ -125,11 +162,17 @@ export default function ProductDetailPage() {
         addToGuestCart(
           {
             id: currentProduct.id,
-            title: currentProduct.title,
+            title: variantLabel ? `${currentProduct.title} (${variantLabel})` : currentProduct.title,
             mainImage: currentProduct.mainImage,
-            currentPrice: currentProduct.currentPrice,
+            currentPrice: effectivePrice,
+            variantLabel,
           },
-          quantity
+          quantity,
+          {
+            variantId: selectedVariant?.id,
+            variantLabel,
+            cartKey: selectedVariant ? `${currentProduct.id}:${selectedVariant.id}` : currentProduct.id,
+          }
         );
         showToast('Session expired. Added to guest cart instead.', 'info');
       } else {
@@ -141,14 +184,31 @@ export default function ProductDetailPage() {
       addToGuestCart(
         {
           id: currentProduct.id,
-          title: currentProduct.title,
+          title: variantLabel ? `${currentProduct.title} (${variantLabel})` : currentProduct.title,
           mainImage: currentProduct.mainImage,
-          currentPrice: currentProduct.currentPrice,
+          currentPrice: effectivePrice,
+          variantLabel,
         },
-        quantity
+        quantity,
+        {
+          variantId: selectedVariant?.id,
+          variantLabel,
+          cartKey: selectedVariant ? `${currentProduct.id}:${selectedVariant.id}` : currentProduct.id,
+        }
       );
       showToast('Network issue. Added to guest cart instead.', 'info');
     }
+  };
+
+  const resolveSelectedVariant = (currentProduct: Product): ProductVariant | null => {
+    const variants = currentProduct.variants || [];
+    if (variants.length === 0) return null;
+
+    const exact = variants.find((variant) =>
+      Object.entries(selectedAttributes).every(([key, value]) => variant.attributes?.[key] === value)
+    );
+
+    return exact || variants[0] || null;
   };
 
   const handleAddToWishlist = async () => {
@@ -204,9 +264,23 @@ export default function ProductDetailPage() {
     );
   }
 
+  const selectedVariant = resolveSelectedVariant(product);
+  const effectivePrice = selectedVariant?.price ?? product.currentPrice;
+  const effectiveStock = selectedVariant?.stock ?? product.stock;
+  const effectiveSku = selectedVariant?.sku ?? product.sku;
   const discount = product.originalPrice > 0
-    ? Math.round(((product.originalPrice - product.currentPrice) / product.originalPrice) * 100)
+    ? Math.round(((product.originalPrice - effectivePrice) / product.originalPrice) * 100)
     : 0;
+
+  const variantGroups = (product.variants || []).reduce<Record<string, string[]>>((acc, variant) => {
+    Object.entries(variant.attributes || {}).forEach(([key, value]) => {
+      if (!acc[key]) acc[key] = [];
+      if (!acc[key].includes(value)) {
+        acc[key].push(value);
+      }
+    });
+    return acc;
+  }, {});
 
   const allImages = [product.mainImage, ...(product.images || [])].filter(Boolean);
   const selectedImageSrc = allImages[selectedImage] || product.mainImage;
@@ -365,7 +439,7 @@ export default function ProductDetailPage() {
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-3xl font-bold text-emerald-600">
-                  ৳{product.currentPrice.toLocaleString()}
+                  ৳{effectivePrice.toLocaleString()}
                 </span>
                 <span className="text-lg text-gray-400 line-through">
                   ৳{product.originalPrice.toLocaleString()}
@@ -376,8 +450,37 @@ export default function ProductDetailPage() {
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+              <p className="text-sm text-gray-600">SKU: {effectiveSku}</p>
             </div>
+
+            {Object.keys(variantGroups).length > 0 && (
+              <div className="mb-6 space-y-3">
+                {Object.entries(variantGroups).map(([key, values]) => (
+                  <div key={key}>
+                    <p className="text-sm font-semibold text-gray-700 capitalize mb-2">Select {key}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map((value) => {
+                        const selected = selectedAttributes[key] === value;
+                        return (
+                          <button
+                            key={`${key}-${value}`}
+                            type="button"
+                            onClick={() => setSelectedAttributes((prev) => ({ ...prev, [key]: value }))}
+                            className={`px-3 py-2 rounded-lg border text-sm font-medium transition ${
+                              selected
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-emerald-400'
+                            }`}
+                          >
+                            {value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Description */}
             <p className="text-gray-700 mb-6">{product.description}</p>
@@ -385,9 +488,9 @@ export default function ProductDetailPage() {
             {/* Stock Status */}
             <div className="mb-6">
               <p className={`text-sm font-semibold ${
-                product.stock > 0 ? 'text-green-600' : 'text-red-600'
+                effectiveStock > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                {effectiveStock > 0 ? `${effectiveStock} in stock` : 'Out of stock'}
               </p>
             </div>
 
@@ -415,7 +518,7 @@ export default function ProductDetailPage() {
               </div>
               <button
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
+                disabled={effectiveStock === 0}
                 className="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400"
               >
                 Add to Cart

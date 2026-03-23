@@ -3,12 +3,16 @@ export interface GuestCartProduct {
   title: string;
   mainImage: string;
   currentPrice: number;
+  variantLabel?: string;
 }
 
 export interface GuestCartItem {
   id: string;
   product: GuestCartProduct;
   productId: string;
+  cartKey: string;
+  variantId?: string;
+  variantLabel?: string;
   quantity: number;
   priceSnapshot: number;
 }
@@ -60,17 +64,28 @@ export function getGuestCartSummary(): GuestCartSummary {
   };
 }
 
-export function addToGuestCart(product: GuestCartProduct, quantity: number = 1): GuestCartSummary {
+export function addToGuestCart(
+  product: GuestCartProduct,
+  quantity: number = 1,
+  options?: { variantId?: string; variantLabel?: string; cartKey?: string }
+): GuestCartSummary {
   const items = readGuestCartItems();
-  const existing = items.find((item) => item.productId === product.id);
+  const cartKey = options?.cartKey || product.id;
+  const existing = items.find((item) => item.cartKey === cartKey);
 
   if (existing) {
     existing.quantity += quantity;
   } else {
     items.push({
-      id: `guest-item-${product.id}-${Date.now()}`,
-      product,
+      id: `guest-item-${cartKey}-${Date.now()}`,
+      product: {
+        ...product,
+        variantLabel: options?.variantLabel || product.variantLabel,
+      },
       productId: product.id,
+      cartKey,
+      variantId: options?.variantId,
+      variantLabel: options?.variantLabel,
       quantity,
       priceSnapshot: product.currentPrice,
     });

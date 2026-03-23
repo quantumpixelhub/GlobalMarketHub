@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { productId, quantity } = await request.json();
+    const { productId, quantity, variantId, priceSnapshot } = await request.json();
 
     if (!productId || !quantity || quantity < 1) {
       return NextResponse.json(
@@ -143,9 +143,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
+    let effectivePrice = Number(product.currentPrice);
+    if (variantId) {
+      const variant = await prisma.productVariant.findFirst({
+        where: {
+          id: variantId,
+          productId,
+        },
+      });
+
+      if (!variant) {
+        return NextResponse.json({ error: "Invalid product variant" }, { status: 400 });
+      }
+
+      effectivePrice = Number(variant.price);
+    } else if (priceSnapshot !== undefined && Number.isFinite(Number(priceSnapshot))) {
+      // Guest/client fallback path for non-variant items.
+      effectivePrice = Number(priceSnapshot);
+    }
+
     // Check if item already in cart
     const existingItem = await prisma.cartItem.findFirst({
-      where: { cartId: cart.id, productId },
+      where: { cartId: cart.id, productId, priceSnapshot: effectivePrice },
     });
 
     if (existingItem) {
@@ -161,7 +180,7 @@ export async function POST(request: NextRequest) {
           cartId: cart.id,
           productId,
           quantity,
-          priceSnapshot: Number(product.currentPrice),
+          priceSnapshot: effectivePrice,
         },
       });
     }

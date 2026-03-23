@@ -2,6 +2,45 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 
+type VariantInput = {
+  attributeName?: string;
+  attributeValue?: string;
+  price?: number | string;
+  stock?: number | string;
+  sku?: string;
+};
+
+function normalizeVariants(rawVariants: unknown): Array<{
+  attributes: Record<string, string>;
+  price: number;
+  stock: number;
+  sku: string;
+}> {
+  if (!Array.isArray(rawVariants)) return [];
+
+  return rawVariants
+    .map((variant) => {
+      const input = variant as VariantInput;
+      const attributeName = String(input.attributeName || "").trim().toLowerCase();
+      const attributeValue = String(input.attributeValue || "").trim();
+      const price = Number(input.price);
+      const stock = Number(input.stock ?? 0);
+      const sku = String(input.sku || "").trim();
+
+      if (!attributeName || !attributeValue || !Number.isFinite(price) || price <= 0 || !sku) {
+        return null;
+      }
+
+      return {
+        attributes: { [attributeName]: attributeValue },
+        price,
+        stock: Number.isFinite(stock) && stock >= 0 ? stock : 0,
+        sku,
+      };
+    })
+    .filter((variant): variant is { attributes: Record<string, string>; price: number; stock: number; sku: string } => Boolean(variant));
+}
+
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
   if (!auth.success || !auth.data?.userId) {
@@ -87,7 +126,10 @@ export async function PUT(
       mainImage,
       isActive,
       isFeatured,
+      variants,
     } = body;
+
+    const normalizedVariants = normalizeVariants(variants);
 
     const updated = await prisma.product.update({
       where: { id: params.productId },
@@ -102,6 +144,15 @@ export async function PUT(
         ...(mainImage && { mainImage }),
         ...(isActive !== undefined && { isActive: Boolean(isActive) }),
         ...(isFeatured !== undefined && { isFeatured: Boolean(isFeatured) }),
+        ...(Array.isArray(variants) && {
+          variants: {
+            deleteMany: {},
+            ...(normalizedVariants.length > 0 && { create: normalizedVariants }),
+          },
+        }),
+      },
+      include: {
+        variants: true,
       },
     });
 

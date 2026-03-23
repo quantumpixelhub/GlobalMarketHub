@@ -4,6 +4,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 
+type VariantInput = {
+  attributeName?: string;
+  attributeValue?: string;
+  price?: number | string;
+  stock?: number | string;
+  sku?: string;
+};
+
+function normalizeVariants(rawVariants: unknown): Array<{
+  attributes: Record<string, string>;
+  price: number;
+  stock: number;
+  sku: string;
+}> {
+  if (!Array.isArray(rawVariants)) return [];
+
+  return rawVariants
+    .map((variant, index) => {
+      const input = variant as VariantInput;
+      const attributeName = String(input.attributeName || '').trim().toLowerCase();
+      const attributeValue = String(input.attributeValue || '').trim();
+      const price = Number(input.price);
+      const stock = Number(input.stock ?? 0);
+      const sku = String(input.sku || '').trim();
+
+      if (!attributeName || !attributeValue || !Number.isFinite(price) || price <= 0 || !sku) {
+        return null;
+      }
+
+      return {
+        attributes: { [attributeName]: attributeValue },
+        price,
+        stock: Number.isFinite(stock) && stock >= 0 ? stock : 0,
+        sku: sku || `VAR-${Date.now()}-${index}`,
+      };
+    })
+    .filter((variant): variant is { attributes: Record<string, string>; price: number; stock: number; sku: string } => Boolean(variant));
+}
+
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
   if (!auth.success || !auth.data?.userId) return false;
@@ -48,6 +87,7 @@ export async function GET(request: NextRequest) {
       orderBy: orderByMap[sortBy] || { createdAt: 'desc' },
       include: {
         category: true,
+        variants: true,
         seller: {
           select: {
             id: true,
@@ -97,6 +137,7 @@ export async function POST(request: NextRequest) {
       categoryId,
       sellerId,
       mainImage,
+      variants,
     } = await request.json();
 
     if (!title || !description || !originalPrice || !currentPrice || !categoryId || !sellerId || !mainImage) {
@@ -110,6 +151,7 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9-]/g, '');
 
     const slug = `${baseSlug}-${Date.now().toString().slice(-6)}`;
+    const normalizedVariants = normalizeVariants(variants);
 
     const product = await prisma.product.create({
       data: {
@@ -123,6 +165,14 @@ export async function POST(request: NextRequest) {
         categoryId,
         sellerId,
         mainImage,
+        ...(normalizedVariants.length > 0 && {
+          variants: {
+            create: normalizedVariants,
+          },
+        }),
+      },
+      include: {
+        variants: true,
       },
     });
 
