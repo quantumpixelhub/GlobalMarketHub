@@ -152,18 +152,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const gatewayMethod = String(paymentMethod).toLowerCase();
-    const requiresMerchantWallet = ["bkash", "nagad", "rocket"].includes(gatewayMethod);
-
-    if (requiresMerchantWallet && isPlaceholderConfig(gateway.merchantId)) {
-      return NextResponse.json(
-        {
-          error: `${gateway.displayName || paymentMethod} is not configured yet. Please update merchant wallet number in payment gateway settings.`,
-          code: "PAYMENT_GATEWAY_NOT_CONFIGURED",
-        },
-        { status: 400 }
-      );
-    }
+    const merchantNumber = isPlaceholderConfig(gateway.merchantId)
+      ? null
+      : gateway.merchantId;
 
     // Create payment transaction
     const transaction = await prisma.paymentTransaction.create({
@@ -190,7 +181,7 @@ export async function POST(request: NextRequest) {
       transaction.id,
       order.totalAmount as unknown as number,
       order.id,
-      gateway.merchantId,
+      merchantNumber,
       gateway.displayName
     );
 

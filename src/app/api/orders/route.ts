@@ -4,7 +4,7 @@ import { authenticate, createToken, hashPassword } from "@/lib/auth";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
-const LOCAL_TAX_RATE = 0.05;
+const LOCAL_TAX_RATE = 0;
 const IMPORTED_TAX_RATE = 0.08;
 
 type DeliveryArea = "inside-dhaka" | "outside-dhaka";

@@ -25,7 +25,7 @@ interface CartSummary {
   totalQuantity: number;
 }
 
-const LOCAL_TAX_RATE = 0.05;
+const LOCAL_TAX_RATE = 0;
 const IMPORTED_TAX_RATE = 0.08;
 
 const SHIPPING_MATRIX: Record<string, Record<string, number>> = {
@@ -606,7 +606,7 @@ export default function CheckoutPage() {
                 <span>৳{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Tax (Local 5%, Imported 8%):</span>
+                <span>Tax (Imported 8%):</span>
                 <span>৳{tax.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
