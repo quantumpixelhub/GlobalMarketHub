@@ -69,7 +69,20 @@ export async function GET(request: NextRequest) {
     if (categoryId) {
       where.categoryId = categoryId;
     } else if (category) {
-      where.category = { slug: category };
+      const selectedCategory = await prisma.category.findUnique({
+        where: { slug: category },
+        select: {
+          id: true,
+          children: { select: { id: true } },
+        },
+      });
+
+      if (selectedCategory) {
+        const childIds = selectedCategory.children.map((child) => child.id);
+        where.categoryId = { in: [selectedCategory.id, ...childIds] };
+      } else {
+        where.category = { slug: category };
+      }
     }
 
     const orderByMap: Record<string, any> = {

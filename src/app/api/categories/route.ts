@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest) {
     });
 
     const bySlug = new Map(categories.map((category) => [category.slug, category]));
-    const ordered = CATEGORY_TAXONOMY.flatMap((parent) => {
+    const orderedTree = CATEGORY_TAXONOMY.flatMap((parent) => {
       const parentRow = bySlug.get(parent.slug);
       if (!parentRow) return [];
 
@@ -43,10 +43,44 @@ export async function GET(_request: NextRequest) {
       ];
     });
 
+    const orderedFlat = orderedTree.flatMap((parent) => [
+      {
+        id: parent.id,
+        name: parent.name,
+        slug: parent.slug,
+        description: parent.description,
+        image: parent.image,
+        parentId: parent.parentId,
+      },
+      ...parent.children.map((child) => ({
+        id: child.id,
+        name: child.name,
+        slug: child.slug,
+        description: child.description,
+        image: child.image,
+        parentId: child.parentId,
+      })),
+    ]);
+
+    const usedIds = new Set(orderedFlat.map((category) => category.id));
+    const remaining = categories
+      .filter((category) => !usedIds.has(category.id))
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        image: category.image,
+        parentId: category.parentId,
+      }));
+
+    const finalFlat = [...orderedFlat, ...remaining];
+
     return NextResponse.json(
       {
-        categories: ordered,
-        count: ordered.length,
+        categories: finalFlat,
+        tree: orderedTree,
+        count: finalFlat.length,
       },
       { status: 200 }
     );

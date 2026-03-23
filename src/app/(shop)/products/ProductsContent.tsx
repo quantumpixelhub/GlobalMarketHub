@@ -31,36 +31,56 @@ interface Category {
 interface ProductsContentProps {
   initialProducts: Product[];
   initialCategories: Category[];
+  initialCategorySlug?: string;
 }
 
-function ProductsContentInner({ initialProducts, initialCategories }: ProductsContentProps) {
+function ProductsContentInner({ initialProducts, initialCategories, initialCategorySlug = '' }: ProductsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryFromUrl = searchParams.get('category') || '';
+  const resolvedCategorySlug = categoryFromUrl || initialCategorySlug;
 
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [categories] = useState<Category[]>(initialCategories);
-  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
+  const [selectedCategory, setSelectedCategory] = useState(resolvedCategorySlug);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(500000);
   const [sortBy, setSortBy] = useState('createdAt');
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
+  const categoryById = React.useMemo(
+    () => Object.fromEntries(categories.map((category) => [category.id, category])) as Record<string, Category>,
+    [categories],
+  );
+
+  const categoryBySlug = React.useMemo(
+    () => Object.fromEntries(categories.map((category) => [category.slug, category])) as Record<string, Category>,
+    [categories],
+  );
+
   const handleCategoryChange = (slug: string) => {
     if (slug === '') {
       router.push('/products');
     } else {
-      router.push(`/products?category=${encodeURIComponent(slug)}`);
+      const selected = categoryBySlug[slug];
+      if (selected?.parentId) {
+        const parent = categoryById[selected.parentId];
+        if (parent?.slug) {
+          router.push(`/products/${encodeURIComponent(parent.slug)}/${encodeURIComponent(selected.slug)}`);
+          return;
+        }
+      }
+      router.push(`/products/${encodeURIComponent(slug)}`);
     }
   };
 
   // Fetch products when category changes
   useEffect(() => {
-    setSelectedCategory(categoryFromUrl);
+    setSelectedCategory(resolvedCategorySlug);
     
     const fetchProductsByCategory = async () => {
-      if (!categoryFromUrl) {
+      if (!resolvedCategorySlug) {
         // No category selected - fetch all products
         setLoading(true);
         try {
@@ -80,7 +100,7 @@ function ProductsContentInner({ initialProducts, initialCategories }: ProductsCo
       // Category selected - fetch products from that category
       setLoading(true);
       try {
-        const res = await fetch(`/api/products?category=${encodeURIComponent(categoryFromUrl)}&limit=100`);
+        const res = await fetch(`/api/products?category=${encodeURIComponent(resolvedCategorySlug)}&limit=100`);
         if (res.ok) {
           const data = await res.json();
           setProducts(data.products || data.data || []);
@@ -93,7 +113,7 @@ function ProductsContentInner({ initialProducts, initialCategories }: ProductsCo
     };
     
     fetchProductsByCategory();
-  }, [categoryFromUrl]);
+  }, [resolvedCategorySlug]);
 
   const handleAddToCart = async (productId: string) => {
     const token = localStorage.getItem('token');
@@ -208,10 +228,14 @@ function ProductsContentInner({ initialProducts, initialCategories }: ProductsCo
   );
 }
 
-export function ProductsContent({ initialProducts, initialCategories }: ProductsContentProps) {
+export function ProductsContent({ initialProducts, initialCategories, initialCategorySlug }: ProductsContentProps) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ProductsContentInner initialProducts={initialProducts} initialCategories={initialCategories} />
+      <ProductsContentInner
+        initialProducts={initialProducts}
+        initialCategories={initialCategories}
+        initialCategorySlug={initialCategorySlug}
+      />
     </Suspense>
   );
 }

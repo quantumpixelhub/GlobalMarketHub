@@ -342,7 +342,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                     return (
                       <div key={category.id} className="relative group flex-shrink-0">
                         <Link
-                          href={`/products?category=${category.slug}`}
+                          href={`/products/${category.slug}`}
                           className="text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
                         >
                           {category.name}
@@ -354,7 +354,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                             {subcategories.map((sub) => (
                               <Link
                                 key={sub.id}
-                                href={`/products?category=${sub.slug}`}
+                                href={`/products/${category.slug}/${sub.slug}`}
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
                               >
                                 {sub.name}

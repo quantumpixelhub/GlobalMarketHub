@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CreditCard, Save } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
+import { useToast } from '@/components/ui/ToastProvider';
 
 export default function PaymentsPage() {
   const [paymentConfig, setPaymentConfig] = useState({
@@ -23,19 +24,80 @@ export default function PaymentsPage() {
     cardPaymentEnabled: true,
   });
 
+  const [loadingConfig, setLoadingConfig] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { showToast } = useToast();
 
   const handleChange = (field: string, value: any) => {
     setPaymentConfig((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showToast('Please login as admin', 'error');
+          return;
+        }
+
+        const res = await fetch('/api/admin/payments', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          showToast('Failed to load payment configuration', 'error');
+          return;
+        }
+
+        const data = await res.json();
+        if (data?.paymentConfig) {
+          setPaymentConfig((prev) => ({ ...prev, ...data.paymentConfig }));
+        }
+      } catch (error) {
+        console.error('Error loading payment config:', error);
+        showToast('Failed to load payment configuration', 'error');
+      } finally {
+        setLoadingConfig(false);
+      }
+    };
+
+    loadConfig();
+  }, [showToast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setTimeout(() => {
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Please login as admin', 'error');
+        return;
+      }
+
+      const res = await fetch('/api/admin/payments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(paymentConfig),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        showToast(data?.error || 'Failed to save payment configuration', 'error');
+        return;
+      }
+
+      showToast('Payment configuration saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving payment config:', error);
+      showToast('Failed to save payment configuration', 'error');
+    } finally {
       setIsSaving(false);
-      alert('Payment configuration saved successfully!');
-    }, 1000);
+    }
   };
 
   const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
@@ -73,6 +135,12 @@ export default function PaymentsPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {loadingConfig && (
+          <div className="bg-white rounded-lg p-4 border border-gray-200 text-sm text-gray-600">
+            Loading payment configuration...
+          </div>
+        )}
+
         {/* Mobile Wallets */}
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center gap-2 mb-4">
