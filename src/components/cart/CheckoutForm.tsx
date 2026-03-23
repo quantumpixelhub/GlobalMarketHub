@@ -28,12 +28,16 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 }) => {
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]?.id || '');
   const [paymentMethod, setPaymentMethod] = useState('uddoktapay');
+  const [deliveryArea, setDeliveryArea] = useState('inside-dhaka');
+  const [deliverySpeed, setDeliverySpeed] = useState('standard');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit?.({
       addressId: selectedAddress,
       paymentMethod,
+      deliveryArea,
+      deliverySpeed,
     });
   };
 
@@ -127,6 +131,35 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
               </div>
             </label>
           ))}
+        </div>
+      </div>
+
+      {/* Delivery Options */}
+      <div>
+        <h2 className="text-xl font-bold mb-4">Delivery Options</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2">Delivery Area</label>
+            <select
+              value={deliveryArea}
+              onChange={(e) => setDeliveryArea(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="inside-dhaka">Inside Dhaka</option>
+              <option value="outside-dhaka">Outside Dhaka</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Delivery Speed</label>
+            <select
+              value={deliverySpeed}
+              onChange={(e) => setDeliverySpeed(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="standard">Standard (2-4 days)</option>
+              <option value="express">Express (24-48 hours)</option>
+            </select>
+          </div>
         </div>
       </div>
 

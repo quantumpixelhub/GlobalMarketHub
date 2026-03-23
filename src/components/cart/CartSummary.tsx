@@ -10,7 +10,9 @@ interface CartItem {
     title: string;
     mainImage: string;
     currentPrice: number;
+    variantLabel?: string;
   };
+  variantLabel?: string;
   quantity: number;
   priceSnapshot: number;
 }
@@ -74,6 +76,11 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
               <p className="text-emerge-600 font-bold mt-1">
                 ৳{item.priceSnapshot.toLocaleString()}
               </p>
+              {(item.variantLabel || item.product?.variantLabel) && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Variant: {item.variantLabel || item.product.variantLabel}
+                </p>
+              )}
             </div>
 
             {/* Quantity Controls */}

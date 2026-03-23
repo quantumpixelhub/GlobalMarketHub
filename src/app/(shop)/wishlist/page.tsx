@@ -117,6 +117,7 @@ export default function WishlistPage() {
 
       if (res.ok) {
         alert('Added to cart!');
+        window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {
       console.error('Error adding to cart:', error);

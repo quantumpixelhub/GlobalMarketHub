@@ -53,6 +53,10 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
   const [guestCreateAccount, setGuestCreateAccount] = useState(true);
+  const [guestDeliveryArea, setGuestDeliveryArea] = useState('inside-dhaka');
+  const [guestDeliverySpeed, setGuestDeliverySpeed] = useState('standard');
+  const [newAddressDeliveryArea, setNewAddressDeliveryArea] = useState('inside-dhaka');
+  const [newAddressDeliverySpeed, setNewAddressDeliverySpeed] = useState('standard');
   const { showToast } = useToast();
 
   const [guestData, setGuestData] = useState<GuestCheckoutData>({
@@ -201,6 +205,8 @@ export default function CheckoutPage() {
           guestInfo: {
             ...guestData,
             label: 'Guest Address',
+            deliveryArea: guestDeliveryArea,
+            deliverySpeed: guestDeliverySpeed,
           },
           guestCartItems: cart.items.map((item) => ({
             productId: item.productId || item.product?.id,
@@ -364,6 +370,23 @@ export default function CheckoutPage() {
                     </select>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Delivery Area</label>
+                      <select value={newAddressDeliveryArea} onChange={(e) => setNewAddressDeliveryArea(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="inside-dhaka">Inside Dhaka</option>
+                        <option value="outside-dhaka">Outside Dhaka</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Delivery Speed</label>
+                      <select value={newAddressDeliverySpeed} onChange={(e) => setNewAddressDeliverySpeed(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="standard">Standard (2-4 days)</option>
+                        <option value="express">Express (24-48 hours)</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <button type="submit" disabled={submitting || !cart?.items?.length} className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold">
                     {submitting ? 'Processing...' : 'Save Address and Continue to Payment'}
                   </button>
@@ -460,6 +483,31 @@ export default function CheckoutPage() {
                   </select>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Delivery Area</label>
+                    <select
+                      value={guestDeliveryArea}
+                      onChange={(e) => setGuestDeliveryArea(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="inside-dhaka">Inside Dhaka</option>
+                      <option value="outside-dhaka">Outside Dhaka</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Delivery Speed</label>
+                    <select
+                      value={guestDeliverySpeed}
+                      onChange={(e) => setGuestDeliverySpeed(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="standard">Standard (2-4 days)</option>
+                      <option value="express">Express (24-48 hours)</option>
+                    </select>
+                  </div>
+                </div>
+
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
                     type="checkbox"
@@ -482,6 +530,18 @@ export default function CheckoutPage() {
 
           <div className="bg-white rounded-lg p-6 h-fit sticky top-20">
             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
+            <div className="space-y-3 mb-4 max-h-64 overflow-y-auto border rounded p-3 bg-gray-50">
+              {(cart?.items || []).map((item: any) => (
+                <div key={item.id} className="text-sm">
+                  <p className="font-medium text-gray-800 line-clamp-1">{item.product?.title || 'Item'}</p>
+                  {(item.variantLabel || item.product?.variantLabel) && (
+                    <p className="text-xs text-gray-500">Variant: {item.variantLabel || item.product?.variantLabel}</p>
+                  )}
+                  <p className="text-xs text-gray-600">Qty: {item.quantity} x ৳{Number(item.priceSnapshot || 0).toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
 
             <div className="space-y-3 mb-4">
               <div className="flex justify-between text-sm">

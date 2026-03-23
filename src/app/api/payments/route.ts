@@ -29,8 +29,35 @@ function buildGatewayPaymentUrl(
   const method = gatewayName.toLowerCase();
   const fallbackInternalUrl = `${origin}/payment/mock?transactionId=${encodeURIComponent(transactionId)}&gateway=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(amount))}`;
 
-  // For mobile wallet methods, always keep user in our hosted payment flow and
-  // present the merchant wallet number + amount + transaction reference.
+  const gatewayMap: Record<string, string | undefined> = {
+    bkash: process.env.BKASH_PAYMENT_URL,
+    nagad: process.env.NAGAD_PAYMENT_URL,
+    rocket: process.env.ROCKET_PAYMENT_URL,
+    uddoktapay: process.env.UDDOKTAPAY_PAYMENT_URL,
+    stripe: process.env.STRIPE_PAYMENT_URL,
+  };
+
+  const configuredGatewayUrl = gatewayMap[method];
+
+  // If real wallet gateway URL is configured, redirect there so payer can complete
+  // payment using wallet credentials (number + OTP/PIN) on provider page.
+  if (["bkash", "nagad", "rocket"].includes(method) && configuredGatewayUrl) {
+    try {
+      const target = new URL(configuredGatewayUrl);
+      target.searchParams.set("orderId", orderId);
+      target.searchParams.set("transactionId", transactionId);
+      target.searchParams.set("amount", String(amount));
+      if (merchantNumber) {
+        target.searchParams.set("merchantNumber", merchantNumber);
+      }
+      return target.toString();
+    } catch {
+      // Invalid configured URL falls through to hosted manual wallet flow below.
+    }
+  }
+
+  // Wallet manual mode fallback: keep user in hosted flow and
+  // present merchant wallet number + amount + transaction reference.
   if (["bkash", "nagad", "rocket"].includes(method)) {
     const merchantPaymentUrl = new URL(`${origin}/payment/mock`);
     merchantPaymentUrl.searchParams.set("mode", "wallet");
@@ -44,14 +71,6 @@ function buildGatewayPaymentUrl(
     }
     return merchantPaymentUrl.toString();
   }
-
-  const gatewayMap: Record<string, string | undefined> = {
-    bkash: process.env.BKASH_PAYMENT_URL,
-    nagad: process.env.NAGAD_PAYMENT_URL,
-    rocket: process.env.ROCKET_PAYMENT_URL,
-    uddoktapay: process.env.UDDOKTAPAY_PAYMENT_URL,
-    stripe: process.env.STRIPE_PAYMENT_URL,
-  };
 
   const defaultMap: Record<string, string> = {
     bkash: "https://www.bkash.com/",

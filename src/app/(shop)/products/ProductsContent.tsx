@@ -126,6 +126,7 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
         });
         if (response.ok) {
           showToast('Product added to cart!', 'success');
+          window.dispatchEvent(new Event('cart-updated'));
         }
       } catch (error) {
         console.error('Error adding to cart:', error);
