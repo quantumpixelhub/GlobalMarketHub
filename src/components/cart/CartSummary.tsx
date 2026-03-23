@@ -3,6 +3,14 @@ import { Trash2, Plus, Minus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+const LOCAL_TAX_RATE = 0.05;
+const IMPORTED_TAX_RATE = 0.08;
+
+const SHIPPING_MATRIX: Record<string, Record<string, number>> = {
+  'inside-dhaka': { standard: 60, express: 120 },
+  'outside-dhaka': { standard: 120, express: 180 },
+};
+
 interface CartItem {
   id: string;
   product: {
@@ -11,6 +19,7 @@ interface CartItem {
     mainImage: string;
     currentPrice: number;
     variantLabel?: string;
+    sourceType?: 'LOCAL' | 'IMPORTED';
   };
   variantLabel?: string;
   quantity: number;
@@ -20,22 +29,35 @@ interface CartItem {
 interface CartSummaryProps {
   items: CartItem[];
   subtotal: number;
-  tax?: number;
-  shipping?: number;
   onRemoveItem?: (cartItemId: string) => void;
   onUpdateQuantity?: (cartItemId: string, quantity: number) => void;
-  onCheckout?: () => void;
+  onCheckout?: (options: { deliveryArea: string; deliverySpeed: string }) => void;
 }
 
 export const CartSummary: React.FC<CartSummaryProps> = ({
   items,
   subtotal,
-  tax = subtotal * 0.05,
-  shipping = items.length > 0 ? 100 : 0,
   onRemoveItem,
   onUpdateQuantity,
   onCheckout,
 }) => {
+  const [deliveryArea, setDeliveryArea] = React.useState('inside-dhaka');
+  const [deliverySpeed, setDeliverySpeed] = React.useState('standard');
+
+  const importedSubtotal = items.reduce((sum, item) => {
+    const lineTotal = Number(item.priceSnapshot) * Number(item.quantity || 1);
+    return item.product?.sourceType === 'IMPORTED' ? sum + lineTotal : sum;
+  }, 0);
+
+  const localSubtotal = Math.max(0, subtotal - importedSubtotal);
+  const localTax = localSubtotal * LOCAL_TAX_RATE;
+  const importedTax = importedSubtotal * IMPORTED_TAX_RATE;
+  const tax = localTax + importedTax;
+
+  const shipping = items.length > 0
+    ? (SHIPPING_MATRIX[deliveryArea]?.[deliverySpeed] ?? 100)
+    : 0;
+
   const total = subtotal + tax + shipping;
 
   if (items.length === 0) {
@@ -120,12 +142,37 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
 
       {/* Summary */}
       <div className="bg-gray-50 p-4 space-y-2">
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <div>
+            <label className="text-xs text-gray-600 block mb-1">Delivery Area</label>
+            <select
+              value={deliveryArea}
+              onChange={(e) => setDeliveryArea(e.target.value)}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              <option value="inside-dhaka">Inside Dhaka</option>
+              <option value="outside-dhaka">Outside Dhaka</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 block mb-1">Speed</label>
+            <select
+              value={deliverySpeed}
+              onChange={(e) => setDeliverySpeed(e.target.value)}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              <option value="standard">Standard</option>
+              <option value="express">Express</option>
+            </select>
+          </div>
+        </div>
+
         <div className="flex justify-between text-sm">
           <span>Subtotal:</span>
           <span>৳{subtotal.toLocaleString()}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>Tax (5%):</span>
+          <span>Tax (Local 5%, Imported 8%):</span>
           <span>৳{tax.toLocaleString()}</span>
         </div>
         <div className="flex justify-between text-sm">
@@ -140,7 +187,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
 
       {/* Checkout Button */}
       <button
-        onClick={onCheckout}
+        onClick={() => onCheckout?.({ deliveryArea, deliverySpeed })}
         className="w-full bg-emerald-600 text-white py-3 hover:bg-emerald-700 transition-colors font-semibold"
       >
         Proceed to Checkout

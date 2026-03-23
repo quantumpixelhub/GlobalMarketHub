@@ -16,6 +16,9 @@ interface CheckoutFormProps {
   loading?: boolean;
   onSelectAddress?: (addressId: string) => void;
   onPaymentMethodChange?: (method: string) => void;
+  initialDeliveryArea?: string;
+  initialDeliverySpeed?: string;
+  onDeliveryOptionsChange?: (options: { deliveryArea: string; deliverySpeed: string }) => void;
   onSubmit?: (data: any) => void;
 }
 
@@ -24,12 +27,19 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   loading = false,
   onSelectAddress,
   onPaymentMethodChange,
+  initialDeliveryArea = 'inside-dhaka',
+  initialDeliverySpeed = 'standard',
+  onDeliveryOptionsChange,
   onSubmit,
 }) => {
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]?.id || '');
   const [paymentMethod, setPaymentMethod] = useState('uddoktapay');
-  const [deliveryArea, setDeliveryArea] = useState('inside-dhaka');
-  const [deliverySpeed, setDeliverySpeed] = useState('standard');
+  const [deliveryArea, setDeliveryArea] = useState(initialDeliveryArea);
+  const [deliverySpeed, setDeliverySpeed] = useState(initialDeliverySpeed);
+
+  React.useEffect(() => {
+    onDeliveryOptionsChange?.({ deliveryArea, deliverySpeed });
+  }, [deliveryArea, deliverySpeed, onDeliveryOptionsChange]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

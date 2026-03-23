@@ -4,6 +4,7 @@ export interface GuestCartProduct {
   mainImage: string;
   currentPrice: number;
   variantLabel?: string;
+  sourceType?: 'LOCAL' | 'IMPORTED';
 }
 
 export interface GuestCartItem {

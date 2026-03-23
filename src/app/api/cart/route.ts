@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 
+function isImportedProduct(product: any): boolean {
+  const certifications = Array.isArray(product?.certifications) ? product.certifications : [];
+  if (certifications.includes("live-imported") || certifications.includes("top20-import")) {
+    return true;
+  }
+
+  const specs = product?.specifications;
+  if (specs && typeof specs === "object" && !Array.isArray(specs)) {
+    const source = String((specs as any).source || "").toLowerCase();
+    if (source && source !== "local") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
@@ -36,6 +53,8 @@ export async function GET(request: NextRequest) {
                 title: true,
                 currentPrice: true,
                 mainImage: true,
+                certifications: true,
+                specifications: true,
               },
             },
           },
@@ -62,6 +81,8 @@ export async function GET(request: NextRequest) {
                   title: true,
                   currentPrice: true,
                   mainImage: true,
+                  certifications: true,
+                  specifications: true,
                 },
               },
             },
@@ -70,8 +91,16 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const normalizedItems = cart.items.map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        sourceType: isImportedProduct(item.product) ? "IMPORTED" : "LOCAL",
+      },
+    }));
+
     // Calculate totals
-    const subtotal = cart.items.reduce(
+    const subtotal = normalizedItems.reduce(
       (sum, item) => sum + (Number(item.priceSnapshot) * item.quantity),
       0
     );
@@ -79,10 +108,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         cartId: cart.id,
-        items: cart.items,
+        items: normalizedItems,
         subtotal,
-        itemCount: cart.items.length,
-        totalQuantity: cart.items.reduce((sum, item) => sum + item.quantity, 0),
+        itemCount: normalizedItems.length,
+        totalQuantity: normalizedItems.reduce((sum, item) => sum + item.quantity, 0),
       },
       { status: 200 }
     );

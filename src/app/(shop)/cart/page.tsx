@@ -170,7 +170,12 @@ export default function CartPage() {
               subtotal={cart?.subtotal || 0}
               onRemoveItem={handleRemoveItem}
               onUpdateQuantity={handleUpdateQuantity}
-              onCheckout={() => window.location.href = '/checkout'}
+              onCheckout={(options) => {
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('checkout_delivery_options', JSON.stringify(options));
+                }
+                window.location.href = '/checkout';
+              }}
             />
           </div>
         </div>

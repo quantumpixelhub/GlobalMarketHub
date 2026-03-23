@@ -25,6 +25,14 @@ interface CartSummary {
   totalQuantity: number;
 }
 
+const LOCAL_TAX_RATE = 0.05;
+const IMPORTED_TAX_RATE = 0.08;
+
+const SHIPPING_MATRIX: Record<string, Record<string, number>> = {
+  'inside-dhaka': { standard: 60, express: 120 },
+  'outside-dhaka': { standard: 120, express: 180 },
+};
+
 interface GuestCheckoutData {
   firstName: string;
   lastName: string;
@@ -53,6 +61,8 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
   const [guestCreateAccount, setGuestCreateAccount] = useState(true);
+  const [loggedInDeliveryArea, setLoggedInDeliveryArea] = useState('inside-dhaka');
+  const [loggedInDeliverySpeed, setLoggedInDeliverySpeed] = useState('standard');
   const [guestDeliveryArea, setGuestDeliveryArea] = useState('inside-dhaka');
   const [guestDeliverySpeed, setGuestDeliverySpeed] = useState('standard');
   const [newAddressDeliveryArea, setNewAddressDeliveryArea] = useState('inside-dhaka');
@@ -95,6 +105,13 @@ export default function CheckoutPage() {
         if (!token) {
           setIsGuestCheckout(true);
           setCart(getGuestCartSummary());
+
+          const rawDelivery = sessionStorage.getItem('checkout_delivery_options');
+          if (rawDelivery) {
+            const parsed = JSON.parse(rawDelivery);
+            setGuestDeliveryArea(parsed.deliveryArea || 'inside-dhaka');
+            setGuestDeliverySpeed(parsed.deliverySpeed || 'standard');
+          }
           return;
         }
 
@@ -119,6 +136,15 @@ export default function CheckoutPage() {
         });
         const cartData = await cartRes.json();
         setCart(cartData);
+
+        const rawDelivery = sessionStorage.getItem('checkout_delivery_options');
+        if (rawDelivery) {
+          const parsed = JSON.parse(rawDelivery);
+          setLoggedInDeliveryArea(parsed.deliveryArea || 'inside-dhaka');
+          setLoggedInDeliverySpeed(parsed.deliverySpeed || 'standard');
+          setNewAddressDeliveryArea(parsed.deliveryArea || 'inside-dhaka');
+          setNewAddressDeliverySpeed(parsed.deliverySpeed || 'standard');
+        }
       } catch (error) {
         console.error('Error fetching checkout data:', error);
       } finally {
@@ -144,6 +170,8 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           cartId: cart?.cartId,
           shippingAddressId: data.addressId,
+          deliveryArea: data.deliveryArea,
+          deliverySpeed: data.deliverySpeed,
         }),
       });
 
@@ -202,6 +230,8 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           isGuestCheckout: true,
           createAccount: guestCreateAccount,
+          deliveryArea: guestDeliveryArea,
+          deliverySpeed: guestDeliverySpeed,
           guestInfo: {
             ...guestData,
             label: 'Guest Address',
@@ -290,6 +320,8 @@ export default function CheckoutPage() {
       await handleSubmit({
         addressId: createdAddress.id,
         paymentMethod: newAddressData.paymentMethod,
+        deliveryArea: newAddressDeliveryArea,
+        deliverySpeed: newAddressDeliverySpeed,
       });
     } catch (error) {
       console.error('Error creating address:', error);
@@ -310,6 +342,25 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
+  const activeDeliveryArea = isGuestCheckout
+    ? guestDeliveryArea
+    : (addresses.length > 0 ? loggedInDeliveryArea : newAddressDeliveryArea);
+  const activeDeliverySpeed = isGuestCheckout
+    ? guestDeliverySpeed
+    : (addresses.length > 0 ? loggedInDeliverySpeed : newAddressDeliverySpeed);
+
+  const subtotal = Number(cart?.subtotal || 0);
+  const importedSubtotal = (cart?.items || []).reduce((sum: number, item: any) => {
+    const lineTotal = Number(item.priceSnapshot || 0) * Number(item.quantity || 1);
+    return item?.product?.sourceType === 'IMPORTED' ? sum + lineTotal : sum;
+  }, 0);
+  const localSubtotal = Math.max(0, subtotal - importedSubtotal);
+  const tax = localSubtotal * LOCAL_TAX_RATE + importedSubtotal * IMPORTED_TAX_RATE;
+  const shipping = (cart?.items?.length || 0) > 0
+    ? (SHIPPING_MATRIX[activeDeliveryArea]?.[activeDeliverySpeed] ?? 100)
+    : 0;
+  const grandTotal = subtotal + tax + shipping;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -334,6 +385,12 @@ export default function CheckoutPage() {
                 <CheckoutForm
                   addresses={addresses}
                   loading={submitting}
+                  initialDeliveryArea={loggedInDeliveryArea}
+                  initialDeliverySpeed={loggedInDeliverySpeed}
+                  onDeliveryOptionsChange={(options) => {
+                    setLoggedInDeliveryArea(options.deliveryArea);
+                    setLoggedInDeliverySpeed(options.deliverySpeed);
+                  }}
                   onSubmit={handleSubmit}
                 />
               ) : (
@@ -546,22 +603,22 @@ export default function CheckoutPage() {
             <div className="space-y-3 mb-4">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span>৳{(cart?.subtotal || 0).toLocaleString()}</span>
+                <span>৳{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Tax (5%):</span>
-                <span>৳{((cart?.subtotal || 0) * 0.05).toLocaleString()}</span>
+                <span>Tax (Local 5%, Imported 8%):</span>
+                <span>৳{tax.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Shipping:</span>
-                <span>৳100</span>
+                <span>৳{shipping.toLocaleString()}</span>
               </div>
             </div>
 
             <div className="border-t pt-4 flex justify-between font-bold text-lg">
               <span>Total:</span>
               <span className="text-emerald-600">
-                ৳{((cart?.subtotal || 0) + (cart?.subtotal || 0) * 0.05 + 100).toLocaleString()}
+                ৳{grandTotal.toLocaleString()}
               </span>
             </div>
 
