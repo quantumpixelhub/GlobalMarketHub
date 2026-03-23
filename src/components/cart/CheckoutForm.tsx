@@ -53,6 +53,41 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 space-y-6">
+      {/* Delivery Options - PROMOTED TO TOP */}
+      <div className="border-2 border-emerald-200 bg-emerald-50 rounded-lg p-5">
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          🚚 Delivery Options
+          <span className="text-sm font-normal text-gray-600">(Required)</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2">📍 Delivery Area</label>
+            <select
+              value={deliveryArea}
+              onChange={(e) => setDeliveryArea(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-emerald-200 rounded-lg focus:border-emerald-600 focus:outline-none"
+            >
+              <option value="inside-dhaka">🏙️ Inside Dhaka</option>
+              <option value="outside-dhaka">🚗 Outside Dhaka</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">⚡ Delivery Speed</label>
+            <select
+              value={deliverySpeed}
+              onChange={(e) => setDeliverySpeed(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-emerald-200 rounded-lg focus:border-emerald-600 focus:outline-none"
+            >
+              <option value="standard">📦 Standard (2-4 days) - ৳60-120</option>
+              <option value="express">⚡ Express (24-48 hours) - ৳120-180</option>
+            </select>
+          </div>
+        </div>
+        <p className="text-xs text-emerald-700 mt-3 flex items-center gap-1">
+          ℹ️ Choose your delivery preference. Final charge will show in order summary.
+        </p>
+      </div>
+
       {/* Shipping Address */}
       <div>
         <h2 className="text-xl font-bold mb-4">Shipping Address</h2>
