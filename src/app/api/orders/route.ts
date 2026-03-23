@@ -98,6 +98,19 @@ async function getUniquePhone(preferredPhone?: string) {
   return `8${Date.now().toString().slice(-10)}`;
 }
 
+function generateTrackingNumber(): string {
+  // Format: TRACK-YYYYMMDD-RANDOMSTRING
+  // Example: TRACK-20260323-ABC123DEF456
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timestamp = Date.now().toString(36).toUpperCase().slice(-6);
+  
+  return `TRACK-${year}${month}${day}-${random}${timestamp}`;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
@@ -287,6 +300,7 @@ export async function POST(request: NextRequest) {
         data: {
           orderNumber,
           userId: guestUserId,
+          trackingNumber: generateTrackingNumber(),
           shippingAddressId: `GUEST-${Date.now()}`,
           shippingAddress: {
             firstName: guestInfo.firstName,
@@ -407,6 +421,7 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber,
         userId,
+        trackingNumber: generateTrackingNumber(),
         shippingAddressId,
         shippingAddress: {
           firstName: address.firstName,

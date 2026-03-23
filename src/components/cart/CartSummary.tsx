@@ -29,6 +29,8 @@ interface CartItem {
 interface CartSummaryProps {
   items: CartItem[];
   subtotal: number;
+  deliveryArea?: 'inside-dhaka' | 'outside-dhaka';
+  deliverySpeed?: 'standard' | 'express';
   onRemoveItem?: (cartItemId: string) => void;
   onUpdateQuantity?: (cartItemId: string, quantity: number) => void;
   onCheckout?: () => void;
@@ -37,6 +39,8 @@ interface CartSummaryProps {
 export const CartSummary: React.FC<CartSummaryProps> = ({
   items,
   subtotal,
+  deliveryArea = 'inside-dhaka',
+  deliverySpeed = 'standard',
   onRemoveItem,
   onUpdateQuantity,
   onCheckout,
@@ -52,7 +56,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
   const tax = localTax + importedTax;
 
   const shipping = items.length > 0
-    ? (SHIPPING_MATRIX['inside-dhaka']?.standard ?? 100)
+    ? (SHIPPING_MATRIX[deliveryArea]?.[deliverySpeed] ?? 100)
     : 0;
 
   const total = subtotal + tax + shipping;
