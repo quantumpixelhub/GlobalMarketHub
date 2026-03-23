@@ -60,6 +60,27 @@ export default function CategoriesPage() {
     [categories, editingCategory]
   );
 
+  const groupedCategories = useMemo(() => {
+    const byId = new Map(categories.map((category) => [category.id, category]));
+
+    const parents = categories
+      .filter((category) => !category.parentId)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const grouped = parents.flatMap((parent) => {
+      const children = categories
+        .filter((category) => category.parentId === parent.id)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      return [parent, ...children];
+    });
+
+    const orphans = categories
+      .filter((category) => category.parentId && !byId.has(String(category.parentId)))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return [...grouped, ...orphans];
+  }, [categories]);
+
   const handleCreateClick = () => {
     setEditingCategory(null);
     setFormData({ name: '', description: '', image: '', parentId: '' });
@@ -167,6 +188,14 @@ export default function CategoriesPage() {
     {
       key: 'name',
       label: 'Category',
+      render: (_: unknown, item: Category) => (
+        <div className="flex items-center gap-2">
+          {item.parentId ? <span className="text-gray-400">↳</span> : null}
+          <span className={item.parentId ? 'text-gray-700' : 'font-semibold text-gray-900'}>
+            {item.name}
+          </span>
+        </div>
+      ),
       sortable: true,
     },
     {
@@ -202,7 +231,7 @@ export default function CategoriesPage() {
 
       <DataTable
         columns={columns}
-        data={categories}
+        data={groupedCategories}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         loading={loading}

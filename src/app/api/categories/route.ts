@@ -26,21 +26,37 @@ export async function GET(_request: NextRequest) {
       orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
     });
 
+    const allParents = categories.filter((category) => !category.parentId);
+    const allChildren = categories.filter((category) => Boolean(category.parentId));
     const bySlug = new Map(categories.map((category) => [category.slug, category]));
-    const orderedTree = CATEGORY_TAXONOMY.flatMap((parent) => {
-      const parentRow = bySlug.get(parent.slug);
-      if (!parentRow) return [];
+    const taxonomyParentSlugs = new Set(CATEGORY_TAXONOMY.map((parent) => parent.slug));
 
-      const children = parent.children
+    const taxonomyOrderedParents = CATEGORY_TAXONOMY.map((parent) => bySlug.get(parent.slug))
+      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+
+    const remainingParents = allParents
+      .filter((parent) => !taxonomyParentSlugs.has(parent.slug))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const parentOrder = [...taxonomyOrderedParents, ...remainingParents];
+
+    const orderedTree = parentOrder.map((parentRow) => {
+      const taxonomyParent = CATEGORY_TAXONOMY.find((entry) => entry.slug === parentRow.slug);
+      const taxonomyChildSlugs = new Set((taxonomyParent?.children || []).map((child) => child.slug));
+
+      const taxonomyChildren = (taxonomyParent?.children || [])
         .map((child) => bySlug.get(child.slug))
-        .filter((value): value is NonNullable<typeof value> => Boolean(value));
+        .filter((value): value is NonNullable<typeof value> => Boolean(value))
+        .filter((child) => child.parentId === parentRow.id);
 
-      return [
-        {
-          ...parentRow,
-          children,
-        },
-      ];
+      const remainingChildren = allChildren
+        .filter((child) => child.parentId === parentRow.id && !taxonomyChildSlugs.has(child.slug))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        ...parentRow,
+        children: [...taxonomyChildren, ...remainingChildren],
+      };
     });
 
     const orderedFlat = orderedTree.flatMap((parent) => [

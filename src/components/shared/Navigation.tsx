@@ -55,6 +55,17 @@ export const Navigation: React.FC<NavigationProps> = ({
     [categories],
   );
 
+  const categoryTree = React.useMemo(() => {
+    return mainCategories
+      .map((parent) => ({
+        ...parent,
+        children: categories
+          .filter((cat) => cat.parentId === parent.id)
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories, mainCategories]);
+
   const resolveProfile = React.useCallback(async (token: string) => {
     try {
       const res = await fetch('/api/users/profile', {
@@ -383,12 +394,48 @@ export const Navigation: React.FC<NavigationProps> = ({
               </div>
             </div>
 
-            <Link
-              href="/products"
-              className="text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors flex-shrink-0 self-end"
-            >
-              See All →
-            </Link>
+            <details className="relative flex-shrink-0 self-end group">
+              <summary className="list-none cursor-pointer text-xs whitespace-nowrap font-semibold py-2 px-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
+                See All →
+              </summary>
+
+              <div className="absolute right-0 top-full mt-2 w-[min(90vw,680px)] bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-50 max-h-[70vh] overflow-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {categoryTree.map((parent) => (
+                    <div key={`all-${parent.id}`}>
+                      <Link
+                        href={`/products/${parent.slug}`}
+                        className="block text-sm font-semibold text-gray-900 hover:text-emerald-600"
+                      >
+                        {parent.name}
+                      </Link>
+                      {parent.children && parent.children.length > 0 ? (
+                        <div className="mt-2 space-y-1">
+                          {parent.children.map((sub) => (
+                            <Link
+                              key={`all-sub-${sub.id}`}
+                              href={`/products/${parent.slug}/${sub.slug}`}
+                              className="block text-xs text-gray-600 hover:text-emerald-600"
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-3 mt-3 border-t border-gray-200">
+                  <Link
+                    href="/products"
+                    className="text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+                  >
+                    Browse all products
+                  </Link>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </div>
