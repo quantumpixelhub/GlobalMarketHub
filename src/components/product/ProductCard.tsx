@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { addToGuestCart } from '@/lib/guestCart';
 
 interface ProductCardProps {
   id: string;
@@ -153,6 +154,87 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const handleBuyNowClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (isOutOfStock || isExternalListing) return;
+
+    if (typeof window === 'undefined') return;
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      addToGuestCart(
+        {
+          id,
+          title,
+          mainImage,
+          currentPrice,
+        },
+        1,
+        {
+          cartKey: id,
+        }
+      );
+      window.dispatchEvent(new Event('cart-updated'));
+      window.location.href = '/checkout';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: id,
+          quantity: 1,
+          priceSnapshot: currentPrice,
+        }),
+      });
+
+      if (res.ok) {
+        window.dispatchEvent(new Event('cart-updated'));
+        window.location.href = '/checkout';
+        return;
+      }
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        addToGuestCart(
+          {
+            id,
+            title,
+            mainImage,
+            currentPrice,
+          },
+          1,
+          {
+            cartKey: id,
+          }
+        );
+        window.dispatchEvent(new Event('cart-updated'));
+        window.location.href = '/checkout';
+      }
+    } catch {
+      addToGuestCart(
+        {
+          id,
+          title,
+          mainImage,
+          currentPrice,
+        },
+        1,
+        {
+          cartKey: id,
+        }
+      );
+      window.dispatchEvent(new Event('cart-updated'));
+      window.location.href = '/checkout';
+    }
+  };
+
   return (
     <div
       className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
@@ -275,17 +357,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             View Offer
           </button>
         ) : (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCart?.(id);
-            }}
-            disabled={isOutOfStock}
-            className="w-full mt-2 bg-emerald-600 text-white py-1.5 rounded text-sm hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-          >
-            <ShoppingCart size={16} />
-            <span>Add to Cart</span>
-          </button>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button
+              onClick={handleBuyNowClick}
+              disabled={isOutOfStock}
+              className="bg-orange-500 text-white py-1.5 rounded text-sm hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              Buy Now
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart?.(id);
+              }}
+              disabled={isOutOfStock}
+              className="bg-emerald-600 text-white py-1.5 rounded text-sm hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              <ShoppingCart size={16} />
+              <span>Add to Cart</span>
+            </button>
+          </div>
         )}
       </div>
     </div>

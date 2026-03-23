@@ -373,10 +373,10 @@ export const Navigation: React.FC<NavigationProps> = ({
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
         <div
-          className={`mt-5 md:mt-6 overflow-hidden transition-all duration-300 ${
+          className={`mt-5 md:mt-6 transition-all duration-300 ${
             showCategoryStripOnScroll
-              ? 'max-h-[420px] opacity-100 translate-y-0 pb-2 border-b-2 border-blue-600'
-              : 'max-h-0 opacity-0 -translate-y-1 pb-0 border-b-0'
+              ? 'max-h-[420px] overflow-visible opacity-100 translate-y-0 pb-2 border-b-2 border-blue-600'
+              : 'max-h-0 overflow-hidden opacity-0 -translate-y-1 pb-0 border-b-0'
           }`}
         >
           <div className="flex items-end gap-2 md:gap-3">
