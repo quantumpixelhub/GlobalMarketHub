@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 
+function isPlaceholderConfig(value?: string | null): boolean {
+  if (!value) return true;
+  const normalized = value.trim();
+  if (!normalized) return true;
+
+  return (
+    normalized.includes("_HERE") ||
+    normalized.includes("_MERCHANT_ID") ||
+    normalized.includes("_API_KEY") ||
+    normalized.includes("_SECRET") ||
+    normalized.includes("yourapp.com")
+  );
+}
+
 function buildGatewayPaymentUrl(
   request: NextRequest,
   gatewayName: string,
@@ -115,6 +129,19 @@ export async function POST(request: NextRequest) {
     if (!gateway || !gateway.isEnabled) {
       return NextResponse.json(
         { error: "Payment method not available" },
+        { status: 400 }
+      );
+    }
+
+    const gatewayMethod = String(paymentMethod).toLowerCase();
+    const requiresMerchantWallet = ["bkash", "nagad", "rocket"].includes(gatewayMethod);
+
+    if (requiresMerchantWallet && isPlaceholderConfig(gateway.merchantId)) {
+      return NextResponse.json(
+        {
+          error: `${gateway.displayName || paymentMethod} is not configured yet. Please update merchant wallet number in payment gateway settings.`,
+          code: "PAYMENT_GATEWAY_NOT_CONFIGURED",
+        },
         { status: 400 }
       );
     }
