@@ -342,10 +342,20 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation />
-        <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-          <p>Loading...</p>
+        <div className="flex-1 max-w-7xl mx-auto px-4 py-10 w-full">
+          <div className="min-h-[55vh] flex items-center justify-center">
+            <div className="w-full max-w-xl bg-white border border-gray-200 rounded-2xl shadow-sm p-8 text-center">
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-emerald-100 border-t-emerald-600 animate-spin" />
+              <h2 className="text-2xl font-bold text-gray-900">Preparing your checkout</h2>
+              <p className="text-gray-600 mt-2">Please wait while we load your cart, delivery options, and payment methods.</p>
+              <div className="mt-6 grid grid-cols-3 gap-2">
+                <div className="h-2 rounded bg-gray-200 animate-pulse" />
+                <div className="h-2 rounded bg-gray-200 animate-pulse [animation-delay:120ms]" />
+                <div className="h-2 rounded bg-gray-200 animate-pulse [animation-delay:240ms]" />
+              </div>
+            </div>
+          </div>
         </div>
-        <Footer />
       </div>
     );
   }
