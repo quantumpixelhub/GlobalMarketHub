@@ -5,6 +5,8 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  image?: string | null;
+  icon?: string | null;
   parentId?: string | null;
 }
 
@@ -117,7 +119,17 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                           : 'text-gray-800 hover:bg-emerald-100'
                       }`}
                     >
-                      {category.name}
+                      <span className="flex items-center gap-2">
+                        {category.icon && <span className="text-base leading-none">{category.icon}</span>}
+                        {category.image && (
+                          <img
+                            src={category.image}
+                            alt={category.name}
+                            className="w-5 h-5 rounded object-cover"
+                          />
+                        )}
+                        <span>{category.name}</span>
+                      </span>
                     </button>
                   </div>
 
@@ -133,7 +145,17 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                               : 'hover:bg-gray-100 text-gray-700'
                           }`}
                         >
-                          {subcategory.name}
+                          <span className="flex items-center gap-2">
+                            {subcategory.icon && <span className="leading-none">{subcategory.icon}</span>}
+                            {subcategory.image && (
+                              <img
+                                src={subcategory.image}
+                                alt={subcategory.name}
+                                className="w-4 h-4 rounded object-cover"
+                              />
+                            )}
+                            <span>{subcategory.name}</span>
+                          </span>
                         </button>
                       ))}
                     </div>

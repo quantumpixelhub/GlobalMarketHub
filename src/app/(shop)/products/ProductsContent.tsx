@@ -25,6 +25,8 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  image?: string | null;
+  icon?: string | null;
   parentId?: string | null;
 }
 
