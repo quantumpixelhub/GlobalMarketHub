@@ -26,6 +26,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onPriceChange,
 }) => {
   const [showCategories, setShowCategories] = useState(true);
+  const [expandedParentSlugs, setExpandedParentSlugs] = useState<Set<string>>(new Set());
   const [showPrice, setShowPrice] = useState(true);
   const [localMin, setLocalMin] = useState(minPrice);
   const [localMax, setLocalMax] = useState(maxPrice);
@@ -53,6 +54,18 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     onPriceChange?.(localMin, localMax);
   };
 
+  const toggleParent = (slug: string) => {
+    setExpandedParentSlugs((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="bg-white rounded-lg">
       {/* Categories Section */}
@@ -78,21 +91,37 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             </button>
             {mainCategories.map((category) => {
               const subcategories = subcategoriesByParent[category.id] || [];
+              const isExpanded = expandedParentSlugs.has(category.slug);
 
               return (
                 <div key={category.id} className="space-y-1">
-                  <button
-                    onClick={() => onCategoryChange?.(category.slug)}
-                    className={`block w-full text-left px-3 py-2 rounded bg-emerald-50 ${
-                      selectedCategory === category.slug
-                        ? 'bg-emerald-100 text-emerald-700 font-semibold'
-                        : 'text-gray-800 hover:bg-emerald-100'
-                    }`}
-                  >
-                    {category.name}
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {subcategories.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleParent(category.slug)}
+                        className="p-1 rounded hover:bg-gray-100"
+                        aria-label={isExpanded ? 'Collapse sub-categories' : 'Expand sub-categories'}
+                      >
+                        <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                    ) : (
+                      <span className="w-6" />
+                    )}
 
-                  {subcategories.length > 0 && (
+                    <button
+                      onClick={() => onCategoryChange?.(category.slug)}
+                      className={`block w-full text-left px-3 py-2 rounded bg-emerald-50 ${
+                        selectedCategory === category.slug
+                          ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                          : 'text-gray-800 hover:bg-emerald-100'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  </div>
+
+                  {subcategories.length > 0 && isExpanded && (
                     <div className="pl-5 space-y-1">
                       {subcategories.map((subcategory) => (
                         <button

@@ -400,17 +400,21 @@ export const Navigation: React.FC<NavigationProps> = ({
               </summary>
 
               <div className="absolute right-0 top-full mt-2 w-[min(90vw,680px)] bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-50 max-h-[70vh] overflow-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {categoryTree.map((parent) => (
-                    <div key={`all-${parent.id}`}>
-                      <Link
-                        href={`/products/${parent.slug}`}
-                        className="block text-sm font-semibold text-gray-900 hover:text-emerald-600"
-                      >
-                        {parent.name}
-                      </Link>
+                    <details key={`all-${parent.id}`} className="rounded border border-gray-100 p-2 bg-gray-50/50">
+                      <summary className="list-none cursor-pointer flex items-center justify-between text-sm font-semibold text-gray-900 hover:text-emerald-600">
+                        <Link
+                          href={`/products/${parent.slug}`}
+                          className="hover:text-emerald-600"
+                        >
+                          {parent.name}
+                        </Link>
+                        <span className="text-xs text-gray-500">{parent.children?.length || 0}</span>
+                      </summary>
+
                       {parent.children && parent.children.length > 0 ? (
-                        <div className="mt-2 space-y-1">
+                        <div className="mt-2 ml-2 space-y-1 border-l border-gray-200 pl-3">
                           {parent.children.map((sub) => (
                             <Link
                               key={`all-sub-${sub.id}`}
@@ -422,7 +426,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                           ))}
                         </div>
                       ) : null}
-                    </div>
+                    </details>
                   ))}
                 </div>
 

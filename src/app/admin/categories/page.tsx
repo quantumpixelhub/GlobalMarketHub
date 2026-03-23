@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { FolderTree, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, FolderTree, Plus } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import DataTable from '@/components/admin/DataTable';
 import FormModal from '@/components/admin/FormModal';
@@ -25,6 +25,7 @@ export default function CategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', image: '', parentId: '' });
+  const [expandedParentIds, setExpandedParentIds] = useState<Set<string>>(new Set());
 
   const fetchCategories = async () => {
     const token = localStorage.getItem('token');
@@ -43,6 +44,11 @@ export default function CategoriesPage() {
           status: 'Active' as const,
         }));
         setCategories(mapped);
+
+        const parentIds = mapped
+          .filter((category: Category) => !category.parentId)
+          .map((category: Category) => category.id);
+        setExpandedParentIds(new Set(parentIds));
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -71,6 +77,9 @@ export default function CategoriesPage() {
       const children = categories
         .filter((category) => category.parentId === parent.id)
         .sort((a, b) => a.name.localeCompare(b.name));
+      if (!expandedParentIds.has(parent.id)) {
+        return [parent];
+      }
       return [parent, ...children];
     });
 
@@ -79,7 +88,28 @@ export default function CategoriesPage() {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     return [...grouped, ...orphans];
+  }, [categories, expandedParentIds]);
+
+  const childCountByParent = useMemo(() => {
+    const counts: Record<string, number> = {};
+    categories.forEach((category) => {
+      if (!category.parentId) return;
+      counts[category.parentId] = (counts[category.parentId] || 0) + 1;
+    });
+    return counts;
   }, [categories]);
+
+  const toggleParent = (parentId: string) => {
+    setExpandedParentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(parentId)) {
+        next.delete(parentId);
+      } else {
+        next.add(parentId);
+      }
+      return next;
+    });
+  };
 
   const handleCreateClick = () => {
     setEditingCategory(null);
@@ -190,10 +220,31 @@ export default function CategoriesPage() {
       label: 'Category',
       render: (_: unknown, item: Category) => (
         <div className="flex items-center gap-2">
-          {item.parentId ? <span className="text-gray-400">↳</span> : null}
-          <span className={item.parentId ? 'text-gray-700' : 'font-semibold text-gray-900'}>
+          {item.parentId ? (
+            <span className="text-gray-400">↳</span>
+          ) : childCountByParent[item.id] ? (
+            <button
+              onClick={() => toggleParent(item.id)}
+              className="text-gray-500 hover:text-gray-700"
+              title={expandedParentIds.has(item.id) ? 'Collapse sub-categories' : 'Expand sub-categories'}
+            >
+              {expandedParentIds.has(item.id) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+          ) : (
+            <span className="w-4" />
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!item.parentId && childCountByParent[item.id]) {
+                toggleParent(item.id);
+              }
+            }}
+            className={item.parentId ? 'text-gray-700 cursor-default' : 'font-semibold text-gray-900 text-left'}
+          >
             {item.name}
-          </span>
+          </button>
         </div>
       ),
       sortable: true,
