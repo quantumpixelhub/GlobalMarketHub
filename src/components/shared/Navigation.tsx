@@ -14,6 +14,7 @@ interface NavigationProps {
   isAuthenticated?: boolean;
   userName?: string;
   onLogout?: () => void;
+  showCategoryLinks?: boolean;
 }
 
 interface Category {
@@ -39,6 +40,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   isAuthenticated,
   userName = '',
   onLogout,
+  showCategoryLinks = true,
 }) => {
   const pathname = usePathname();
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
@@ -342,6 +344,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Category Links with Subcategories */}
+        {showCategoryLinks && (
         <div className="mt-5 md:mt-6 pb-2 border-b-2 border-blue-600">
           <div className="flex items-end gap-2 md:gap-3">
             <div ref={linksContainerRef} className="relative flex-1 min-w-0">
@@ -484,6 +487,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             </details>
           </div>
         </div>
+        )}
       </div>
     </nav>
   );

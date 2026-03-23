@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ReviewSection } from '@/components/product/ReviewSection';
@@ -30,6 +31,11 @@ interface Product {
     reviewCount: number;
   };
   variants?: ProductVariant[];
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface ProductVariant {
@@ -38,6 +44,16 @@ interface ProductVariant {
   sku: string;
   price: number;
   stock: number;
+}
+
+interface RecommendedProduct {
+  id: string;
+  title: string;
+  mainImage: string;
+  currentPrice: number;
+  originalPrice: number;
+  rating: number;
+  reviewCount: number;
 }
 
 const asNumber = (value: unknown, fallback = 0): number => {
@@ -56,6 +72,8 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [mediaTab, setMediaTab] = useState<'photos' | 'video'>('photos');
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+  const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -86,6 +104,38 @@ export default function ProductDetailPage() {
               : [],
           };
           setProduct(normalized);
+
+          if (normalized.category?.id) {
+            setLoadingRecommendations(true);
+            try {
+              const relatedRes = await fetch(`/api/products?categoryId=${normalized.category.id}&limit=8`);
+              if (relatedRes.ok) {
+                const relatedData = await relatedRes.json();
+                const relatedItems = Array.isArray(relatedData?.products)
+                  ? relatedData.products
+                  : [];
+
+                const normalizedRelated: RecommendedProduct[] = relatedItems
+                  .filter((item: any) => item.id !== normalized.id)
+                  .slice(0, 4)
+                  .map((item: any) => ({
+                    id: item.id,
+                    title: item.title,
+                    mainImage: item.mainImage,
+                    currentPrice: asNumber(item.currentPrice),
+                    originalPrice: asNumber(item.originalPrice),
+                    rating: asNumber(item.rating),
+                    reviewCount: asNumber(item.reviewCount),
+                  }));
+
+                setRecommendedProducts(normalizedRelated);
+              }
+            } catch (relatedError) {
+              console.error('Error fetching recommended products:', relatedError);
+            } finally {
+              setLoadingRecommendations(false);
+            }
+          }
 
           const firstInStockVariant = normalized.variants?.find((variant) => variant.stock > 0) || normalized.variants?.[0];
           if (firstInStockVariant?.attributes) {
@@ -259,7 +309,7 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navigation />
+        <Navigation showCategoryLinks={false} />
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
           <p>Loading product...</p>
         </div>
@@ -271,7 +321,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navigation />
+        <Navigation showCategoryLinks={false} />
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
           <p>Product not found</p>
         </div>
@@ -311,7 +361,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navigation />
+      <Navigation showCategoryLinks={false} />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl p-6">
@@ -592,6 +642,52 @@ export default function ProductDetailPage() {
               // Refresh product data
             }}
           />
+        </div>
+
+        <div className="bg-white rounded-lg p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">Recommended for You</h2>
+            {product.category?.slug && (
+              <Link
+                href={`/products/${product.category.slug}`}
+                className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+              >
+                View more in {product.category.name}
+              </Link>
+            )}
+          </div>
+
+          {loadingRecommendations ? (
+            <p className="text-sm text-gray-600">Loading recommendations...</p>
+          ) : recommendedProducts.length === 0 ? (
+            <p className="text-sm text-gray-600">No similar products found right now.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recommendedProducts.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/product/${item.id}`}
+                  className="block rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-sm transition overflow-hidden"
+                >
+                  <img
+                    src={item.mainImage}
+                    alt={item.title}
+                    className="w-full h-44 object-cover bg-gray-100"
+                  />
+                  <div className="p-3">
+                    <p className="text-sm font-medium text-gray-900 line-clamp-2 min-h-[40px]">{item.title}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="font-bold text-emerald-700">৳{item.currentPrice.toLocaleString()}</span>
+                      {item.originalPrice > item.currentPrice && (
+                        <span className="text-xs text-gray-400 line-through">৳{item.originalPrice.toLocaleString()}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">⭐ {item.rating.toFixed(1)} ({item.reviewCount})</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
