@@ -2,6 +2,50 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 
+function normalizeText(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+}
+
+function buildAddress(snapshot: Record<string, unknown>): string {
+  const parts = [
+    normalizeText(snapshot.address),
+    normalizeText(snapshot.upazila),
+    normalizeText(snapshot.district),
+    normalizeText(snapshot.division),
+  ].filter(Boolean);
+
+  return parts.join(', ');
+}
+
+function resolveCourierName(snapshot: Record<string, unknown>, trackingNumber: string | null): string {
+  const explicit = normalizeText(snapshot.courierName) || normalizeText(snapshot.courier);
+  if (explicit) return explicit;
+  if (trackingNumber) return 'Assigned';
+  return 'Not Assigned';
+}
+
+function resolveDeliveryStatus(status: string): string {
+  switch (status) {
+    case 'DELIVERED':
+      return 'Delivered';
+    case 'CANCELLED':
+      return 'Cancelled';
+    case 'PROCESSING':
+      return 'In Transit';
+    case 'SHIPPED':
+      return 'Shipped';
+    default:
+      return 'Pending Dispatch';
+  }
+}
+
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
   if (!auth.success || !auth.data?.userId) {
@@ -50,8 +94,25 @@ export async function GET(request: NextRequest) {
       prisma.order.count(),
     ]);
 
+    const normalizedOrders = orders.map((order) => {
+      const snapshot = asObject(order.shippingAddress);
+      const fullName = [order.user?.firstName || '', order.user?.lastName || '']
+        .join(' ')
+        .trim();
+
+      return {
+        ...order,
+        customerName: fullName || 'Unknown Customer',
+        customerEmail: normalizeText(snapshot.email) || normalizeText(order.user?.email),
+        customerPhone: normalizeText(snapshot.phone),
+        customerAddress: buildAddress(snapshot),
+        courierName: resolveCourierName(snapshot, order.trackingNumber),
+        deliveryStatus: resolveDeliveryStatus(order.status),
+      };
+    });
+
     return NextResponse.json({
-      orders,
+      orders: normalizedOrders,
       pagination: {
         page,
         limit,

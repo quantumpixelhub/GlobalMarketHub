@@ -7,6 +7,13 @@ interface Order {
   id: string;
   orderNumber: string;
   status: string;
+  trackingNumber?: string | null;
+  deliveryStatus?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  courierName?: string;
   totalAmount: number;
   createdAt: string;
   user?: {
@@ -90,14 +97,18 @@ export default function OrdersPage() {
       {loading ? (
         <p>Loading orders...</p>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Orders List */}
-          <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
-            <table className="w-full">
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <table className="w-full min-w-[1600px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Order #</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Customer</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Email</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Phone</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Address</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Courier</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Delivery</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Amount</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Status</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Date</th>
@@ -109,9 +120,16 @@ export default function OrdersPage() {
                   <tr key={order.id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-800">{order.orderNumber}</td>
                     <td className="px-6 py-4 text-gray-600">
-                      {order.user
-                        ? `${order.user.firstName} ${order.user.lastName}`
-                        : 'Unknown Customer'}
+                      {order.customerName || (order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Unknown Customer')}
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{order.customerEmail || '-'}</td>
+                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{order.customerPhone || '-'}</td>
+                    <td className="px-6 py-4 text-gray-600 min-w-[260px]">{order.customerAddress || '-'}</td>
+                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{order.courierName || 'Not Assigned'}</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700 whitespace-nowrap">
+                        {order.deliveryStatus || 'Pending Dispatch'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 font-semibold text-gray-800">
                       ৳{order.totalAmount.toLocaleString()}
@@ -139,9 +157,8 @@ export default function OrdersPage() {
             </table>
           </div>
 
-          {/* Order Details */}
           {selectedOrder && (
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-6 max-w-2xl">
               <h2 className="text-xl font-bold mb-4">Order Details</h2>
               <div className="space-y-4">
                 <div>
@@ -151,9 +168,37 @@ export default function OrdersPage() {
                 <div>
                   <p className="text-sm text-gray-600">Customer</p>
                   <p className="font-semibold">
-                    {selectedOrder.user
-                      ? selectedOrder.user.email
-                      : 'Unknown'}
+                    {selectedOrder.customerName || 'Unknown'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Email</p>
+                  <p className="font-semibold">{selectedOrder.customerEmail || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Phone</p>
+                  <p className="font-semibold">{selectedOrder.customerPhone || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Address</p>
+                  <p className="font-semibold">{selectedOrder.customerAddress || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Courier</p>
+                  <p className="font-semibold">{selectedOrder.courierName || 'Not Assigned'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Delivery Status</p>
+                  <p className="font-semibold">{selectedOrder.deliveryStatus || 'Pending Dispatch'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Tracking Number</p>
+                  <p className="font-semibold">{selectedOrder.trackingNumber || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Payment Email</p>
+                  <p className="font-semibold">
+                    {selectedOrder.user?.email || '-'}
                   </p>
                 </div>
                 <div>
