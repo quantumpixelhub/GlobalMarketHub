@@ -33,6 +33,13 @@ const SHIPPING_MATRIX: Record<string, Record<string, number>> = {
   'outside-dhaka': { standard: 120, express: 180 },
 };
 
+const PAYMENT_OPTIONS = [
+  { id: 'uddoktapay', name: 'UddoktaPay', icon: '🛡️', note: 'Fast local gateway' },
+  { id: 'bkash', name: 'bKash', icon: '📱', note: 'Mobile wallet' },
+  { id: 'nagad', name: 'Nagad', icon: '🧧', note: 'Mobile wallet' },
+  { id: 'stripe', name: 'Credit/Debit Card', icon: '💳', note: 'Visa, Mastercard, Amex' },
+] as const;
+
 interface GuestCheckoutData {
   firstName: string;
   lastName: string;
@@ -378,6 +385,24 @@ export default function CheckoutPage() {
           </div>
         )}
 
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Step 1</p>
+            <p className="font-semibold text-gray-900">Delivery Details</p>
+            <p className="text-xs text-gray-600 mt-1">Address and shipping options</p>
+          </div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Step 2</p>
+            <p className="font-semibold text-gray-900">Order Review</p>
+            <p className="text-xs text-gray-600 mt-1">Items, tax and delivery fee</p>
+          </div>
+          <div className="rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Step 3</p>
+            <p className="font-semibold text-gray-900">Secure Payment</p>
+            <p className="text-xs text-gray-600 mt-1">Wallet or card confirmation</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {!isGuestCheckout ? (
@@ -418,13 +443,30 @@ export default function CheckoutPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-2">Payment Method</label>
-                    <select value={newAddressData.paymentMethod} onChange={(e) => setNewAddressData((prev) => ({ ...prev, paymentMethod: e.target.value }))} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                      <option value="uddoktapay">UddoktaPay</option>
-                      <option value="bkash">bKash</option>
-                      <option value="nagad">Nagad</option>
-                      <option value="stripe">Credit/Debit Card</option>
-                    </select>
+                    <label className="block text-sm font-semibold mb-2">Select Payment Method</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {PAYMENT_OPTIONS.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setNewAddressData((prev) => ({ ...prev, paymentMethod: option.id }))}
+                          className={`text-left p-3 rounded-lg border-2 transition ${
+                            newAddressData.paymentMethod === option.id
+                              ? 'border-emerald-600 bg-emerald-50'
+                              : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }`}
+                        >
+                          <p className="font-semibold flex items-center gap-2">
+                            <span>{option.icon}</span>
+                            <span>{option.name}</span>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">{option.note}</p>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-sky-700 bg-sky-50 border border-sky-200 rounded p-2">
+                      You will be redirected to a secure payment screen after clicking Proceed to Pay.
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -445,7 +487,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <button type="submit" disabled={submitting || !cart?.items?.length} className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold">
-                    {submitting ? 'Processing...' : 'Save Address and Continue to Payment'}
+                    {submitting ? 'Processing...' : 'Save Address & Proceed to Pay'}
                   </button>
                 </form>
               )
@@ -527,17 +569,30 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Payment Method</label>
-                  <select
-                    value={guestData.paymentMethod}
-                    onChange={(e) => setGuestData((prev) => ({ ...prev, paymentMethod: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="uddoktapay">UddoktaPay</option>
-                    <option value="bkash">bKash</option>
-                    <option value="nagad">Nagad</option>
-                    <option value="stripe">Credit/Debit Card</option>
-                  </select>
+                  <label className="block text-sm font-semibold mb-2">Select Payment Method</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {PAYMENT_OPTIONS.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setGuestData((prev) => ({ ...prev, paymentMethod: option.id }))}
+                        className={`text-left p-3 rounded-lg border-2 transition ${
+                          guestData.paymentMethod === option.id
+                            ? 'border-emerald-600 bg-emerald-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <p className="font-semibold flex items-center gap-2">
+                          <span>{option.icon}</span>
+                          <span>{option.name}</span>
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">{option.note}</p>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-sky-700 bg-sky-50 border border-sky-200 rounded p-2">
+                    After placing order, you will be redirected to the selected wallet or card payment screen.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -579,7 +634,7 @@ export default function CheckoutPage() {
                   disabled={submitting || !cart?.items?.length}
                   className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold"
                 >
-                  {submitting ? 'Processing...' : 'Place Order and Continue to Payment'}
+                  {submitting ? 'Processing...' : 'Place Order & Proceed to Pay'}
                 </button>
               </form>
             )}

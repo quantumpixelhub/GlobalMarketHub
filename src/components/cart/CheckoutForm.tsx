@@ -143,24 +143,25 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
       {/* Payment Method */}
       <div>
-        <h2 className="text-xl font-bold mb-4">Payment Method</h2>
-        <div className="space-y-3">
+        <h2 className="text-xl font-bold mb-1">Select Payment Method</h2>
+        <p className="text-sm text-gray-500 mb-4">Choose a secure payment option to complete your order.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
-            { id: 'uddoktapay', name: 'UddoktaPay', icon: '💳' },
-            { id: 'bkash', name: 'bKash', icon: '📱' },
-            { id: 'nagad', name: 'Nagad', icon: '📱' },
-            { id: 'stripe', name: 'Credit/Debit Card', icon: '💳' },
-            { id: 'cod', name: 'Cash on Delivery', icon: '🚚' },
+            { id: 'uddoktapay', name: 'UddoktaPay', icon: '🛡️', note: 'Fast checkout gateway' },
+            { id: 'bkash', name: 'bKash', icon: '📱', note: 'Mobile wallet' },
+            { id: 'nagad', name: 'Nagad', icon: '🧧', note: 'Mobile wallet' },
+            { id: 'stripe', name: 'Credit/Debit Card', icon: '💳', note: 'Visa, Mastercard, Amex' },
+            { id: 'cod', name: 'Cash on Delivery', icon: '🚚', note: 'Pay at your doorstep' },
           ].map((method) => (
             <label
               key={method.id}
-              className={`block p-4 border-2 rounded cursor-pointer transition ${
+              className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
                 paymentMethod === method.id
-                  ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-emerald-600 bg-emerald-50 shadow-sm'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-start gap-3">
                 <input
                   type="radio"
                   name="payment"
@@ -170,41 +171,25 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                     setPaymentMethod(e.target.value);
                     onPaymentMethodChange?.(e.target.value);
                   }}
+                  className="mt-1"
                 />
-                <span className="text-xl">{method.icon}</span>
-                <span className="font-semibold">{method.name}</span>
+                <div>
+                  <p className="font-semibold flex items-center gap-2">
+                    <span className="text-xl leading-none">{method.icon}</span>
+                    <span>{method.name}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{method.note}</p>
+                </div>
               </div>
             </label>
           ))}
         </div>
-      </div>
-
-      {/* Delivery Options */}
-      <div>
-        <h2 className="text-xl font-bold mb-4">Delivery Options</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold mb-2">Delivery Area</label>
-            <select
-              value={deliveryArea}
-              onChange={(e) => setDeliveryArea(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="inside-dhaka">Inside Dhaka</option>
-              <option value="outside-dhaka">Outside Dhaka</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2">Delivery Speed</label>
-            <select
-              value={deliverySpeed}
-              onChange={(e) => setDeliverySpeed(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="standard">Standard (2-4 days)</option>
-              <option value="express">Express (24-48 hours)</option>
-            </select>
-          </div>
+        <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+          {paymentMethod === 'bkash' && 'You will be redirected to bKash secure payment page after clicking Proceed to Pay.'}
+          {paymentMethod === 'nagad' && 'You will be redirected to Nagad secure payment page after clicking Proceed to Pay.'}
+          {paymentMethod === 'stripe' && 'Enter your card details securely on the next step via encrypted card checkout.'}
+          {paymentMethod === 'uddoktapay' && 'You will continue through UddoktaPay with support for local wallets and cards.'}
+          {paymentMethod === 'cod' && 'Pay cash when your order is delivered to your address.'}
         </div>
       </div>
 
@@ -214,7 +199,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         disabled={!selectedAddress || loading}
         className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-lg transition-colors"
       >
-        {loading ? 'Processing...' : 'Continue to Payment'}
+        {loading ? 'Processing...' : 'Proceed to Pay'}
       </button>
 
       {/* Info Box */}
