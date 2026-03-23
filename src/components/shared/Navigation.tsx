@@ -369,9 +369,21 @@ export const Navigation: React.FC<NavigationProps> = ({
                               <Link
                                 key={sub.id}
                                 href={`/products/${category.slug}/${sub.slug}`}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
                               >
-                                {sub.name}
+                                <span className="opacity-85 leading-none">{sub.icon || '📦'}</span>
+                                {sub.image && (
+                                  <img
+                                    src={sub.image}
+                                    alt=""
+                                    aria-hidden="true"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                    className="w-4 h-4 rounded object-cover"
+                                  />
+                                )}
+                                <span>{sub.name}</span>
                               </Link>
                             ))}
                           </div>
