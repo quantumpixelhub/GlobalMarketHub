@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
+import { CATEGORY_TAXONOMY_SLUG_SET } from '@/lib/categoryTaxonomy';
 
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
@@ -32,6 +33,9 @@ export async function GET(request: NextRequest) {
     }
 
     const categories = await prisma.category.findMany({
+      where: {
+        slug: { in: Array.from(CATEGORY_TAXONOMY_SLUG_SET) },
+      },
       orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
       include: {
         parent: { select: { id: true, name: true } },
