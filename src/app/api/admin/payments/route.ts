@@ -13,7 +13,7 @@ async function authorizeAdmin(request: NextRequest) {
     select: { role: true },
   });
 
-  return user?.role === 'ADMIN';
+  return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 }
 
 function normalizeNumber(value: unknown): string {

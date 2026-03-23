@@ -32,6 +32,44 @@ export default function PaymentsPage() {
     setPaymentConfig((prev) => ({ ...prev, [field]: value }));
   };
 
+  const saveConfig = async () => {
+    setIsSaving(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Please login as admin', 'error');
+        return;
+      }
+
+      const res = await fetch('/api/admin/payments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(paymentConfig),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        if (res.status === 403) {
+          showToast('You do not have permission to update payment settings.', 'error');
+          return;
+        }
+        showToast(data?.error || 'Failed to save payment configuration', 'error');
+        return;
+      }
+
+      showToast('Payment configuration saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving payment config:', error);
+      showToast('Failed to save payment configuration', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
     const loadConfig = async () => {
       try {
@@ -46,6 +84,10 @@ export default function PaymentsPage() {
         });
 
         if (!res.ok) {
+          if (res.status === 403) {
+            showToast('You do not have permission to view payment settings.', 'error');
+            return;
+          }
           showToast('Failed to load payment configuration', 'error');
           return;
         }
@@ -67,37 +109,7 @@ export default function PaymentsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showToast('Please login as admin', 'error');
-        return;
-      }
-
-      const res = await fetch('/api/admin/payments', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(paymentConfig),
-      });
-
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        showToast(data?.error || 'Failed to save payment configuration', 'error');
-        return;
-      }
-
-      showToast('Payment configuration saved successfully', 'success');
-    } catch (error) {
-      console.error('Error saving payment config:', error);
-      showToast('Failed to save payment configuration', 'error');
-    } finally {
-      setIsSaving(false);
-    }
+    await saveConfig();
   };
 
   const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
@@ -125,7 +137,8 @@ export default function PaymentsPage() {
           icon={CreditCard}
         />
         <button
-          onClick={handleSubmit}
+          type="button"
+          onClick={saveConfig}
           disabled={isSaving}
           className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-medium py-2 px-6 rounded-lg flex items-center gap-2 transition"
         >
