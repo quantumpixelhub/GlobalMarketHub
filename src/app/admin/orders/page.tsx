@@ -24,10 +24,18 @@ interface Order {
   items: any[];
 }
 
+type EditableOrderFields = {
+  courierName: string;
+  trackingNumber: string;
+  status: string;
+};
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [edits, setEdits] = useState<Record<string, EditableOrderFields>>({});
+  const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -44,7 +52,17 @@ export default function OrdersPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setOrders(data.orders || []);
+          const list = data.orders || [];
+          setOrders(list);
+          const initialEdits: Record<string, EditableOrderFields> = {};
+          list.forEach((order: Order) => {
+            initialEdits[order.id] = {
+              courierName: order.courierName && order.courierName !== 'Not Assigned' ? order.courierName : '',
+              trackingNumber: order.trackingNumber || '',
+              status: order.status || 'PENDING',
+            };
+          });
+          setEdits(initialEdits);
         } else if (res.status === 403) {
           alert('Admin access required');
           window.location.href = '/login';
@@ -58,6 +76,70 @@ export default function OrdersPage() {
 
     fetchOrders();
   }, []);
+
+  const updateEditField = (orderId: string, field: keyof EditableOrderFields, value: string) => {
+    setEdits((prev) => ({
+      ...prev,
+      [orderId]: {
+        courierName: prev[orderId]?.courierName || '',
+        trackingNumber: prev[orderId]?.trackingNumber || '',
+        status: prev[orderId]?.status || 'PENDING',
+        [field]: value,
+      },
+    }));
+  };
+
+  const saveOrderUpdate = async (orderId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login again');
+      return;
+    }
+
+    const payload = edits[orderId] || { courierName: '', trackingNumber: '', status: 'PENDING' };
+
+    try {
+      setSavingOrderId(orderId);
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          orderId,
+          courierName: payload.courierName,
+          trackingNumber: payload.trackingNumber,
+          status: payload.status,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || 'Failed to update order');
+        return;
+      }
+
+      const updatedOrder: Order = data.order;
+      setOrders((prev) => prev.map((order) => (order.id === orderId ? updatedOrder : order)));
+      setEdits((prev) => ({
+        ...prev,
+        [orderId]: {
+          courierName: updatedOrder.courierName && updatedOrder.courierName !== 'Not Assigned' ? updatedOrder.courierName : '',
+          trackingNumber: updatedOrder.trackingNumber || '',
+          status: updatedOrder.status || 'PENDING',
+        },
+      }));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(updatedOrder);
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      alert('Failed to update order');
+    } finally {
+      setSavingOrderId(null);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -99,7 +181,7 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <table className="w-full min-w-[1600px]">
+            <table className="w-full min-w-[1850px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Order #</th>
@@ -108,6 +190,7 @@ export default function OrdersPage() {
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Phone</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Address</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Courier</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Tracking</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Delivery</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Amount</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Status</th>
@@ -125,11 +208,35 @@ export default function OrdersPage() {
                     <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{order.customerEmail || '-'}</td>
                     <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{order.customerPhone || '-'}</td>
                     <td className="px-6 py-4 text-gray-600 min-w-[260px]">{order.customerAddress || '-'}</td>
-                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{order.courierName || 'Not Assigned'}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700 whitespace-nowrap">
-                        {order.deliveryStatus || 'Pending Dispatch'}
-                      </span>
+                      <input
+                        value={edits[order.id]?.courierName ?? ''}
+                        onChange={(e) => updateEditField(order.id, 'courierName', e.target.value)}
+                        placeholder="Courier name"
+                        className="w-40 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <input
+                        value={edits[order.id]?.trackingNumber ?? ''}
+                        onChange={(e) => updateEditField(order.id, 'trackingNumber', e.target.value)}
+                        placeholder="Tracking no"
+                        className="w-40 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={edits[order.id]?.status ?? order.status}
+                        onChange={(e) => updateEditField(order.id, 'status', e.target.value)}
+                        className="w-44 px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                      >
+                        <option value="PENDING">Pending</option>
+                        <option value="PROCESSING">Processing</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="RETURNED">Returned</option>
+                      </select>
                     </td>
                     <td className="px-6 py-4 font-semibold text-gray-800">
                       ৳{order.totalAmount.toLocaleString()}
@@ -144,12 +251,21 @@ export default function OrdersPage() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
-                      >
-                        <Eye size={18} />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => saveOrderUpdate(order.id)}
+                          disabled={savingOrderId === order.id}
+                          className="text-xs px-3 py-1.5 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-400"
+                        >
+                          {savingOrderId === order.id ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                        >
+                          <Eye size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

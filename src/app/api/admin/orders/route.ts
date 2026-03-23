@@ -46,6 +46,23 @@ function resolveDeliveryStatus(status: string): string {
   }
 }
 
+function normalizeOrder(order: any) {
+  const snapshot = asObject(order.shippingAddress);
+  const fullName = [order.user?.firstName || '', order.user?.lastName || '']
+    .join(' ')
+    .trim();
+
+  return {
+    ...order,
+    customerName: fullName || 'Unknown Customer',
+    customerEmail: normalizeText(snapshot.email) || normalizeText(order.user?.email),
+    customerPhone: normalizeText(snapshot.phone),
+    customerAddress: buildAddress(snapshot),
+    courierName: resolveCourierName(snapshot, order.trackingNumber),
+    deliveryStatus: resolveDeliveryStatus(order.status),
+  };
+}
+
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
   if (!auth.success || !auth.data?.userId) {
@@ -94,22 +111,7 @@ export async function GET(request: NextRequest) {
       prisma.order.count(),
     ]);
 
-    const normalizedOrders = orders.map((order) => {
-      const snapshot = asObject(order.shippingAddress);
-      const fullName = [order.user?.firstName || '', order.user?.lastName || '']
-        .join(' ')
-        .trim();
-
-      return {
-        ...order,
-        customerName: fullName || 'Unknown Customer',
-        customerEmail: normalizeText(snapshot.email) || normalizeText(order.user?.email),
-        customerPhone: normalizeText(snapshot.phone),
-        customerAddress: buildAddress(snapshot),
-        courierName: resolveCourierName(snapshot, order.trackingNumber),
-        deliveryStatus: resolveDeliveryStatus(order.status),
-      };
-    });
+    const normalizedOrders = orders.map((order) => normalizeOrder(order));
 
     return NextResponse.json({
       orders: normalizedOrders,
@@ -122,6 +124,81 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin orders error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const admin = await authorizeAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const orderId = normalizeText(body.orderId);
+    const status = normalizeText(body.status).toUpperCase();
+    const courierName = normalizeText(body.courierName);
+    const trackingNumber = normalizeText(body.trackingNumber);
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    }
+
+    const allowedStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED'];
+    if (!allowedStatuses.includes(status)) {
+      return NextResponse.json({ error: 'Invalid delivery status' }, { status: 400 });
+    }
+
+    const existing = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        items: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    const existingSnapshot = asObject(existing.shippingAddress);
+    const nextSnapshot = {
+      ...existingSnapshot,
+      courierName: courierName || null,
+    };
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: status as any,
+        trackingNumber: trackingNumber || null,
+        shippingAddress: nextSnapshot,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        items: true,
+      },
+    });
+
+    return NextResponse.json({
+      message: 'Order updated successfully',
+      order: normalizeOrder(updatedOrder),
+    });
+  } catch (error) {
+    console.error('Admin orders PATCH error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
