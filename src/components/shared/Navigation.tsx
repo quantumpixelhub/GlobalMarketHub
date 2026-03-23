@@ -21,6 +21,7 @@ interface Category {
   name: string;
   slug: string;
   image?: string;
+  icon?: string;
   parentId?: string | null;
   children?: Category[];
 }
@@ -355,8 +356,9 @@ export const Navigation: React.FC<NavigationProps> = ({
                       <div key={category.id} className="relative group flex-shrink-0">
                         <Link
                           href={`/products/${category.slug}`}
-                          className="text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
+                          className="flex items-center gap-2 text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
                         >
+                          {category.icon && <span className="text-base">{category.icon}</span>}
                           {category.name}
                         </Link>
 
@@ -405,11 +407,12 @@ export const Navigation: React.FC<NavigationProps> = ({
                   {categoryTree.map((parent) => (
                     <details key={`all-${parent.id}`} className="rounded border border-gray-100 overflow-hidden">
                       <summary className="list-none cursor-pointer flex items-start gap-3 font-semibold text-gray-900 hover:text-emerald-600 p-2 bg-gray-50/50 hover:bg-emerald-50/50">
+                        {parent.icon && <span className="text-lg flex-shrink-0 w-6 text-center">{parent.icon}</span>}
                         {parent.image && (
                           <img
                             src={parent.image}
                             alt={parent.name}
-                            className="w-16 h-16 object-cover rounded flex-shrink-0"
+                            className="w-12 h-12 object-cover rounded flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -431,11 +434,12 @@ export const Navigation: React.FC<NavigationProps> = ({
                               href={`/products/${parent.slug}/${sub.slug}`}
                               className="flex items-center gap-2 text-xs text-gray-600 hover:text-emerald-600 p-1"
                             >
+                              {sub.icon && <span>{sub.icon}</span>}
                               {sub.image && (
                                 <img
                                   src={sub.image}
                                   alt={sub.name}
-                                  className="w-8 h-8 object-cover rounded flex-shrink-0"
+                                  className="w-6 h-6 object-cover rounded flex-shrink-0"
                                 />
                               )}
                               <span>{sub.name}</span>

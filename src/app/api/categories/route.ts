@@ -14,6 +14,7 @@ export async function GET(_request: NextRequest) {
         slug: true,
         description: true,
         image: true,
+        icon: true,
         parentId: true,
         children: {
           select: {
@@ -22,6 +23,7 @@ export async function GET(_request: NextRequest) {
             slug: true,
             description: true,
             image: true,
+            icon: true,
             parentId: true,
           },
         },

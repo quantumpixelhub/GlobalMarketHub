@@ -118,7 +118,7 @@ async function addCategoryEmojis() {
       const result = await prisma.category.updateMany({
         where: { slug },
         data: { 
-          description: emoji // Store emoji in description field as temporary solution
+          icon: emoji
         },
       });
 
