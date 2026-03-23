@@ -609,9 +609,14 @@ export default function CheckoutPage() {
                 <span>Tax (Imported 8%):</span>
                 <span>৳{tax.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Shipping:</span>
-                <span>৳{shipping.toLocaleString()}</span>
+              <div className="bg-emerald-50 border border-emerald-200 rounded p-3 mb-2">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium">Shipping:</span>
+                  <span className="font-bold text-emerald-600">৳{shipping.toLocaleString()}</span>
+                </div>
+                <p className="text-xs text-emerald-700">
+                  {activeDeliveryArea === 'inside-dhaka' ? '🏙️ Inside Dhaka' : '🚗 Outside Dhaka'} • {activeDeliverySpeed === 'standard' ? '📦 Standard (2-4 days)' : '⚡ Express (24-48 hrs)'}
+                </p>
               </div>
             </div>
 
