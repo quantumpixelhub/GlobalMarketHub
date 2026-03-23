@@ -104,7 +104,7 @@ export default function ProductDetailPage() {
     }
   }, [productId]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (redirectToCheckout = false) => {
     const currentProduct = product;
     if (!currentProduct) return;
 
@@ -135,6 +135,9 @@ export default function ProductDetailPage() {
       );
       showToast(`Added ${quantity} item(s) to cart as guest.`, 'success');
       setQuantity(1);
+      if (redirectToCheckout) {
+        window.location.href = '/checkout';
+      }
       return;
     }
 
@@ -157,6 +160,9 @@ export default function ProductDetailPage() {
         showToast(`Added ${quantity} item(s) to cart.`, 'success');
         setQuantity(1);
         window.dispatchEvent(new Event('cart-updated'));
+        if (redirectToCheckout) {
+          window.location.href = '/checkout';
+        }
       } else if (res.status === 401 || res.status === 403) {
         localStorage.removeItem('token');
         addToGuestCart(
@@ -175,6 +181,9 @@ export default function ProductDetailPage() {
           }
         );
         showToast('Session expired. Added to guest cart instead.', 'info');
+        if (redirectToCheckout) {
+          window.location.href = '/checkout';
+        }
       } else {
         const data = await res.json().catch(() => null);
         showToast(data?.error || 'Failed to add to cart.', 'error');
@@ -197,7 +206,14 @@ export default function ProductDetailPage() {
         }
       );
       showToast('Network issue. Added to guest cart instead.', 'info');
+      if (redirectToCheckout) {
+        window.location.href = '/checkout';
+      }
     }
+  };
+
+  const handleBuyNow = async () => {
+    await handleAddToCart(true);
   };
 
   const resolveSelectedVariant = (currentProduct: Product): ProductVariant | null => {
@@ -516,13 +532,22 @@ export default function ProductDetailPage() {
                   +
                 </button>
               </div>
-              <button
-                onClick={handleAddToCart}
-                disabled={effectiveStock === 0}
-                className="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400"
-              >
-                Add to Cart
-              </button>
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleBuyNow}
+                  disabled={effectiveStock === 0}
+                  className="bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-400 font-semibold"
+                >
+                  Buy Now
+                </button>
+                <button
+                  onClick={() => handleAddToCart(false)}
+                  disabled={effectiveStock === 0}
+                  className="bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold"
+                >
+                  Add to Cart
+                </button>
+              </div>
             </div>
 
             {/* Seller Info */}
