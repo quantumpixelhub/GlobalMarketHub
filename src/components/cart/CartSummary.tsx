@@ -29,8 +29,8 @@ interface CartItem {
 interface CartSummaryProps {
   items: CartItem[];
   subtotal: number;
-  deliveryArea?: 'inside-dhaka' | 'outside-dhaka';
-  deliverySpeed?: 'standard' | 'express';
+  deliveryArea?: 'inside-dhaka' | 'outside-dhaka' | null;
+  deliverySpeed?: 'standard' | 'express' | null;
   onRemoveItem?: (cartItemId: string) => void;
   onUpdateQuantity?: (cartItemId: string, quantity: number) => void;
   onCheckout?: () => void;
@@ -39,8 +39,8 @@ interface CartSummaryProps {
 export const CartSummary: React.FC<CartSummaryProps> = ({
   items,
   subtotal,
-  deliveryArea = 'inside-dhaka',
-  deliverySpeed = 'standard',
+  deliveryArea = null,
+  deliverySpeed = null,
   onRemoveItem,
   onUpdateQuantity,
   onCheckout,
@@ -55,11 +55,13 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
   const importedTax = importedSubtotal * IMPORTED_TAX_RATE;
   const tax = localTax + importedTax;
 
-  const shipping = items.length > 0
-    ? (SHIPPING_MATRIX[deliveryArea]?.[deliverySpeed] ?? 100)
+  // Only calculate shipping if both delivery options are selected
+  const hasDeliveryOptions = deliveryArea && deliverySpeed;
+  const shipping = (items.length > 0 && hasDeliveryOptions)
+    ? (SHIPPING_MATRIX[deliveryArea]?.[deliverySpeed] ?? 0)
     : 0;
 
-  const total = subtotal + tax + shipping;
+  const total = subtotal + tax + (hasDeliveryOptions ? shipping : 0);
 
   if (items.length === 0) {
     return (
@@ -151,13 +153,25 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
           <span>Tax (Imported 8%):</span>
           <span>৳{tax.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span>Shipping:</span>
-          <span>৳{shipping.toLocaleString()}</span>
-        </div>
+
+        {!hasDeliveryOptions && items.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-700 font-medium">
+            💡 Select delivery area & speed at checkout to calculate shipping
+          </div>
+        )}
+
+        {hasDeliveryOptions && (
+          <div className="flex justify-between text-sm bg-emerald-50 rounded p-2">
+            <span>Shipping:</span>
+            <span className="font-semibold text-emerald-600">৳{shipping.toLocaleString()}</span>
+          </div>
+        )}
+
         <div className="border-t pt-2 flex justify-between font-bold text-lg">
           <span>Total:</span>
-          <span className="text-emerald-600">৳{total.toLocaleString()}</span>
+          <span className="text-emerald-600">
+            {hasDeliveryOptions ? `৳${total.toLocaleString()}` : 'Calculate at checkout'}
+          </span>
         </div>
       </div>
 

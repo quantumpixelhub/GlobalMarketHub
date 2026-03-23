@@ -20,6 +20,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  image?: string;
   parentId?: string | null;
   children?: Category[];
 }
@@ -402,26 +403,42 @@ export const Navigation: React.FC<NavigationProps> = ({
               <div className="absolute right-0 top-full mt-2 w-[min(90vw,680px)] bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-50 max-h-[70vh] overflow-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {categoryTree.map((parent) => (
-                    <details key={`all-${parent.id}`} className="rounded border border-gray-100 p-2 bg-gray-50/50">
-                      <summary className="list-none cursor-pointer flex items-center justify-between text-sm font-semibold text-gray-900 hover:text-emerald-600">
-                        <Link
-                          href={`/products/${parent.slug}`}
-                          className="hover:text-emerald-600"
-                        >
-                          {parent.name}
-                        </Link>
-                        <span className="text-xs text-gray-500">{parent.children?.length || 0}</span>
+                    <details key={`all-${parent.id}`} className="rounded border border-gray-100 overflow-hidden">
+                      <summary className="list-none cursor-pointer flex items-start gap-3 font-semibold text-gray-900 hover:text-emerald-600 p-2 bg-gray-50/50 hover:bg-emerald-50/50">
+                        {parent.image && (
+                          <img
+                            src={parent.image}
+                            alt={parent.name}
+                            className="w-16 h-16 object-cover rounded flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/products/${parent.slug}`}
+                            className="block hover:text-emerald-600 font-semibold text-sm"
+                          >
+                            {parent.name}
+                          </Link>
+                          <span className="text-xs text-gray-500">{parent.children?.length || 0} subcategories</span>
+                        </div>
                       </summary>
 
                       {parent.children && parent.children.length > 0 ? (
-                        <div className="mt-2 ml-2 space-y-1 border-l border-gray-200 pl-3">
+                        <div className="mt-2 ml-2 space-y-1 border-l border-gray-200 pl-3 bg-white p-2">
                           {parent.children.map((sub) => (
                             <Link
                               key={`all-sub-${sub.id}`}
                               href={`/products/${parent.slug}/${sub.slug}`}
-                              className="block text-xs text-gray-600 hover:text-emerald-600"
+                              className="flex items-center gap-2 text-xs text-gray-600 hover:text-emerald-600 p-1"
                             >
-                              {sub.name}
+                              {sub.image && (
+                                <img
+                                  src={sub.image}
+                                  alt={sub.name}
+                                  className="w-8 h-8 object-cover rounded flex-shrink-0"
+                                />
+                              )}
+                              <span>{sub.name}</span>
                             </Link>
                           ))}
                         </div>
