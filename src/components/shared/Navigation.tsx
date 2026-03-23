@@ -51,8 +51,10 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [visibleCategoryCount, setVisibleCategoryCount] = React.useState(0);
   const [linksContainerWidth, setLinksContainerWidth] = React.useState(0);
+  const [showCategoryStripOnScroll, setShowCategoryStripOnScroll] = React.useState(true);
   const linksContainerRef = React.useRef<HTMLDivElement>(null);
   const measurementWrapRef = React.useRef<HTMLDivElement>(null);
+  const lastScrollYRef = React.useRef(0);
 
   const mainCategories = React.useMemo(
     () => categories.filter((cat) => !cat.parentId),
@@ -237,6 +239,31 @@ export const Navigation: React.FC<NavigationProps> = ({
     setVisibleCategoryCount(Math.max(1, fittedCount));
   }, [mainCategories, linksContainerWidth]);
 
+  React.useEffect(() => {
+    if (!showCategoryLinks || typeof window === 'undefined') return;
+
+    lastScrollYRef.current = window.scrollY;
+
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollYRef.current;
+
+      // Keep links visible near top for discoverability.
+      if (currentY < 120) {
+        setShowCategoryStripOnScroll(true);
+      } else if (delta > 4) {
+        setShowCategoryStripOnScroll(false);
+      } else if (delta < -4) {
+        setShowCategoryStripOnScroll(true);
+      }
+
+      lastScrollYRef.current = currentY;
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [showCategoryLinks]);
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       {/* Top Bar */}
@@ -345,7 +372,13 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
-        <div className="mt-5 md:mt-6 pb-2 border-b-2 border-blue-600">
+        <div
+          className={`mt-5 md:mt-6 overflow-hidden transition-all duration-300 ${
+            showCategoryStripOnScroll
+              ? 'max-h-[420px] opacity-100 translate-y-0 pb-2 border-b-2 border-blue-600'
+              : 'max-h-0 opacity-0 -translate-y-1 pb-0 border-b-0'
+          }`}
+        >
           <div className="flex items-end gap-2 md:gap-3">
             <div ref={linksContainerRef} className="relative flex-1 min-w-0">
               <div className="flex gap-2 md:gap-3 flex-wrap scrollbar-hide">
