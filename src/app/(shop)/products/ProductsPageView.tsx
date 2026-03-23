@@ -68,7 +68,7 @@ export function ProductsPageView({ initialCategorySlug = '' }: ProductsPageViewP
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navigation />
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+      <div className="flex-1 max-w-7xl mr-auto px-4 py-8 w-full">
         <h1 className="text-3xl font-bold mb-8">All Products</h1>
 
         {loading ? (
