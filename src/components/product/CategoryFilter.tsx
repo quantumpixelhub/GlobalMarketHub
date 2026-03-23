@@ -124,7 +124,11 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                         {category.image && (
                           <img
                             src={category.image}
-                            alt={category.name}
+                            alt=""
+                            aria-hidden="true"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
                             className="w-5 h-5 rounded object-cover"
                           />
                         )}
@@ -150,7 +154,11 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                             {subcategory.image && (
                               <img
                                 src={subcategory.image}
-                                alt={subcategory.name}
+                                alt=""
+                                aria-hidden="true"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
                                 className="w-4 h-4 rounded object-cover"
                               />
                             )}

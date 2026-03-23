@@ -57,6 +57,7 @@ export async function GET(_request: NextRequest) {
         slug: parent.slug,
         description: parent.description,
         image: parent.image,
+        icon: parent.icon,
         parentId: parent.parentId,
       },
       ...parent.children.map((child) => ({
@@ -65,6 +66,7 @@ export async function GET(_request: NextRequest) {
         slug: child.slug,
         description: child.description,
         image: child.image,
+        icon: child.icon,
         parentId: child.parentId,
       })),
     ]);
