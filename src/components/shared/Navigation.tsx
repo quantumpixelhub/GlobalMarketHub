@@ -356,9 +356,9 @@ export const Navigation: React.FC<NavigationProps> = ({
                       <div key={category.id} className="relative group flex-shrink-0">
                         <Link
                           href={`/products/${category.slug}`}
-                          className="flex items-center gap-2 text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
+                          className="flex items-center gap-1.5 text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
                         >
-                          <span className="text-base leading-none">{category.icon || '📦'}</span>
+                          <span className="text-[13px] leading-none opacity-85">{category.icon || '📦'}</span>
                           {category.name}
                         </Link>
 
@@ -388,9 +388,9 @@ export const Navigation: React.FC<NavigationProps> = ({
                     <span
                       key={`measure-${category.id}`}
                       data-measure-category="true"
-                      className="inline-flex items-center gap-2 text-xs whitespace-nowrap py-3 px-1.5 border-b-2 border-transparent"
+                      className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap py-3 px-1.5 border-b-2 border-transparent"
                     >
-                      <span className="text-base leading-none">{category.icon || '📦'}</span>
+                      <span className="text-[13px] leading-none opacity-85">{category.icon || '📦'}</span>
                       <span>{category.name}</span>
                     </span>
                   ))}
@@ -408,7 +408,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   {categoryTree.map((parent) => (
                     <details key={`all-${parent.id}`} className="rounded border border-gray-100 overflow-hidden">
                       <summary className="list-none cursor-pointer flex items-start gap-3 font-semibold text-gray-900 hover:text-emerald-600 p-2 bg-gray-50/50 hover:bg-emerald-50/50">
-                        <span className="text-lg flex-shrink-0 w-6 text-center">{parent.icon || '📦'}</span>
+                        <span className="text-base opacity-85 flex-shrink-0 w-6 text-center">{parent.icon || '📦'}</span>
                         {parent.image && (
                           <img
                             src={parent.image}
@@ -439,7 +439,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                               href={`/products/${parent.slug}/${sub.slug}`}
                               className="flex items-center gap-2 text-xs text-gray-600 hover:text-emerald-600 p-1"
                             >
-                              <span>{sub.icon || '📦'}</span>
+                              <span className="opacity-85">{sub.icon || '📦'}</span>
                               {sub.image && (
                                 <img
                                   src={sub.image}
