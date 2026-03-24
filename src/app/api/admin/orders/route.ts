@@ -51,6 +51,21 @@ function normalizeOrder(order: any) {
   const fullName = [order.user?.firstName || '', order.user?.lastName || '']
     .join(' ')
     .trim();
+  const courierName = resolveCourierName(snapshot, order.trackingNumber);
+  const hasTrackingNumber = Boolean(normalizeText(order.trackingNumber));
+  const hasCourier = courierName !== 'Not Assigned';
+  const isIncomplete = !['DELIVERED', 'CANCELLED', 'RETURNED'].includes(order.status);
+
+  let trackingProgress = 'Completed';
+  if (isIncomplete) {
+    if (hasTrackingNumber && hasCourier) {
+      trackingProgress = 'Tracking Active';
+    } else if (hasTrackingNumber || hasCourier) {
+      trackingProgress = 'Partially Assigned';
+    } else {
+      trackingProgress = 'Pending Assignment';
+    }
+  }
 
   return {
     ...order,
@@ -58,8 +73,10 @@ function normalizeOrder(order: any) {
     customerEmail: normalizeText(snapshot.email) || normalizeText(order.user?.email),
     customerPhone: normalizeText(snapshot.phone),
     customerAddress: buildAddress(snapshot),
-    courierName: resolveCourierName(snapshot, order.trackingNumber),
+    courierName,
     deliveryStatus: resolveDeliveryStatus(order.status),
+    isIncomplete,
+    trackingProgress,
   };
 }
 
@@ -91,9 +108,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
+    const view = normalizeText(searchParams.get('view') || '').toLowerCase();
 
-    const [orders, total] = await Promise.all([
+    const incompleteStatuses = ['PENDING', 'PROCESSING', 'SHIPPED'];
+    const whereClause = view === 'incomplete'
+      ? {
+          status: {
+            in: incompleteStatuses,
+          },
+        }
+      : {};
+
+    const [orders, total, incompleteCount] = await Promise.all([
       prisma.order.findMany({
+        where: whereClause,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -108,7 +136,14 @@ export async function GET(request: NextRequest) {
           items: true,
         },
       }),
-      prisma.order.count(),
+      prisma.order.count({ where: whereClause }),
+      prisma.order.count({
+        where: {
+          status: {
+            in: incompleteStatuses,
+          },
+        },
+      }),
     ]);
 
     const normalizedOrders = orders.map((order) => normalizeOrder(order));
@@ -120,6 +155,10 @@ export async function GET(request: NextRequest) {
         limit,
         total,
         pages: Math.ceil(total / limit),
+      },
+      summary: {
+        filter: view === 'incomplete' ? 'incomplete' : 'all',
+        incompleteCount,
       },
     });
   } catch (error) {

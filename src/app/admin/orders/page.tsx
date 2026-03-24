@@ -8,6 +8,8 @@ interface Order {
   orderNumber: string;
   status: string;
   trackingNumber?: string | null;
+  trackingProgress?: string;
+  isIncomplete?: boolean;
   deliveryStatus?: string;
   customerName?: string;
   customerEmail?: string;
@@ -33,6 +35,8 @@ type EditableOrderFields = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'incomplete'>('all');
+  const [incompleteCount, setIncompleteCount] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [edits, setEdits] = useState<Record<string, EditableOrderFields>>({});
   const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
@@ -46,13 +50,15 @@ export default function OrdersPage() {
           return;
         }
 
-        const res = await fetch('/api/admin/orders?limit=100', {
+        const query = activeFilter === 'incomplete' ? '&view=incomplete' : '';
+        const res = await fetch(`/api/admin/orders?limit=100${query}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (res.ok) {
           const data = await res.json();
           const list = data.orders || [];
+          setIncompleteCount(Number(data?.summary?.incompleteCount || 0));
           setOrders(list);
           const initialEdits: Record<string, EditableOrderFields> = {};
           list.forEach((order: Order) => {
@@ -75,7 +81,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, []);
+  }, [activeFilter]);
 
   const updateEditField = (orderId: string, field: keyof EditableOrderFields, value: string) => {
     setEdits((prev) => ({
@@ -156,6 +162,13 @@ export default function OrdersPage() {
     }
   };
 
+  const getTrackingProgressColor = (value?: string) => {
+    if (value === 'Tracking Active') return 'bg-emerald-100 text-emerald-700';
+    if (value === 'Partially Assigned') return 'bg-amber-100 text-amber-700';
+    if (value === 'Pending Assignment') return 'bg-red-100 text-red-700';
+    return 'bg-gray-100 text-gray-700';
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'DELIVERED':
@@ -174,6 +187,26 @@ export default function OrdersPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Orders Management</h1>
         <p className="text-gray-600 mt-2">View and manage customer orders</p>
+        <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1">
+          <button
+            type="button"
+            onClick={() => setActiveFilter('all')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              activeFilter === 'all' ? 'bg-rose-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            All Orders
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('incomplete')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              activeFilter === 'incomplete' ? 'bg-rose-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Incomplete Tracking ({incompleteCount})
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -191,6 +224,7 @@ export default function OrdersPage() {
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Address</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Courier</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Tracking</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Tracking Progress</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Delivery</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Amount</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Status</th>
@@ -223,6 +257,11 @@ export default function OrdersPage() {
                         placeholder="Tracking no"
                         className="w-40 px-2 py-1 border border-gray-300 rounded text-sm"
                       />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getTrackingProgressColor(order.trackingProgress)}`}>
+                        {order.trackingProgress || 'Pending Assignment'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <select
@@ -310,6 +349,12 @@ export default function OrdersPage() {
                 <div>
                   <p className="text-sm text-gray-600">Tracking Number</p>
                   <p className="font-semibold">{selectedOrder.trackingNumber || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Tracking Progress</p>
+                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getTrackingProgressColor(selectedOrder.trackingProgress)}`}>
+                    {selectedOrder.trackingProgress || 'Pending Assignment'}
+                  </span>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Payment Email</p>
