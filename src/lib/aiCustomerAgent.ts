@@ -17,6 +17,7 @@ import {
   detectTimePeriod,
   extractCategory,
 } from './salesAnalytics';
+import { getCommerceInsightResponse } from './commerceInsights';
 
 export interface AIAgentResponse {
   message: string;
@@ -435,6 +436,17 @@ function isAnalyticsQuestion(message: string): boolean {
  */
 export async function getAIResponse(userMessage: string): Promise<AIAgentResponse> {
   try {
+    // Priority path: live commerce data for product/payment/delivery/marketing/top-list questions
+    const commerceInsight = await getCommerceInsightResponse(userMessage);
+    if (commerceInsight) {
+      return {
+        message: commerceInsight.message,
+        category: commerceInsight.topic,
+        sentiment: 'NEUTRAL',
+        escalateToHuman: false,
+      };
+    }
+
     // Special handling for sales/analytics queries - fetch real data
     if (isAnalyticsQuestion(userMessage)) {
       const category = extractCategory(userMessage);
