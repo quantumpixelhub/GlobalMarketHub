@@ -17,6 +17,30 @@ interface PaymentResponse {
   message: string;
 }
 
+function pickFirstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+function isValidProviderPaymentUrl(rawUrl: string): boolean {
+  if (!rawUrl) return false;
+
+  try {
+    const parsed = new URL(rawUrl);
+    // Prevent redirecting to bare root page that shows "Direct access is not allowed".
+    if (parsed.hostname.includes('uddoktapay.com') && parsed.pathname === '/' && !parsed.search) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * UddoktaPay Integration
  * Bangladesh's leading payment gateway
@@ -48,12 +72,15 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
+        api_key: apiKey,
         amount: config.amount,
         order_id: config.orderId,
         customer_email: config.customerEmail,
         customer_phone: config.customerPhone,
         customer_name: config.customerName,
+        payment_method: config.gateway && config.gateway !== 'uddoktapay' ? config.gateway : undefined,
         redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/callback?internal_txn=${encodeURIComponent(config.orderId)}&gateway=uddoktapay`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/failure?reason=cancelled_by_user`,
       }),
     });
 
@@ -63,10 +90,42 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
       throw new Error(data.message || 'UddoktaPay request failed');
     }
 
+    const paymentUrl = pickFirstString(
+      data?.payment_url,
+      data?.url,
+      data?.checkout_url,
+      data?.redirect_url,
+      data?.payment_link,
+      data?.data?.payment_url,
+      data?.data?.url,
+      data?.result?.payment_url,
+      data?.result?.url
+    );
+
+    const providerTransactionId = pickFirstString(
+      data?.transaction_id,
+      data?.trx_id,
+      data?.id,
+      data?.payment_id,
+      data?.data?.transaction_id,
+      data?.data?.trx_id,
+      data?.result?.transaction_id,
+      data?.result?.trx_id,
+      config.orderId
+    );
+
+    if (!isValidProviderPaymentUrl(paymentUrl)) {
+      return {
+        success: false,
+        transactionId: providerTransactionId,
+        message: 'UddoktaPay did not return a valid checkout URL. Please verify API key and merchant setup.',
+      };
+    }
+
     return {
       success: true,
-      transactionId: data.transaction_id,
-      paymentUrl: data.payment_url,
+      transactionId: providerTransactionId,
+      paymentUrl,
       message: 'Payment initiated successfully',
     };
   } catch (error) {

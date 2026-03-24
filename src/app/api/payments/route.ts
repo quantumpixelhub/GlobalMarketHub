@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
         .trim();
 
       const uddoktaResponse = await initiateUddoktaPay({
-        gateway: "uddoktapay",
+        gateway: requestedPaymentMethod,
         amount: Number(order.totalAmount),
         // Use internal transaction id so callback can map directly.
         orderId: transaction.id,
