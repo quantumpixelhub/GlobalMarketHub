@@ -76,14 +76,17 @@ function detectOpenDomainIntent(message: string): OpenDomainIntent {
 
 function generateGeneralIntentResponse(userMessage: string): string {
   const intent = detectOpenDomainIntent(userMessage);
+  const lowerMsg = userMessage.toLowerCase();
 
   if (intent === 'PRODUCT_RECOMMENDATION') {
-    return `I can help you choose the right product. Please share:
-1. Product type (phone, laptop, skincare, etc.)
-2. Your budget range
-3. Brand preference (optional)
+    return `I can help you find the right product! 
 
-Then I will suggest suitable options for you.`;
+Please share:
+1. **Product type** (phone, laptop, skincare, electronics, etc.)
+2. **Your budget** (any budget range)
+3. **Brand preference** (optional)
+
+Once you provide these details, I'll suggest the best matching products in our catalog.`;
   }
 
   if (intent === 'SALES_ANALYTICS') {
@@ -95,7 +98,7 @@ If you want customer support help, I can assist with order tracking, delivery, r
   if (intent === 'ORDER_CANCELLATION') {
     return `You can cancel an order before shipment.
 
-Steps:
+**Steps**:
 1. Go to My Orders
 2. Open your order
 3. Click Cancel (if available)
@@ -116,17 +119,41 @@ I will guide you to the exact warranty/claim process.`;
   if (intent === 'PRICING') {
     return `Prices and discounts can vary by seller and campaign.
 
-Please tell me the product name or category, and I will guide you to the best available options and current offers.`;
+Please tell me:
+- **Product name** or category you're interested in
+- **Your budget range** (optional)
+
+I will guide you to the best available options and current offers.`;
   }
 
-  return `I want to answer correctly. Please rephrase your question with one of these topics:
-- Order tracking/status
-- Delivery time
-- Payment/COD
-- Return/refund
-- Account/login
+  // Handle product existence questions (e.g., "do you have serum?", "do you sell laptops?")
+  if (lowerMsg.includes('do you') || lowerMsg.includes('have you') || lowerMsg.includes('sell')) {
+    // Extract potential product category
+    const productTerms = lowerMsg.replace(/do you|have|sell|here|\?|'|"/g, '').trim();
+    if (productTerms.length > 0) {
+      return `Great question! We likely have **${productTerms}** or similar products. 
 
-If your question is about business analytics, use Admin > Analytics.`;
+To find exactly what you're looking for:
+1. Use the **search bar** at the top to search for "${productTerms}"
+2. Browse by **category** - click the menu icon
+3. Filter by **price, brand, and ratings**
+
+If you can't find it, I can help you explore similar options or recommend alternatives!`;
+    }
+  }
+
+  // Fallback for truly unknown questions
+  return `Thanks for your question! I want to give you the right answer.
+
+I can help with:
+✓ **Order tracking** - Share your Order Number (ORD-...)
+✓ **Delivery times** - When will my package arrive?
+✓ **Payment methods** - COD, card, digital wallets
+✓ **Returns & refunds** - How to return items
+✓ **Account help** - Login, profile, addresses
+✓ **Product search** - Help finding items you need
+
+What can I help you with today? 😊`;
 }
 
 function isAnalyticsQuestion(message: string): boolean {
@@ -165,7 +192,21 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
     const category = categorizeMessage(userMessage);
     const sentiment = analyzeSentiment(userMessage);
 
-    // Step 2: Find relevant FAQs
+    // Step 2: Check for open-domain intents FIRST
+    // This handles product questions, pricing, warranty, etc.
+    const openDomainIntent = detectOpenDomainIntent(userMessage);
+    if (openDomainIntent !== 'UNKNOWN') {
+      // We detected a specific intent - respond to it directly
+      const intentResponse = generateGeneralIntentResponse(userMessage);
+      return {
+        message: intentResponse,
+        category: openDomainIntent,
+        sentiment,
+        escalateToHuman: false,
+      };
+    }
+
+    // Step 3: Find relevant FAQs (only if no open-domain intent matched)
     const relevantFAQs = findRelevantFAQs(userMessage, 2);
     const lowerMessage = userMessage.toLowerCase();
     const hasDirectKeywordMatch =
@@ -173,7 +214,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
         ? relevantFAQs[0].keywords.some((kw) => lowerMessage.includes(kw.toLowerCase()))
         : false;
 
-    // Step 3: Determine if escalation needed
+    // Step 4: Determine if escalation needed
     const shouldEscalate =
       sentiment === 'NEGATIVE' ||
       userMessage.length > 500 ||
@@ -181,7 +222,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
       userMessage.includes('escalate') ||
       category === 'COMPLAINT';
 
-    // Step 4: Generate response
+    // Step 5: Generate response
     let responseMessage = '';
 
     if (relevantFAQs.length > 0 && (category !== 'GENERAL' || hasDirectKeywordMatch)) {
