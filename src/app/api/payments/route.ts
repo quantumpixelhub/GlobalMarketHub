@@ -113,6 +113,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (String(paymentMethod).toLowerCase() === "cod") {
+      return NextResponse.json(
+        { error: "Cash on Delivery is not available" },
+        { status: 400 }
+      );
+    }
+
     // Get order with owner
     const order = await prisma.order.findUnique({
       where: { id: orderId as string },

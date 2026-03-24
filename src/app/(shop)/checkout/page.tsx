@@ -26,6 +26,17 @@ interface CartSummary {
   totalQuantity: number;
 }
 
+interface BuyNowItem {
+  productId: string;
+  quantity: number;
+  price?: number;
+  title?: string;
+  mainImage?: string;
+  variantLabel?: string;
+}
+
+const BUY_NOW_STORAGE_KEY = 'buy_now_checkout_item';
+
 const LOCAL_TAX_RATE = 0;
 const IMPORTED_TAX_RATE = 0.08;
 
@@ -65,6 +76,7 @@ interface ProfileData {
 export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [cart, setCart] = useState<CartSummary | null>(null);
+  const [buyNowItems, setBuyNowItems] = useState<BuyNowItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
@@ -124,10 +136,55 @@ export default function CheckoutPage() {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
+        const rawBuyNow = sessionStorage.getItem(BUY_NOW_STORAGE_KEY);
+
+        const parsedBuyNow: BuyNowItem[] = (() => {
+          if (!rawBuyNow) return [];
+          try {
+            const parsed = JSON.parse(rawBuyNow);
+            const normalized = Array.isArray(parsed) ? parsed : [parsed];
+            return normalized
+              .map((item: any) => ({
+                productId: String(item?.productId || ''),
+                quantity: Math.max(1, Number(item?.quantity || 1)),
+                price: Number(item?.price || 0),
+                title: item?.title,
+                mainImage: item?.mainImage,
+                variantLabel: item?.variantLabel,
+              }))
+              .filter((item) => Boolean(item.productId));
+          } catch {
+            sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+            return [];
+          }
+        })();
+
+        const buyNowCart: CartSummary | null = parsedBuyNow.length > 0
+          ? {
+              cartId: 'buy-now',
+              subtotal: parsedBuyNow.reduce((sum, item) => sum + (Number(item.price || 0) * item.quantity), 0),
+              itemCount: parsedBuyNow.length,
+              totalQuantity: parsedBuyNow.reduce((sum, item) => sum + item.quantity, 0),
+              items: parsedBuyNow.map((item, index) => ({
+                id: `buy-now-${index}`,
+                productId: item.productId,
+                quantity: item.quantity,
+                priceSnapshot: Number(item.price || 0),
+                variantLabel: item.variantLabel,
+                product: {
+                  id: item.productId,
+                  title: item.title || 'Item',
+                  mainImage: item.mainImage,
+                },
+              })),
+            }
+          : null;
+
+        setBuyNowItems(parsedBuyNow);
 
         if (!token) {
           setIsGuestCheckout(true);
-          setCart(getGuestCartSummary());
+          setCart(buyNowCart || getGuestCartSummary());
 
           const rawDelivery = sessionStorage.getItem('checkout_delivery_options');
           if (rawDelivery) {
@@ -154,11 +211,15 @@ export default function CheckoutPage() {
           phone: userProfile.phone || '',
         }));
 
-        const cartRes = await fetch('/api/cart', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const cartData = await cartRes.json();
-        setCart(cartData);
+        if (buyNowCart) {
+          setCart(buyNowCart);
+        } else {
+          const cartRes = await fetch('/api/cart', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const cartData = await cartRes.json();
+          setCart(cartData);
+        }
 
         const rawDelivery = sessionStorage.getItem('checkout_delivery_options');
         if (rawDelivery) {
@@ -191,7 +252,14 @@ export default function CheckoutPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          cartId: cart?.cartId,
+          ...(buyNowItems.length > 0
+            ? {
+                directItems: buyNowItems.map((item) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                })),
+              }
+            : { cartId: cart?.cartId }),
           shippingAddressId: data.addressId,
           deliveryArea: data.deliveryArea,
           deliverySpeed: data.deliverySpeed,
@@ -225,6 +293,9 @@ export default function CheckoutPage() {
       }
 
       const paymentData = await paymentRes.json();
+      if (buyNowItems.length > 0) {
+        sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+      }
       window.location.href = paymentData.paymentUrl;
     } catch (error) {
       console.error('Error during checkout:', error);
@@ -301,7 +372,11 @@ export default function CheckoutPage() {
       }
 
       const paymentData = await paymentRes.json();
-      clearGuestCart();
+      if (buyNowItems.length > 0) {
+        sessionStorage.removeItem(BUY_NOW_STORAGE_KEY);
+      } else {
+        clearGuestCart();
+      }
       window.location.href = paymentData.paymentUrl;
     } catch (error) {
       console.error('Error during guest checkout:', error);

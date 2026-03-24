@@ -5,7 +5,6 @@ import {
   CreditCard,
   ShieldCheck,
   Smartphone,
-  Truck,
   WalletCards,
 } from 'lucide-react';
 
@@ -69,8 +68,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         return <WalletCards size={20} className="text-amber-600" />;
       case 'stripe':
         return <CreditCard size={20} className="text-indigo-600" />;
-      case 'cod':
-        return <Truck size={20} className="text-orange-600" />;
       default:
         return <CreditCard size={20} className="text-gray-600" />;
     }
@@ -176,7 +173,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
             { id: 'bkash', name: 'bKash', note: 'Mobile wallet' },
             { id: 'nagad', name: 'Nagad', note: 'Mobile wallet' },
             { id: 'stripe', name: 'Credit/Debit Card', note: 'Visa, Mastercard, Amex' },
-            { id: 'cod', name: 'Cash on Delivery', note: 'Pay at your doorstep' },
           ].map((method) => (
             <label
               key={method.id}
@@ -214,7 +210,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           {paymentMethod === 'nagad' && 'You will be redirected to Nagad secure payment page after clicking Proceed to Pay.'}
           {paymentMethod === 'stripe' && 'Enter your card details securely on the next step via encrypted card checkout.'}
           {paymentMethod === 'uddoktapay' && 'You will continue through UddoktaPay with support for local wallets and cards.'}
-          {paymentMethod === 'cod' && 'Pay cash when your order is delivered to your address.'}
         </div>
       </div>
 

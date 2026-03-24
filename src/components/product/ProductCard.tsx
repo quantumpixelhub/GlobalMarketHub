@@ -4,7 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
-import { addToGuestCart } from '@/lib/guestCart';
 
 interface ProductCardProps {
   id: string;
@@ -160,79 +159,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     if (typeof window === 'undefined') return;
 
-    const token = localStorage.getItem('token');
+    const buyNowPayload = [
+      {
+        productId: id,
+        quantity: 1,
+        price: currentPrice,
+        title,
+        mainImage,
+      },
+    ];
 
-    if (!token) {
-      addToGuestCart(
-        {
-          id,
-          title,
-          mainImage,
-          currentPrice,
-        },
-        1,
-        {
-          cartKey: id,
-        }
-      );
-      window.dispatchEvent(new Event('cart-updated'));
-      window.location.href = '/checkout';
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          productId: id,
-          quantity: 1,
-          priceSnapshot: currentPrice,
-        }),
-      });
-
-      if (res.ok) {
-        window.dispatchEvent(new Event('cart-updated'));
-        window.location.href = '/checkout';
-        return;
-      }
-
-      if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem('token');
-        addToGuestCart(
-          {
-            id,
-            title,
-            mainImage,
-            currentPrice,
-          },
-          1,
-          {
-            cartKey: id,
-          }
-        );
-        window.dispatchEvent(new Event('cart-updated'));
-        window.location.href = '/checkout';
-      }
-    } catch {
-      addToGuestCart(
-        {
-          id,
-          title,
-          mainImage,
-          currentPrice,
-        },
-        1,
-        {
-          cartKey: id,
-        }
-      );
-      window.dispatchEvent(new Event('cart-updated'));
-      window.location.href = '/checkout';
-    }
+    sessionStorage.setItem('buy_now_checkout_item', JSON.stringify(buyNowPayload));
+    window.location.href = '/checkout';
   };
 
   return (

@@ -177,6 +177,7 @@ export async function POST(request: NextRequest) {
     const {
       cartId,
       shippingAddressId,
+      directItems,
       isGuestCheckout,
       guestInfo,
       guestCartItems,
@@ -256,14 +257,6 @@ export async function POST(request: NextRequest) {
       const normalizedDeliveryArea = normalizeDeliveryArea(deliveryArea || guestInfo?.deliveryArea);
       const normalizedDeliverySpeed = normalizeDeliverySpeed(deliverySpeed || guestInfo?.deliverySpeed);
 
-      // Rebuild subtotal from DB product prices (server-authoritative)
-      const subtotal = guestCartItems.reduce((sum: number, item: any) => {
-        const productId = String(item.productId || "");
-        const product = guestProducts.find((p) => p.id === productId);
-        const price = product ? Number(product.currentPrice) : 0;
-        return sum + price * Number(item.quantity || 1);
-      }, 0);
-
       const guestProductIds = Array.from(
         new Set(
           guestCartItems
@@ -282,6 +275,14 @@ export async function POST(request: NextRequest) {
       const guestProductMap = new Map(
         guestProducts.map((product) => [product.id, product])
       );
+
+      // Rebuild subtotal from DB product prices (server-authoritative)
+      const subtotal = guestCartItems.reduce((sum: number, item: any) => {
+        const productId = String(item.productId || "");
+        const product = guestProducts.find((p) => p.id === productId);
+        const price = product ? Number(product.currentPrice) : 0;
+        return sum + price * Number(item.quantity || 1);
+      }, 0);
 
       const importedSubtotal = guestCartItems.reduce((sum: number, item: any) => {
         const productId = String(item.productId || "");
@@ -361,15 +362,127 @@ export async function POST(request: NextRequest) {
 
     const userId = auth.data?.userId as string;
 
-    if (!cartId || !shippingAddressId) {
+    if (!shippingAddressId) {
       return NextResponse.json(
-        { error: "Cart and shipping address are required" },
+        { error: "Shipping address is required" },
         { status: 400 }
       );
     }
 
     const normalizedDeliveryArea = normalizeDeliveryArea(deliveryArea);
     const normalizedDeliverySpeed = normalizeDeliverySpeed(deliverySpeed);
+
+    // Get shipping address
+    const address = await prisma.userAddress.findUnique({
+      where: { id: shippingAddressId },
+    });
+
+    if (!address || address.userId !== userId) {
+      return NextResponse.json(
+        { error: "Shipping address not found" },
+        { status: 404 }
+      );
+    }
+
+    // Direct Buy Now flow for authenticated users (without adding to cart)
+    if (Array.isArray(directItems) && directItems.length > 0) {
+      const normalizedDirectItems = directItems
+        .map((item: any) => ({
+          productId: String(item?.productId || ""),
+          quantity: Math.max(1, Number(item?.quantity || 1)),
+        }))
+        .filter((item: any) => Boolean(item.productId));
+
+      if (normalizedDirectItems.length === 0) {
+        return NextResponse.json({ error: "No valid items for direct checkout" }, { status: 400 });
+      }
+
+      const directProductIds = Array.from(new Set(normalizedDirectItems.map((item) => item.productId)));
+      const directProducts = await prisma.product.findMany({
+        where: { id: { in: directProductIds } },
+        select: { id: true, currentPrice: true, certifications: true, specifications: true },
+      });
+      const directProductMap = new Map(directProducts.map((product) => [product.id, product]));
+
+      const subtotal = normalizedDirectItems.reduce((sum, item) => {
+        const product = directProductMap.get(item.productId);
+        const price = product ? Number(product.currentPrice) : 0;
+        return sum + (price * item.quantity);
+      }, 0);
+
+      const importedSubtotal = normalizedDirectItems.reduce((sum, item) => {
+        const product = directProductMap.get(item.productId);
+        if (!product) return sum;
+        const lineTotal = Number(product.currentPrice) * item.quantity;
+        return isImportedProduct(product.certifications, product.specifications)
+          ? sum + lineTotal
+          : sum;
+      }, 0);
+
+      const localSubtotal = Math.max(0, subtotal - importedSubtotal);
+      const tax = (localSubtotal * LOCAL_TAX_RATE) + (importedSubtotal * IMPORTED_TAX_RATE);
+      const shipping = SHIPPING_MATRIX[normalizedDeliveryArea][normalizedDeliverySpeed];
+      const totalAmount = subtotal + tax + shipping;
+
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+      const order = await prisma.order.create({
+        data: {
+          orderNumber,
+          userId,
+          trackingNumber: generateTrackingNumber(),
+          shippingAddressId,
+          shippingAddress: {
+            firstName: address.firstName,
+            lastName: address.lastName,
+            phone: address.phone,
+            address: address.address,
+            division: address.division,
+            district: address.district,
+            upazila: address.upazila,
+            postCode: address.postCode,
+            deliveryArea: normalizedDeliveryArea,
+            deliverySpeed: normalizedDeliverySpeed,
+          },
+          subtotal: Number(subtotal),
+          tax: Number(tax),
+          shipping: Number(shipping),
+          totalAmount: Number(totalAmount),
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          paymentMethod: "PENDING",
+          items: {
+            createMany: {
+              data: normalizedDirectItems.map((item) => {
+                const product = directProductMap.get(item.productId);
+                return {
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  price: Number(product?.currentPrice || 0),
+                };
+              }),
+            },
+          },
+          notes: "Direct buy now checkout",
+        },
+        include: { items: true },
+      });
+
+      return NextResponse.json(
+        {
+          message: "Order created successfully",
+          order,
+        },
+        { status: 201 }
+      );
+    }
+
+    if (!cartId) {
+      return NextResponse.json(
+        { error: "Cart is required" },
+        { status: 400 }
+      );
+    }
 
     // Get cart with items
     const cart = await prisma.cart.findUnique({
@@ -383,18 +496,6 @@ export async function POST(request: NextRequest) {
 
     if (cart.items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
-    }
-
-    // Get shipping address
-    const address = await prisma.userAddress.findUnique({
-      where: { id: shippingAddressId },
-    });
-
-    if (!address || address.userId !== userId) {
-      return NextResponse.json(
-        { error: "Shipping address not found" },
-        { status: 404 }
-      );
     }
 
     const cartProductIds = Array.from(new Set(cart.items.map((item) => item.productId)));

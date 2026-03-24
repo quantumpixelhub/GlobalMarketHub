@@ -263,7 +263,29 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = async () => {
-    await handleAddToCart(true);
+    if (!product) return;
+
+    const selectedVariantForBuyNow = resolveSelectedVariant(product);
+    const buyNowPrice = selectedVariantForBuyNow?.price ?? product.currentPrice;
+    const variantLabel = selectedVariantForBuyNow
+      ? Object.values(selectedVariantForBuyNow.attributes || {}).join(' / ')
+      : undefined;
+
+    if (typeof window !== 'undefined') {
+      const buyNowPayload = [
+        {
+          productId: product.id,
+          quantity,
+          price: buyNowPrice,
+          title: variantLabel ? `${product.title} (${variantLabel})` : product.title,
+          mainImage: product.mainImage,
+          variantLabel,
+        },
+      ];
+
+      sessionStorage.setItem('buy_now_checkout_item', JSON.stringify(buyNowPayload));
+      window.location.href = '/checkout';
+    }
   };
 
   const resolveSelectedVariant = (currentProduct: Product): ProductVariant | null => {
