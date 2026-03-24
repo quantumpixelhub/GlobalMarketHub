@@ -111,15 +111,20 @@ export async function GET(request: NextRequest) {
     const view = normalizeText(searchParams.get('view') || '').toLowerCase();
 
     const incompleteStatuses = ['PENDING', 'PROCESSING', 'SHIPPED'];
-    const whereClause = view === 'incomplete'
-      ? {
-          status: {
-            in: incompleteStatuses,
-          },
-        }
-      : {};
+    const whereClause =
+      view === 'incomplete'
+        ? {
+            status: {
+              in: incompleteStatuses,
+            },
+          }
+        : view === 'refunded'
+          ? {
+              paymentStatus: 'REFUNDED' as const,
+            }
+          : {};
 
-    const [orders, total, incompleteCount] = await Promise.all([
+    const [orders, total, incompleteCount, refundedCount] = await Promise.all([
       prisma.order.findMany({
         where: whereClause,
         skip: (page - 1) * limit,
@@ -154,6 +159,11 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
+      prisma.order.count({
+        where: {
+          paymentStatus: 'REFUNDED',
+        },
+      }),
     ]);
 
     const normalizedOrders = orders.map((order) => normalizeOrder(order));
@@ -167,8 +177,9 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
       summary: {
-        filter: view === 'incomplete' ? 'incomplete' : 'all',
+        filter: view === 'incomplete' ? 'incomplete' : view === 'refunded' ? 'refunded' : 'all',
         incompleteCount,
+        refundedCount,
       },
     });
   } catch (error) {

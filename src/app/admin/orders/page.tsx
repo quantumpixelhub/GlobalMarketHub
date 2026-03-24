@@ -44,8 +44,9 @@ type EditableOrderFields = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'incomplete'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'incomplete' | 'refunded'>('all');
   const [incompleteCount, setIncompleteCount] = useState(0);
+  const [refundedCount, setRefundedCount] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [edits, setEdits] = useState<Record<string, EditableOrderFields>>({});
   const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
@@ -60,7 +61,12 @@ export default function OrdersPage() {
           return;
         }
 
-        const query = activeFilter === 'incomplete' ? '&view=incomplete' : '';
+        const query =
+          activeFilter === 'incomplete'
+            ? '&view=incomplete'
+            : activeFilter === 'refunded'
+              ? '&view=refunded'
+              : '';
         const res = await fetch(`/api/admin/orders?limit=100${query}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -69,6 +75,7 @@ export default function OrdersPage() {
           const data = await res.json();
           const list = data.orders || [];
           setIncompleteCount(Number(data?.summary?.incompleteCount || 0));
+          setRefundedCount(Number(data?.summary?.refundedCount || 0));
           setOrders(list);
           const initialEdits: Record<string, EditableOrderFields> = {};
           list.forEach((order: Order) => {
@@ -297,6 +304,15 @@ export default function OrdersPage() {
             }`}
           >
             Incomplete Tracking ({incompleteCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('refunded')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              activeFilter === 'refunded' ? 'bg-rose-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Refunded Payments ({refundedCount})
           </button>
         </div>
       </div>
