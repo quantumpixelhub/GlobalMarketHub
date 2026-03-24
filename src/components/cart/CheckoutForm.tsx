@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 
 const PAYMENT_LOGO_URLS: Record<string, string> = {
-  uddoktapay: 'https://uddoktapay.com/favicon.ico',
-  bkash: 'https://www.bkash.com/favicon.ico',
-  nagad: 'https://www.nagad.com.bd/favicon.ico',
+  uddoktapay: '/payment-logos/uddoktapay.png',
+  bkash: '/payment-logos/bkash.png',
+  nagad: '/payment-logos/nagad.png',
 };
 
 interface Address {
