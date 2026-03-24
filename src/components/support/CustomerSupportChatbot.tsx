@@ -172,7 +172,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 p-4 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition transform hover:scale-110 z-40 ${className}`}
+        className={`fixed bottom-6 right-6 p-4 bg-orange-500 text-white rounded-full shadow-lg hover:bg-orange-600 transition transform hover:scale-110 z-40 ${className}`}
         title="Open support chat"
       >
         <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !inputValue.trim() || isEscalated}
-            className="bg-emerald-600 text-white p-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 transition"
+            className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-400 transition"
             title="Send message (Enter)"
           >
             <Send size={18} />

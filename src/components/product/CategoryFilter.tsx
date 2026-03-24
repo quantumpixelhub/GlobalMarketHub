@@ -73,7 +73,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               onClick={() => onCategoryChange?.('')}
               className={`block w-full text-left px-3 py-2 rounded ${
                 !selectedCategory
-                  ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                  ? 'bg-orange-100 text-orange-700 font-semibold'
                   : 'hover:bg-gray-100'
               }`}
             >
@@ -92,10 +92,10 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 >
                   <button
                     onClick={() => onCategoryChange?.(category.slug)}
-                    className={`w-full text-left px-3 py-2 rounded bg-emerald-50 flex items-center justify-between ${
+                    className={`w-full text-left px-3 py-2 rounded bg-orange-50 flex items-center justify-between ${
                       selectedCategory === category.slug
-                        ? 'bg-emerald-100 text-emerald-700 font-semibold'
-                        : 'text-gray-800 hover:bg-emerald-100'
+                        ? 'bg-orange-100 text-orange-700 font-semibold'
+                        : 'text-gray-800 hover:bg-orange-100'
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                           onClick={() => onCategoryChange?.(subcategory.slug)}
                           className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
                             selectedCategory === subcategory.slug
-                              ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                              ? 'bg-orange-100 text-orange-700 font-semibold'
                               : 'hover:bg-gray-100 text-gray-700'
                           }`}
                         >
@@ -186,7 +186,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             </div>
             <button
               onClick={handleApplyPrice}
-              className="w-full bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700"
+              className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
             >
               Apply Filter
             </button>
