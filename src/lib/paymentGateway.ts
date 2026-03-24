@@ -68,12 +68,21 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
     const response = await fetch(checkoutV2Url, {
       method: 'POST',
       headers: {
+        accept: 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'RT-UDDOKTAPAY-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        api_key: apiKey,
-        amount: config.amount,
+        // Primary contract from UddoktaPay sandbox example
+        full_name: config.customerName,
+        email: config.customerEmail,
+        phone: config.customerPhone,
+        amount: String(config.amount),
+        metadata: {
+          internal_txn: config.orderId,
+          selected_method: config.gateway,
+        },
+        // Backward-compatible fields for providers expecting legacy names
         order_id: config.orderId,
         customer_email: config.customerEmail,
         customer_phone: config.customerPhone,
@@ -81,6 +90,7 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
         payment_method: config.gateway && config.gateway !== 'uddoktapay' ? config.gateway : undefined,
         redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/callback?internal_txn=${encodeURIComponent(config.orderId)}&gateway=uddoktapay`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/failure?reason=cancelled_by_user`,
+        webhook_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/callback`,
       }),
     });
 
@@ -290,10 +300,14 @@ export async function verifyPaymentStatus(
       const response = await fetch(verifyUrl, {
         method: 'POST',
         headers: {
+          accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
+          'RT-UDDOKTAPAY-API-KEY': apiKey,
         },
-        body: JSON.stringify({ transaction_id: transactionId }),
+        body: JSON.stringify({
+          transaction_id: transactionId,
+          invoice_id: transactionId,
+        }),
       });
 
       if (!response.ok) {
@@ -305,9 +319,18 @@ export async function verifyPaymentStatus(
       }
 
       const data = await response.json();
+      const rawStatus = String(
+        data?.status ||
+        data?.payment_status ||
+        data?.data?.status ||
+        data?.data?.payment_status ||
+        'UNKNOWN'
+      ).toUpperCase();
+      const isSuccessStatus = ['COMPLETED', 'SUCCESS', 'PAID'].includes(rawStatus);
+
       return {
-        success: true,
-        status: String(data.status || data.payment_status || 'COMPLETED').toUpperCase(),
+        success: isSuccessStatus,
+        status: rawStatus,
         message: 'Payment verified successfully',
       };
     } catch (error) {

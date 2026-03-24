@@ -90,8 +90,9 @@ export async function POST(request: NextRequest) {
     const refundResponse = await fetch(refundUrl, {
       method: 'POST',
       headers: {
+        accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        'RT-UDDOKTAPAY-API-KEY': apiKey,
       },
       body: JSON.stringify(refundPayload),
     });
