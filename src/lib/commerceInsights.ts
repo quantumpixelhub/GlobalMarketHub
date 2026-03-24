@@ -21,6 +21,40 @@ export interface CommerceInsightResult {
 
 const MAX_ITEMS = 10;
 const DEFAULT_ITEMS = 5;
+const REQUIREMENT_STOP_WORDS = new Set([
+  'which',
+  'what',
+  'is',
+  'are',
+  'the',
+  'a',
+  'an',
+  'for',
+  'and',
+  'or',
+  'to',
+  'of',
+  'in',
+  'on',
+  'best',
+  'top',
+  'most',
+  'sold',
+  'selling',
+  'deal',
+  'deals',
+  'review',
+  'reviews',
+  'ranking',
+  'ranked',
+  'product',
+  'products',
+  'item',
+  'items',
+  'show',
+  'give',
+  'list',
+]);
 
 function toBdt(value: number): string {
   return `BDT ${Math.round(value).toLocaleString()}`;
@@ -60,11 +94,52 @@ function extractProductPhrase(message: string): string | null {
   return null;
 }
 
+function extractRequirementTerm(message: string): string | null {
+  const patterns = [
+    /which\s+(.+?)\s+(?:best|top|most)\s+(?:sold|selling|ranked|reviewed)/i,
+    /(?:best|top|most)\s+(?:sold|selling|ranked|reviewed|deals?)\s+(.+?)(?:\?|$)/i,
+    /(?:new arrivals?|featured)\s+(?:of|for)?\s*(.+?)(?:\?|$)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    if (match?.[1]) {
+      const phrase = cleanSearchPhrase(match[1]);
+      if (phrase.length >= 2) {
+        return phrase;
+      }
+    }
+  }
+
+  const productPhrase = extractProductPhrase(message);
+  if (productPhrase) return productPhrase;
+
+  const tokens = cleanSearchPhrase(message)
+    .toLowerCase()
+    .split(' ')
+    .filter((token) => token.length >= 3 && !REQUIREMENT_STOP_WORDS.has(token));
+
+  return tokens.length > 0 ? tokens[0] : null;
+}
+
+function buildRequirementWhere(term: string | null) {
+  if (!term) return {};
+  return {
+    OR: [
+      { title: { contains: term, mode: 'insensitive' as const } },
+      { description: { contains: term, mode: 'insensitive' as const } },
+      { category: { name: { contains: term, mode: 'insensitive' as const } } },
+    ],
+  };
+}
+
 function detectCommerceTopic(message: string): CommerceTopic | null {
   const lower = message.toLowerCase();
 
   if (/(most sold|most selling|highest sold)/.test(lower)) return 'MOST_SOLD';
-  if (/(top sell|top selling|best selling|bestseller|best seller)/.test(lower)) return 'TOP_SELLS';
+  if (/(top sell|top sold|top selling|best selling|best sold|bestseller|best seller)/.test(lower)) {
+    return 'TOP_SELLS';
+  }
   if (/(top deal|best deal|hot deal|deals)/.test(lower)) return 'TOP_DEALS';
   if (/(top ranking|top rank|highest rating|best rated|ranking)/.test(lower)) return 'TOP_RANKINGS';
   if (/(top review|most reviewed|best review)/.test(lower)) return 'TOP_REVIEWS';
@@ -81,12 +156,13 @@ function detectCommerceTopic(message: string): CommerceTopic | null {
   return null;
 }
 
-async function getProductsListByCreatedAt(limit: number, featuredOnly = false) {
+async function getProductsListByCreatedAt(limit: number, featuredOnly = false, requirementTerm: string | null = null) {
   return prisma.product.findMany({
     where: {
       isActive: true,
       stock: { gt: 0 },
       ...(featuredOnly ? { isFeatured: true } : {}),
+      ...buildRequirementWhere(requirementTerm),
     },
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -105,12 +181,13 @@ async function getProductsListByCreatedAt(limit: number, featuredOnly = false) {
   });
 }
 
-async function getTopDeals(limit: number) {
+async function getTopDeals(limit: number, requirementTerm: string | null = null) {
   const products = await prisma.product.findMany({
     where: {
       isActive: true,
       stock: { gt: 0 },
       originalPrice: { gt: 0 },
+      ...buildRequirementWhere(requirementTerm),
     },
     select: {
       id: true,
@@ -141,13 +218,14 @@ async function getTopDeals(limit: number) {
     .slice(0, limit);
 }
 
-async function getTopSold(limit: number) {
+async function getTopSold(limit: number, requirementTerm: string | null = null) {
   const grouped = await prisma.orderItem.groupBy({
     by: ['productId'],
     where: {
       order: {
         status: 'DELIVERED',
       },
+      ...(requirementTerm ? { product: buildRequirementWhere(requirementTerm) } : {}),
     },
     _sum: { quantity: true },
     orderBy: {
@@ -391,12 +469,17 @@ async function buildCampaignResponse(limit: number): Promise<CommerceInsightResu
   };
 }
 
-async function buildTopDealsResponse(limit: number): Promise<CommerceInsightResult> {
-  const deals = await getTopDeals(limit);
+async function buildTopDealsResponse(
+  limit: number,
+  requirementTerm: string | null
+): Promise<CommerceInsightResult> {
+  const deals = await getTopDeals(limit, requirementTerm);
   if (deals.length === 0) {
     return {
       topic: 'TOP_DEALS',
-      message: 'No discounted in-stock deals are available right now.',
+      message: requirementTerm
+        ? `No discounted in-stock deals are available for "${requirementTerm}" right now.`
+        : 'No discounted in-stock deals are available right now.',
     };
   }
 
@@ -412,17 +495,65 @@ async function buildTopDealsResponse(limit: number): Promise<CommerceInsightResu
 
   return {
     topic: 'TOP_DEALS',
-    message: `Top deals right now:\n${lines.join('\n')}`,
+    message: `${requirementTerm ? `Top deals for "${requirementTerm}"` : 'Top deals right now'}:\n${lines.join('\n')}`,
   };
 }
 
-async function buildTopSellsResponse(limit: number, topic: CommerceTopic): Promise<CommerceInsightResult> {
-  const topSold = await getTopSold(limit);
+async function getTopRatedProductsByRequirement(requirementTerm: string | null, limit: number) {
+  return prisma.product.findMany({
+    where: {
+      isActive: true,
+      stock: { gt: 0 },
+      ...buildRequirementWhere(requirementTerm),
+    },
+    orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
+    take: limit,
+    select: {
+      title: true,
+      currentPrice: true,
+      rating: true,
+      reviewCount: true,
+    },
+  });
+}
+
+async function buildTopSellsResponse(
+  limit: number,
+  topic: CommerceTopic,
+  message: string
+): Promise<CommerceInsightResult> {
+  const requirementTerm = extractRequirementTerm(message);
+  const topSold = await getTopSold(limit, requirementTerm);
 
   if (topSold.length === 0) {
+    const fallbackProducts = await getTopRatedProductsByRequirement(requirementTerm, limit);
+    if (fallbackProducts.length > 0) {
+      const fallbackLines = fallbackProducts.map((product, idx) =>
+        formatProductLine(idx + 1, {
+          title: product.title,
+          currentPrice: Number(product.currentPrice),
+          rating: Number(product.rating),
+          reviewCount: product.reviewCount,
+        })
+      );
+
+      return {
+        topic,
+        message: [
+          requirementTerm
+            ? `No delivered-order sales data found for "${requirementTerm}" yet.`
+            : 'No delivered-order sales data found yet.',
+          'Best matching top-rated in-stock options:',
+          ...fallbackLines,
+        ].join('\n'),
+      };
+    }
+
     return {
       topic,
-      message: 'No delivered-order sales data is available yet.',
+      message: requirementTerm
+        ? `No delivered-order sales data or in-stock matches found for "${requirementTerm}" yet.`
+        : 'No delivered-order sales data is available yet.',
     };
   }
 
@@ -438,13 +569,22 @@ async function buildTopSellsResponse(limit: number, topic: CommerceTopic): Promi
 
   return {
     topic,
-    message: `${topic === 'MOST_SOLD' ? 'Most sold items' : 'Top selling items'}:\n${lines.join('\n')}`,
+    message: `${
+      topic === 'MOST_SOLD' ? 'Most sold items' : 'Top selling items'
+    }${requirementTerm ? ` for "${requirementTerm}"` : ''}:\n${lines.join('\n')}`,
   };
 }
 
-async function buildTopRankingsResponse(limit: number): Promise<CommerceInsightResult> {
+async function buildTopRankingsResponse(
+  limit: number,
+  requirementTerm: string | null
+): Promise<CommerceInsightResult> {
   const products = await prisma.product.findMany({
-    where: { isActive: true, stock: { gt: 0 } },
+    where: {
+      isActive: true,
+      stock: { gt: 0 },
+      ...buildRequirementWhere(requirementTerm),
+    },
     orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
     take: limit,
     select: {
@@ -468,14 +608,28 @@ async function buildTopRankingsResponse(limit: number): Promise<CommerceInsightR
     topic: 'TOP_RANKINGS',
     message:
       lines.length > 0
-        ? `Top ranking products (by rating and reviews):\n${lines.join('\n')}`
-        : 'No ranking data available yet.',
+        ? `${
+            requirementTerm
+              ? `Top ranking products for "${requirementTerm}" (by rating and reviews)`
+              : 'Top ranking products (by rating and reviews)'
+          }:\n${lines.join('\n')}`
+        : requirementTerm
+          ? `No ranking data available for "${requirementTerm}" yet.`
+          : 'No ranking data available yet.',
   };
 }
 
-async function buildTopReviewsResponse(limit: number): Promise<CommerceInsightResult> {
+async function buildTopReviewsResponse(
+  limit: number,
+  requirementTerm: string | null
+): Promise<CommerceInsightResult> {
   const products = await prisma.product.findMany({
-    where: { isActive: true, stock: { gt: 0 }, reviewCount: { gt: 0 } },
+    where: {
+      isActive: true,
+      stock: { gt: 0 },
+      reviewCount: { gt: 0 },
+      ...buildRequirementWhere(requirementTerm),
+    },
     orderBy: [{ reviewCount: 'desc' }, { rating: 'desc' }],
     take: limit,
     select: {
@@ -499,13 +653,18 @@ async function buildTopReviewsResponse(limit: number): Promise<CommerceInsightRe
     topic: 'TOP_REVIEWS',
     message:
       lines.length > 0
-        ? `Top reviewed products:\n${lines.join('\n')}`
-        : 'No reviewed products are available yet.',
+        ? `${requirementTerm ? `Top reviewed products for "${requirementTerm}"` : 'Top reviewed products'}:\n${lines.join('\n')}`
+        : requirementTerm
+          ? `No reviewed products are available for "${requirementTerm}" yet.`
+          : 'No reviewed products are available yet.',
   };
 }
 
-async function buildNewArrivalsResponse(limit: number): Promise<CommerceInsightResult> {
-  const products = await getProductsListByCreatedAt(limit, false);
+async function buildNewArrivalsResponse(
+  limit: number,
+  requirementTerm: string | null
+): Promise<CommerceInsightResult> {
+  const products = await getProductsListByCreatedAt(limit, false, requirementTerm);
   const lines = products.map((product, idx) =>
     formatProductLine(idx + 1, {
       title: `${product.title} (${product.category?.name || 'General'})`,
@@ -519,13 +678,18 @@ async function buildNewArrivalsResponse(limit: number): Promise<CommerceInsightR
     topic: 'NEW_ARRIVALS',
     message:
       lines.length > 0
-        ? `New arrivals:\n${lines.join('\n')}`
-        : 'No new arrivals found right now.',
+        ? `${requirementTerm ? `New arrivals for "${requirementTerm}"` : 'New arrivals'}:\n${lines.join('\n')}`
+        : requirementTerm
+          ? `No new arrivals found for "${requirementTerm}" right now.`
+          : 'No new arrivals found right now.',
   };
 }
 
-async function buildFeaturedResponse(limit: number): Promise<CommerceInsightResult> {
-  const products = await getProductsListByCreatedAt(limit, true);
+async function buildFeaturedResponse(
+  limit: number,
+  requirementTerm: string | null
+): Promise<CommerceInsightResult> {
+  const products = await getProductsListByCreatedAt(limit, true, requirementTerm);
   const lines = products.map((product, idx) =>
     formatProductLine(idx + 1, {
       title: `${product.title} (${product.category?.name || 'General'})`,
@@ -539,8 +703,10 @@ async function buildFeaturedResponse(limit: number): Promise<CommerceInsightResu
     topic: 'FEATURED',
     message:
       lines.length > 0
-        ? `Featured products:\n${lines.join('\n')}`
-        : 'No featured products are active right now.',
+        ? `${requirementTerm ? `Featured products for "${requirementTerm}"` : 'Featured products'}:\n${lines.join('\n')}`
+        : requirementTerm
+          ? `No featured products found for "${requirementTerm}" right now.`
+          : 'No featured products are active right now.',
   };
 }
 
@@ -549,6 +715,7 @@ export async function getCommerceInsightResponse(message: string): Promise<Comme
   if (!topic) return null;
 
   const limit = extractLimit(message);
+  const requirementTerm = extractRequirementTerm(message);
 
   switch (topic) {
     case 'PRODUCTS':
@@ -562,19 +729,19 @@ export async function getCommerceInsightResponse(message: string): Promise<Comme
     case 'CAMPAIGN':
       return buildCampaignResponse(limit);
     case 'TOP_DEALS':
-      return buildTopDealsResponse(limit);
+      return buildTopDealsResponse(limit, requirementTerm);
     case 'TOP_SELLS':
-      return buildTopSellsResponse(limit, 'TOP_SELLS');
+      return buildTopSellsResponse(limit, 'TOP_SELLS', message);
     case 'TOP_RANKINGS':
-      return buildTopRankingsResponse(limit);
+      return buildTopRankingsResponse(limit, requirementTerm);
     case 'TOP_REVIEWS':
-      return buildTopReviewsResponse(limit);
+      return buildTopReviewsResponse(limit, requirementTerm);
     case 'NEW_ARRIVALS':
-      return buildNewArrivalsResponse(limit);
+      return buildNewArrivalsResponse(limit, requirementTerm);
     case 'FEATURED':
-      return buildFeaturedResponse(limit);
+      return buildFeaturedResponse(limit, requirementTerm);
     case 'MOST_SOLD':
-      return buildTopSellsResponse(limit, 'MOST_SOLD');
+      return buildTopSellsResponse(limit, 'MOST_SOLD', message);
     default:
       return null;
   }
