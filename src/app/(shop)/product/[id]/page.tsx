@@ -331,8 +331,63 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation showCategoryLinks={false} />
-        <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-          <p>Loading product...</p>
+        <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full animate-pulse">
+          <div className="mb-6">
+            <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
+            <div className="h-9 w-3/5 bg-gray-200 rounded-lg" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div>
+              <div className="grid grid-cols-[82px_1fr] gap-4">
+                <div className="space-y-2">
+                  <div className="h-20 w-full bg-gray-200 rounded-xl" />
+                  <div className="h-20 w-full bg-gray-200 rounded-xl" />
+                  <div className="h-20 w-full bg-gray-200 rounded-xl" />
+                  <div className="h-20 w-full bg-gray-200 rounded-xl" />
+                </div>
+                <div className="h-[560px] w-full bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 rounded-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.55),transparent)] animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="h-9 w-11/12 bg-gray-200 rounded mb-4" />
+              <div className="h-5 w-1/3 bg-gray-200 rounded mb-6" />
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-40 bg-gray-200 rounded" />
+                <div className="h-7 w-24 bg-gray-200 rounded" />
+                <div className="h-7 w-16 bg-gray-200 rounded-full" />
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="h-4 w-28 bg-gray-200 rounded" />
+                <div className="flex gap-2">
+                  <div className="h-10 w-20 bg-gray-200 rounded-lg" />
+                  <div className="h-10 w-24 bg-gray-200 rounded-lg" />
+                  <div className="h-10 w-20 bg-gray-200 rounded-lg" />
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-6">
+                <div className="h-4 w-full bg-gray-200 rounded" />
+                <div className="h-4 w-11/12 bg-gray-200 rounded" />
+                <div className="h-4 w-4/5 bg-gray-200 rounded" />
+              </div>
+
+              <div className="flex gap-3 mb-6">
+                <div className="h-12 w-32 bg-gray-200 rounded-lg" />
+                <div className="h-12 flex-1 bg-gray-200 rounded-lg" />
+                <div className="h-12 flex-1 bg-gray-200 rounded-lg" />
+              </div>
+
+              <div className="h-28 w-full bg-gray-100 rounded-xl border border-gray-200" />
+            </div>
+          </div>
+
+          <p className="mt-5 text-sm text-gray-500">Loading product details, pricing, media, and variants...</p>
         </div>
       </div>
     );
