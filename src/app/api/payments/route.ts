@@ -33,7 +33,10 @@ function buildGatewayPaymentUrl(
     bkash: process.env.BKASH_PAYMENT_URL,
     nagad: process.env.NAGAD_PAYMENT_URL,
     rocket: process.env.ROCKET_PAYMENT_URL,
-    uddoktapay: process.env.UDDOKTAPAY_PAYMENT_URL,
+    uddoktapay:
+      process.env.UDDOKTAPAY_CHECKOUT_V2_URL ||
+      process.env.UDDOKTAPAY_CHECKOUT_URL ||
+      process.env.UDDOKTAPAY_PAYMENT_URL,
     stripe: process.env.STRIPE_PAYMENT_URL,
   };
 

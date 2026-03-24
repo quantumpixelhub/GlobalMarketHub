@@ -25,6 +25,11 @@ interface PaymentResponse {
 export async function initiateUddoktaPay(config: PaymentConfig): Promise<PaymentResponse> {
   const apiKey = process.env.UDDOKTAPAY_API_KEY;
   const apiSecret = process.env.UDDOKTAPAY_API_SECRET;
+  const checkoutV2Url =
+    process.env.UDDOKTAPAY_CHECKOUT_V2_URL ||
+    process.env.UDDOKTAPAY_CHECKOUT_URL ||
+    process.env.UDDOKTAPAY_PAYMENT_URL ||
+    'https://eshopping.paymently.io/api/checkout-v2';
 
   if (!apiKey || !apiSecret) {
     console.warn('UddoktaPay credentials not configured');
@@ -37,7 +42,7 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
   }
 
   try {
-    const response = await fetch('https://api.uddoktapay.com/initiate-payment', {
+    const response = await fetch(checkoutV2Url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -208,11 +213,55 @@ export async function initiatePayment(
  * Verify payment status with gateway
  */
 export async function verifyPaymentStatus(
-  _gateway: string,
-  _transactionId: string
+  gateway: string,
+  transactionId: string
 ): Promise<{ success: boolean; status: string; message: string }> {
-  // In production, verify with actual payment gateway API
-  // This is a mock implementation
+  if (gateway.toLowerCase() === 'uddoktapay') {
+    const apiKey = process.env.UDDOKTAPAY_API_KEY;
+    const verifyUrl = process.env.UDDOKTAPAY_VERIFY_URL || 'https://eshopping.paymently.io/api/verify-payment';
+
+    if (!apiKey) {
+      return {
+        success: false,
+        status: 'UNKNOWN',
+        message: 'UddoktaPay credentials are missing',
+      };
+    }
+
+    try {
+      const response = await fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ transaction_id: transactionId }),
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          status: 'UNKNOWN',
+          message: `Verification failed with status ${response.status}`,
+        };
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        status: String(data.status || data.payment_status || 'COMPLETED').toUpperCase(),
+        message: 'Payment verified successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        status: 'UNKNOWN',
+        message: `Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
+    }
+  }
+
+  // Fallback mock for gateways without verify API integration.
   return {
     success: true,
     status: 'COMPLETED',
