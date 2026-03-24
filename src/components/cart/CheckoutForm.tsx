@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle,
+  CreditCard,
+  ShieldCheck,
+  Smartphone,
+  Truck,
+  WalletCards,
+} from 'lucide-react';
 
 interface Address {
   id: string;
@@ -49,6 +57,23 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       deliveryArea,
       deliverySpeed,
     });
+  };
+
+  const renderPaymentIcon = (methodId: string) => {
+    switch (methodId) {
+      case 'uddoktapay':
+        return <ShieldCheck size={20} className="text-sky-600" />;
+      case 'bkash':
+        return <Smartphone size={20} className="text-pink-600" />;
+      case 'nagad':
+        return <WalletCards size={20} className="text-amber-600" />;
+      case 'stripe':
+        return <CreditCard size={20} className="text-indigo-600" />;
+      case 'cod':
+        return <Truck size={20} className="text-orange-600" />;
+      default:
+        return <CreditCard size={20} className="text-gray-600" />;
+    }
   };
 
   return (
@@ -147,11 +172,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         <p className="text-sm text-gray-500 mb-4">Choose a secure payment option to complete your order.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
-            { id: 'uddoktapay', name: 'UddoktaPay', icon: '🛡️', note: 'Fast checkout gateway' },
-            { id: 'bkash', name: 'bKash', icon: '📱', note: 'Mobile wallet' },
-            { id: 'nagad', name: 'Nagad', icon: '🧧', note: 'Mobile wallet' },
-            { id: 'stripe', name: 'Credit/Debit Card', icon: '💳', note: 'Visa, Mastercard, Amex' },
-            { id: 'cod', name: 'Cash on Delivery', icon: '🚚', note: 'Pay at your doorstep' },
+            { id: 'uddoktapay', name: 'UddoktaPay', note: 'Fast checkout gateway' },
+            { id: 'bkash', name: 'bKash', note: 'Mobile wallet' },
+            { id: 'nagad', name: 'Nagad', note: 'Mobile wallet' },
+            { id: 'stripe', name: 'Credit/Debit Card', note: 'Visa, Mastercard, Amex' },
+            { id: 'cod', name: 'Cash on Delivery', note: 'Pay at your doorstep' },
           ].map((method) => (
             <label
               key={method.id}
@@ -175,7 +200,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                 />
                 <div>
                   <p className="font-semibold flex items-center gap-2">
-                    <span className="text-xl leading-none">{method.icon}</span>
+                    <span className="inline-flex items-center justify-center w-6 h-6">{renderPaymentIcon(method.id)}</span>
                     <span>{method.name}</span>
                   </p>
                   <p className="text-xs text-gray-500 mt-1">{method.note}</p>

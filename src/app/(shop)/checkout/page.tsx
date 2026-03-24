@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { CreditCard, ShieldCheck, Smartphone, WalletCards } from 'lucide-react';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { CheckoutForm } from '@/components/cart/CheckoutForm';
@@ -34,10 +35,10 @@ const SHIPPING_MATRIX: Record<string, Record<string, number>> = {
 };
 
 const PAYMENT_OPTIONS = [
-  { id: 'uddoktapay', name: 'UddoktaPay', icon: '🛡️', note: 'Fast local gateway' },
-  { id: 'bkash', name: 'bKash', icon: '📱', note: 'Mobile wallet' },
-  { id: 'nagad', name: 'Nagad', icon: '🧧', note: 'Mobile wallet' },
-  { id: 'stripe', name: 'Credit/Debit Card', icon: '💳', note: 'Visa, Mastercard, Amex' },
+  { id: 'uddoktapay', name: 'UddoktaPay', note: 'Fast local gateway' },
+  { id: 'bkash', name: 'bKash', note: 'Mobile wallet' },
+  { id: 'nagad', name: 'Nagad', note: 'Mobile wallet' },
+  { id: 'stripe', name: 'Credit/Debit Card', note: 'Visa, Mastercard, Amex' },
 ] as const;
 
 interface GuestCheckoutData {
@@ -75,6 +76,21 @@ export default function CheckoutPage() {
   const [newAddressDeliveryArea, setNewAddressDeliveryArea] = useState('inside-dhaka');
   const [newAddressDeliverySpeed, setNewAddressDeliverySpeed] = useState('standard');
   const { showToast } = useToast();
+
+  const renderPaymentIcon = (methodId: string) => {
+    switch (methodId) {
+      case 'uddoktapay':
+        return <ShieldCheck size={18} className="text-sky-600" />;
+      case 'bkash':
+        return <Smartphone size={18} className="text-pink-600" />;
+      case 'nagad':
+        return <WalletCards size={18} className="text-amber-600" />;
+      case 'stripe':
+        return <CreditCard size={18} className="text-indigo-600" />;
+      default:
+        return <CreditCard size={18} className="text-gray-600" />;
+    }
+  };
 
   const [guestData, setGuestData] = useState<GuestCheckoutData>({
     firstName: '',
@@ -467,7 +483,7 @@ export default function CheckoutPage() {
                           }`}
                         >
                           <p className="font-semibold flex items-center gap-2">
-                            <span>{option.icon}</span>
+                            <span className="inline-flex items-center justify-center w-5 h-5">{renderPaymentIcon(option.id)}</span>
                             <span>{option.name}</span>
                           </p>
                           <p className="text-xs text-gray-500 mt-1">{option.note}</p>
@@ -593,7 +609,7 @@ export default function CheckoutPage() {
                         }`}
                       >
                         <p className="font-semibold flex items-center gap-2">
-                          <span>{option.icon}</span>
+                          <span className="inline-flex items-center justify-center w-5 h-5">{renderPaymentIcon(option.id)}</span>
                           <span>{option.name}</span>
                         </p>
                         <p className="text-xs text-gray-500 mt-1">{option.note}</p>
