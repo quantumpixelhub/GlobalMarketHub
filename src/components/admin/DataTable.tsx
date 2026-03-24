@@ -115,7 +115,7 @@ export default function DataTable<T extends { id: any }>({
                     {onEdit && (
                       <button
                         onClick={() => onEdit(item)}
-                        className="text-emerald-600 hover:text-emerald-700 transition"
+                        className="text-blue-600 hover:text-blue-700 transition"
                         title="Edit"
                       >
                         <Edit2 size={18} />

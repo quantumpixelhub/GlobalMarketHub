@@ -315,10 +315,10 @@ export default function HomePage() {
 
       {/* Scrollable Marketplace Banner */}
       <div className="max-w-7xl mx-auto px-4 pt-4 pb-2 w-full">
-        <section className="bg-gradient-to-r from-emerald-50 via-white to-cyan-50 rounded-2xl p-4 md:p-5 text-gray-900 border border-emerald-100 shadow-sm">
+        <section className="bg-gradient-to-r from-blue-50 via-white to-cyan-50 rounded-2xl p-4 md:p-5 text-gray-900 border border-blue-100 shadow-sm">
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700 mb-1">Featured Marketplace Stream</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-blue-700 mb-1">Featured Marketplace Stream</p>
               <h2 className="text-2xl md:text-3xl font-bold leading-tight">{bannerTitleMap[activeBanner]}</h2>
               <p className="text-sm md:text-base text-gray-600 mt-1">{bannerSubtitleMap[activeBanner]}</p>
             </div>
@@ -326,28 +326,28 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setActiveBanner('topSell')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topSell' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topSell' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
               >
                 Top Sell
               </button>
               <button
                 type="button"
                 onClick={() => setActiveBanner('topRanking')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topRanking' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topRanking' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
               >
                 Top Ranking
               </button>
               <button
                 type="button"
                 onClick={() => setActiveBanner('topReviews')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topReviews' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'topReviews' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
               >
                 Top Reviews
               </button>
               <button
                 type="button"
                 onClick={() => setActiveBanner('random')}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'random' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${activeBanner === 'random' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
               >
                 Random
               </button>
@@ -360,7 +360,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => scrollBanner('left')}
-                className="w-8 h-8 rounded-full border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 transition flex items-center justify-center"
+                className="w-8 h-8 rounded-full border border-blue-300 bg-white hover:bg-blue-50 text-blue-700 transition flex items-center justify-center"
                 aria-label="Scroll banner left"
               >
                 <ChevronLeft size={18} />
@@ -368,7 +368,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => scrollBanner('right')}
-                className="w-8 h-8 rounded-full border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 transition flex items-center justify-center"
+                className="w-8 h-8 rounded-full border border-blue-300 bg-white hover:bg-blue-50 text-blue-700 transition flex items-center justify-center"
                 aria-label="Scroll banner right"
               >
                 <ChevronRight size={18} />
@@ -405,12 +405,12 @@ export default function HomePage() {
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="snap-start min-w-[220px] max-w-[220px] bg-white text-gray-900 rounded-xl p-2.5 border border-emerald-100 hover:border-emerald-300 transition"
+                className="snap-start min-w-[220px] max-w-[220px] bg-white text-gray-900 rounded-xl p-2.5 border border-blue-100 hover:border-blue-300 transition"
               >
                 <div className="h-28 rounded-lg overflow-hidden bg-gray-100 mb-2">
                   <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover" />
                 </div>
-                <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-1 truncate">
+                <p className="text-xs uppercase tracking-wide text-blue-700 font-semibold mb-1 truncate">
                   {product.category?.name || 'General Category'}
                 </p>
                 <p className="text-sm font-semibold text-gray-900 line-clamp-1 mb-1">{product.title}</p>
@@ -425,7 +425,7 @@ export default function HomePage() {
                 key={index}
                 type="button"
                 onClick={() => goToBannerPage(index)}
-                className={`h-2.5 rounded-full transition-all ${bannerPage === index ? 'w-6 bg-emerald-600' : 'w-2.5 bg-emerald-300 hover:bg-emerald-400'}`}
+                className={`h-2.5 rounded-full transition-all ${bannerPage === index ? 'w-6 bg-blue-600' : 'w-2.5 bg-blue-300 hover:bg-blue-400'}`}
                 aria-label={`Go to carousel page ${index + 1}`}
               />
             ))}
@@ -435,19 +435,19 @@ export default function HomePage() {
 
       {/* Showcase Blocks */}
       <div className="max-w-7xl mx-auto px-4 py-5 w-full" id="featured">
-        <section className="bg-white border-2 border-emerald-600/80 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
+        <section className="bg-white border-2 border-blue-600/80 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1">Top Deals</h2>
               <p className="text-gray-600 text-base">Score the lowest prices on GlobalMarketHub</p>
             </div>
-            <Link href="/products" className="font-bold text-gray-900 text-xl hover:text-emerald-700 transition inline-flex items-center gap-1.5">
+            <Link href="/products" className="font-bold text-gray-900 text-xl hover:text-blue-700 transition inline-flex items-center gap-1.5">
               View more <ChevronRight size={22} />
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
             {topDeals.map((product) => (
-              <Link key={product.id} href={`/product/${product.id}`} className="group rounded-xl bg-gray-50 border border-transparent hover:border-emerald-200 transition p-1.5 md:p-2">
+              <Link key={product.id} href={`/product/${product.id}`} className="group rounded-xl bg-gray-50 border border-transparent hover:border-blue-200 transition p-1.5 md:p-2">
                 <div className="bg-white rounded-lg overflow-hidden mb-2 h-32 md:h-36">
                   <img
                     src={product.mainImage}
@@ -458,7 +458,7 @@ export default function HomePage() {
                 <div className="min-h-[62px]">
                   <p className="font-semibold text-xs text-gray-900 truncate underline">{product.title}</p>
                   <div className="mt-1 flex items-center gap-1.5">
-                    <p className="text-sm font-bold text-emerald-600 leading-none">{formatBdt(product.currentPrice)}</p>
+                    <p className="text-sm font-bold text-blue-600 leading-none">{formatBdt(product.currentPrice)}</p>
                     {product.originalPrice > product.currentPrice && (
                       <p className="text-xs text-gray-400 line-through leading-none">{formatBdt(product.originalPrice)}</p>
                     )}
@@ -475,19 +475,19 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1 inline-flex items-center gap-2">
-                  <TrendingUp size={24} className="text-emerald-600" />
+                  <TrendingUp size={24} className="text-blue-600" />
                   Top Ranking
                 </h2>
                 <p className="text-gray-600 text-base">Navigate trends with data-driven rankings</p>
               </div>
-              <Link href="/products?sort=rating" className="font-bold text-gray-900 text-xl hover:text-emerald-700 transition inline-flex items-center gap-1.5">
+              <Link href="/products?sort=rating" className="font-bold text-gray-900 text-xl hover:text-blue-700 transition inline-flex items-center gap-1.5">
                 View more <ChevronRight size={22} />
               </Link>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 flex-1">
               {topRankingShowcase.map((product) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition h-full flex flex-col">
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-blue-200 transition h-full flex flex-col">
                   <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-32 md:h-36">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/85 text-amber-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">Top</span>
@@ -495,7 +495,7 @@ export default function HomePage() {
                   <div className="min-h-[62px]">
                     <p className="font-semibold text-xs text-gray-900 truncate underline">{product.title}</p>
                     <div className="mt-1 flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-emerald-600 leading-none">{formatBdt(product.currentPrice)}</p>
+                      <p className="text-sm font-bold text-blue-600 leading-none">{formatBdt(product.currentPrice)}</p>
                       {product.originalPrice > product.currentPrice && (
                         <p className="text-xs text-gray-400 line-through leading-none">{formatBdt(product.originalPrice)}</p>
                       )}
@@ -510,32 +510,32 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1 inline-flex items-center gap-2">
-                  <Sparkles size={24} className="text-emerald-600" />
+                  <Sparkles size={24} className="text-blue-600" />
                   New Arrivals
                 </h2>
                 <p className="text-gray-600 text-base">Stay ahead with the latest product offerings</p>
               </div>
-              <Link href="/products?sort=createdAt" className="font-bold text-gray-900 text-xl hover:text-emerald-700 transition inline-flex items-center gap-1.5">
+              <Link href="/products?sort=createdAt" className="font-bold text-gray-900 text-xl hover:text-blue-700 transition inline-flex items-center gap-1.5">
                 View more <ChevronRight size={22} />
               </Link>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 flex-1">
               {newArrivals.map((product, index) => (
-                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-emerald-200 transition h-full flex flex-col">
+                <Link key={product.id} href={`/product/${product.id}`} className="group bg-gray-50 rounded-xl p-1.5 md:p-2 border border-transparent hover:border-blue-200 transition h-full flex flex-col">
                   <div className="rounded-lg overflow-hidden bg-white mb-2 relative h-32 md:h-36">
                     <img src={product.mainImage} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     {index === 0 && (
                       <span className="absolute top-2 left-2 text-sm bg-violet-600 text-white px-2 py-1 rounded-full">Fresh</span>
                     )}
                     {index === 2 && (
-                      <span className="absolute top-2 right-2 text-sm bg-emerald-600 text-white px-2 py-1 rounded">Best Seller</span>
+                      <span className="absolute top-2 right-2 text-sm bg-blue-600 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
                   <div className="min-h-[62px]">
                     <p className="font-semibold text-xs text-gray-900 truncate underline">{product.title}</p>
                     <div className="mt-1 flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-emerald-600 leading-none">{formatBdt(product.currentPrice)}</p>
+                      <p className="text-sm font-bold text-blue-600 leading-none">{formatBdt(product.currentPrice)}</p>
                       {product.originalPrice > product.currentPrice && (
                         <p className="text-xs text-gray-400 line-through leading-none">{formatBdt(product.originalPrice)}</p>
                       )}
@@ -607,27 +607,27 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             <div className="text-center">
-              <Truck className="mx-auto mb-4 text-emerald-600" size={32} />
+              <Truck className="mx-auto mb-4 text-blue-600" size={32} />
               <h3 className="font-bold mb-2">Fast Shipping</h3>
               <p className="text-gray-600 text-sm">Delivery to your doorstep within 3-7 days</p>
             </div>
             <div className="text-center">
-              <Shield className="mx-auto mb-4 text-emerald-600" size={32} />
+              <Shield className="mx-auto mb-4 text-blue-600" size={32} />
               <h3 className="font-bold mb-2">Secure Payment</h3>
               <p className="text-gray-600 text-sm">Multiple payment methods with encryption</p>
             </div>
             <div className="text-center">
-              <Zap className="mx-auto mb-4 text-emerald-600" size={32} />
+              <Zap className="mx-auto mb-4 text-blue-600" size={32} />
               <h3 className="font-bold mb-2">Best Prices</h3>
               <p className="text-gray-600 text-sm">Competitive pricing and regular discounts</p>
             </div>
             <div className="text-center">
-              <Flame className="mx-auto mb-4 text-emerald-600" size={32} />
+              <Flame className="mx-auto mb-4 text-blue-600" size={32} />
               <h3 className="font-bold mb-2">Trending Picks</h3>
               <p className="text-gray-600 text-sm">Curated products based on demand and conversion</p>
             </div>
             <div className="text-center">
-              <HeadphonesIcon className="mx-auto mb-4 text-emerald-600" size={32} />
+              <HeadphonesIcon className="mx-auto mb-4 text-blue-600" size={32} />
               <h3 className="font-bold mb-2">24/7 Support</h3>
               <p className="text-gray-600 text-sm">Our team is always ready to help</p>
             </div>
@@ -655,7 +655,7 @@ export default function HomePage() {
               type="button"
               onClick={handleLoadMoreFeatured}
               disabled={isLoadingMoreFeatured}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3 text-white font-semibold hover:bg-emerald-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoadingMoreFeatured && (
                 <span className="h-4 w-4 rounded-full border-2 border-white/60 border-t-white animate-spin" />
@@ -682,7 +682,7 @@ export default function HomePage() {
               <Link
                 key={cat.icon}
                 href={`/products?category=${cat.icon.toLowerCase()}`}
-                className="p-6 border rounded-lg text-center hover:border-emerald-600 hover:bg-emerald-50 transition"
+                className="p-6 border rounded-lg text-center hover:border-blue-600 hover:bg-blue-50 transition"
               >
                 <p className="text-2xl mb-2">{cat.name.split(' ')[0]}</p>
                 <p className="text-sm font-semibold text-gray-700">{cat.name.split(' ').slice(1).join(' ')}</p>
@@ -693,20 +693,20 @@ export default function HomePage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-emerald-100 border-y py-12">
+      <div className="bg-blue-100 border-y py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">New to GlobalMarketHub?</h2>
           <p className="text-gray-700 mb-6">Sign up and get exclusive deals and early access to new products</p>
           <div className="flex gap-4 justify-center">
             <Link
               href="/register"
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700"
             >
               Create Account
             </Link>
             <Link
               href="/login"
-              className="border-2 border-emerald-600 text-emerald-600 px-8 py-3 rounded-lg font-bold hover:bg-emerald-50"
+              className="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-50"
             >
               Sign In
             </Link>

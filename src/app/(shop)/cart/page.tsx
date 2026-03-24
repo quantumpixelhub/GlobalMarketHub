@@ -125,7 +125,7 @@ export default function CartPage() {
       <Navigation cartItemCount={cart?.itemCount} />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        <Link href="/products" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-6">
+        <Link href="/products" className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft size={20} />
           <span>Continue Shopping</span>
         </Link>
@@ -147,7 +147,7 @@ export default function CartPage() {
             {!cart?.items.length ? (
               <div className="bg-white rounded-lg p-8 text-center">
                 <p className="text-gray-500 mb-4">Your cart is empty</p>
-                <Link href="/products" className="text-emerald-600 hover:underline">
+                <Link href="/products" className="text-blue-600 hover:underline">
                   Continue shopping
                 </Link>
               </div>

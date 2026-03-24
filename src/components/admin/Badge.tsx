@@ -9,12 +9,12 @@ interface BadgeProps {
 }
 
 const colorClasses: Record<BadgeColor, string> = {
-  green: 'bg-green-100 text-green-800',
+  green: 'bg-blue-100 text-blue-800',
   red: 'bg-red-100 text-red-800',
   yellow: 'bg-yellow-100 text-yellow-800',
   blue: 'bg-blue-100 text-blue-800',
   purple: 'bg-purple-100 text-purple-800',
-  orange: 'bg-emerald-100 text-emerald-800',
+  orange: 'bg-blue-100 text-blue-800',
 };
 
 const sizeClasses = {

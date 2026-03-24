@@ -54,7 +54,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 space-y-6">
       {/* Delivery Options - PROMOTED TO TOP */}
-      <div className="border-2 border-emerald-200 bg-emerald-50 rounded-lg p-5">
+      <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-5">
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           🚚 Delivery Options
           <span className="text-sm font-normal text-gray-600">(Required)</span>
@@ -65,7 +65,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
             <select
               value={deliveryArea}
               onChange={(e) => setDeliveryArea(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-emerald-200 rounded-lg focus:border-emerald-600 focus:outline-none"
+              className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none"
             >
               <option value="inside-dhaka">🏙️ Inside Dhaka</option>
               <option value="outside-dhaka">🚗 Outside Dhaka</option>
@@ -76,14 +76,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
             <select
               value={deliverySpeed}
               onChange={(e) => setDeliverySpeed(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-emerald-200 rounded-lg focus:border-emerald-600 focus:outline-none"
+              className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none"
             >
               <option value="standard">📦 Standard (2-4 days) - ৳60-120</option>
               <option value="express">⚡ Express (24-48 hours) - ৳120-180</option>
             </select>
           </div>
         </div>
-        <p className="text-xs text-emerald-700 mt-3 flex items-center gap-1">
+        <p className="text-xs text-blue-700 mt-3 flex items-center gap-1">
           ℹ️ Choose your delivery preference. Final charge will show in order summary.
         </p>
       </div>
@@ -106,7 +106,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                 key={address.id}
                 className={`block p-4 border-2 rounded cursor-pointer transition ${
                   selectedAddress === address.id
-                    ? 'border-emerald-600 bg-emerald-50'
+                    ? 'border-blue-600 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -129,7 +129,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                       {address.upazila}, {address.district}, {address.division}
                     </p>
                     {address.isDefault && (
-                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded inline-block mt-2">
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded inline-block mt-2">
                         Default Address
                       </span>
                     )}
@@ -157,7 +157,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
               key={method.id}
               className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
                 paymentMethod === method.id
-                  ? 'border-emerald-600 bg-emerald-50 shadow-sm'
+                  ? 'border-blue-600 bg-blue-50 shadow-sm'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
@@ -197,7 +197,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       <button
         type="submit"
         disabled={!selectedAddress || loading}
-        className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-lg transition-colors"
+        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-lg transition-colors"
       >
         {loading ? 'Processing...' : 'Proceed to Pay'}
       </button>

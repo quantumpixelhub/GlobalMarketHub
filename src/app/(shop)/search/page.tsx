@@ -270,7 +270,7 @@ function SearchContent() {
           disabled={loading}
           className={`px-3 py-2 rounded border disabled:opacity-50 ${
             pageNumber === page
-              ? 'border-emerald-600 bg-emerald-600 text-white'
+              ? 'border-blue-600 bg-blue-600 text-white'
               : 'border-gray-300 bg-white text-gray-700'
           }`}
         >
@@ -404,7 +404,7 @@ function SearchContent() {
             id="sort-mode"
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value as SortMode)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           >
             <option value="best_value">Best Value</option>
             <option value="best_price">Best Price</option>
@@ -427,13 +427,13 @@ function SearchContent() {
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <p className="text-xs uppercase tracking-wide text-emerald-700 mb-2">Domestic</p>
+                <p className="text-xs uppercase tracking-wide text-blue-700 mb-2">Domestic</p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(sourceStats.domesticByPlatform || {})
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 10)
                     .map(([platform, count]) => (
-                      <span key={`dom-${platform}`} className="px-2 py-1 rounded bg-emerald-50 text-emerald-800 text-xs border border-emerald-200">
+                      <span key={`dom-${platform}`} className="px-2 py-1 rounded bg-blue-50 text-blue-800 text-xs border border-blue-200">
                         {platform}: {count}
                       </span>
                     ))}
@@ -469,11 +469,11 @@ function SearchContent() {
           />
         </section>
 
-        <section className="mb-10 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 md:p-5">
+        <section className="mb-10 rounded-xl border border-blue-200 bg-blue-50/40 p-4 md:p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-xl font-semibold text-emerald-800">Domestic Sellers</h2>
-              <p className="text-xs text-emerald-700">Bangladesh platforms and local marketplaces</p>
+              <h2 className="text-xl font-semibold text-blue-800">Domestic Sellers</h2>
+              <p className="text-xs text-blue-700">Bangladesh platforms and local marketplaces</p>
             </div>
             <span className="text-sm text-gray-500">{pagination?.sections?.domesticSellers?.total ?? domesticProducts.length} items</span>
           </div>

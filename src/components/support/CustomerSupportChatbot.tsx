@@ -190,7 +190,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
       {/* Header */}
       <div
         className={`${
-          isEscalated ? 'bg-emerald-600' : 'bg-emerald-600'
+          isEscalated ? 'bg-blue-600' : 'bg-blue-600'
         } text-white px-4 py-3 rounded-t-lg flex items-center justify-between`}
       >
         <div className="flex items-center gap-2">
@@ -236,9 +236,9 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
             <div
               className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
                 msg.role === 'user'
-                  ? 'bg-emerald-600 text-white rounded-br-none'
+                  ? 'bg-blue-600 text-white rounded-br-none'
                   : msg.isThinking
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-bl-none'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200 rounded-bl-none'
                   : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
               } ${msg.isThinking ? 'animate-pulse' : ''}`}
             >
@@ -246,9 +246,9 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
                 <div className="flex items-center gap-1">
                   <span>💭 Thinking</span>
                   <span className="inline-flex gap-0.5">
-                    <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" />
-                    <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                   </span>
                 </div>
               ) : (
@@ -257,7 +257,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
                   <div
                     className={`text-xs mt-1 ${
                       msg.role === 'user'
-                        ? 'text-emerald-100'
+                        ? 'text-blue-100'
                         : 'text-gray-500'
                     }`}
                   >
@@ -277,7 +277,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
       {/* Input */}
       <div className="border-t border-gray-200 p-3 bg-white rounded-b-lg">
         {isEscalated && (
-          <div className="text-xs text-emerald-600 bg-emerald-50 p-2 rounded mb-2 border border-emerald-200">
+          <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mb-2 border border-blue-200">
             ℹ️ You've been escalated to a human agent. Response may take a few minutes.
           </div>
         )}
@@ -289,7 +289,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
             onKeyPress={handleKeyPress}
             placeholder="Ask me anything..."
             disabled={isLoading || isEscalated}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm disabled:bg-gray-100"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm disabled:bg-gray-100"
           />
           <button
             onClick={handleSendMessage}

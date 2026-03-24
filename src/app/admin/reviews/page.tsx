@@ -24,7 +24,7 @@ export default function ReviewsPage() {
               <span className="text-yellow-500">{'★'.repeat(review.rating)}</span>
             </div>
             <p className="text-gray-600 text-sm mb-2">Product: {review.product}</p>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
               {review.status}
             </span>
           </div>

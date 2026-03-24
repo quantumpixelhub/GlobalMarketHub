@@ -23,7 +23,7 @@ export default function AdminHeader({
   return (
     <div className="mb-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        {Icon && <Icon size={32} className="text-emerald-600" />}
+        {Icon && <Icon size={32} className="text-blue-600" />}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
           {subtitle && <p className="text-gray-500 text-sm mt-1">{subtitle}</p>}
@@ -32,7 +32,7 @@ export default function AdminHeader({
       {action && (
         <button
           onClick={action.onClick}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition"
         >
           {ActionIcon && <ActionIcon size={18} />}
           {action.label}

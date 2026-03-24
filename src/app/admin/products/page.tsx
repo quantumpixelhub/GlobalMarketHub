@@ -369,7 +369,7 @@ export default function ProductsPage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700"
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
         >
           <Plus size={20} />
           Add Product
@@ -397,7 +397,7 @@ export default function ProductsPage() {
                 {/* Category Header - Clickable */}
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-600 px-6 py-4 flex items-center justify-between hover:from-emerald-600 hover:to-emerald-700 transition"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-600 px-6 py-4 flex items-center justify-between hover:from-blue-600 hover:to-blue-700 transition"
                 >
                   <div className="flex items-center gap-3 text-left">
                     {isExpanded ? (
@@ -407,7 +407,7 @@ export default function ProductsPage() {
                     )}
                     <div>
                       <h2 className="text-lg font-bold text-white">{category.name}</h2>
-                      <p className="text-emerald-100 text-sm">
+                      <p className="text-blue-100 text-sm">
                         {isLoading ? 'Loading...' : `${productCount} product${productCount !== 1 ? 's' : ''}`}
                       </p>
                     </div>
@@ -445,7 +445,7 @@ export default function ProductsPage() {
                                 <td className="px-6 py-4 font-medium text-gray-800">{product.title}</td>
                                 <td className="px-6 py-4 text-gray-600">৳{product.currentPrice.toLocaleString()}</td>
                                 <td className="px-6 py-4">
-                                  <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
+                                  <span className={product.stock > 0 ? 'text-blue-600' : 'text-red-600'}>
                                     {product.stock > 0 ? `${product.stock} units` : 'Out of stock'}
                                   </span>
                                 </td>
@@ -550,7 +550,7 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={addVariantRow}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
                 >
                   <Plus size={16} />
                   Add Variant
@@ -633,7 +633,7 @@ export default function ProductsPage() {
               <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
                 Cancel
               </button>
-              <button type="submit" disabled={saving} className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 disabled:bg-emerald-300">
+              <button type="submit" disabled={saving} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-blue-300">
                 {saving ? 'Saving...' : editingProduct ? 'Update Product' : 'Create Product'}
               </button>
             </div>

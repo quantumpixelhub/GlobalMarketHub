@@ -68,13 +68,13 @@ const logoOptions: LogoOption[] = [
     id: 'tech-nexus',
     name: 'Tech Nexus',
     description: 'Modern technology-focused design with connected elements',
-    color1: '#059669',
+    color1: '#2563EB',
     color2: '#047857',
-    bgGradient: 'from-emerald-50 to-emerald-100',
+    bgGradient: 'from-blue-50 to-blue-100',
     svg: `<g transform="translate(32, 18)">
-      <circle cx="15" cy="20" r="3.5" fill="#059669" />
-      <circle cx="45" cy="20" r="3.5" fill="#059669" />
-      <circle cx="30" cy="40" r="3.5" fill="#059669" />
+      <circle cx="15" cy="20" r="3.5" fill="#2563EB" />
+      <circle cx="45" cy="20" r="3.5" fill="#2563EB" />
+      <circle cx="30" cy="40" r="3.5" fill="#2563EB" />
       <line x1="15" y1="20" x2="45" y2="20" stroke="#047857" strokeWidth="2" opacity="0.7" />
       <line x1="15" y1="20" x2="30" y2="40" stroke="#047857" strokeWidth="2" opacity="0.7" />
       <line x1="45" y1="20" x2="30" y2="40" stroke="#047857" strokeWidth="2" opacity="0.7" />
@@ -135,7 +135,7 @@ const logoOptions: LogoOption[] = [
     description: 'Movement and progress focused design',
     color1: '#EF4444',
     color2: '#B91C1C',
-    bgGradient: 'from-red-50 to-emerald-100',
+    bgGradient: 'from-red-50 to-blue-100',
     svg: `<g transform="translate(33, 18)">
       <path d="M20 15 L28 25 L20 35" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M35 15 L43 25 L35 35" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -307,7 +307,7 @@ export function LogoPicker() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-3 text-emerald-300">Best For Professional</h4>
+              <h4 className="font-semibold mb-3 text-blue-300">Best For Professional</h4>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li>✓ Enterprise Pro</li>
                 <li>✓ Tech Nexus</li>

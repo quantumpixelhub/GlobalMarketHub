@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((toast) => {
           const colorClass =
             toast.type === 'success'
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+              ? 'border-blue-300 bg-blue-50 text-blue-900'
               : toast.type === 'error'
               ? 'border-red-300 bg-red-50 text-red-900'
               : 'border-blue-300 bg-blue-50 text-blue-900';

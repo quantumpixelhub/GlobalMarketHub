@@ -272,7 +272,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Featured Badge */}
         {isFeatured && (
-          <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+          <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">
             Featured
           </div>
         )}
@@ -317,7 +317,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <p className="text-xs text-gray-500 mb-0.5 truncate">{seller.storeName}</p>
 
         {/* Title */}
-        <h3 className="font-semibold text-xs line-clamp-2 hover:text-emerald-600">
+        <h3 className="font-semibold text-xs line-clamp-2 hover:text-blue-600">
           {title}
         </h3>
 
@@ -337,7 +337,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Price */}
         <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-xs font-bold text-emerald-600">৳{currentPrice.toLocaleString()}</span>
+          <span className="text-xs font-bold text-blue-600">৳{currentPrice.toLocaleString()}</span>
           {originalPrice > currentPrice && (
             <span className="text-xs text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
           )}
@@ -371,7 +371,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 onAddToCart?.(id);
               }}
               disabled={isOutOfStock}
-              className="bg-emerald-600 text-white py-1.5 rounded text-sm hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="bg-blue-600 text-white py-1.5 rounded text-sm hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               <ShoppingCart size={16} />
               <span>Add to Cart</span>

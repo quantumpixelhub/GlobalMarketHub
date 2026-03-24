@@ -32,13 +32,13 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
           market: 'text-white',
           hub: 'text-amber-300',
           iconBg: 'bg-white/10 border border-white/25',
-          iconColor: 'text-emerald-200',
+          iconColor: 'text-blue-200',
         }
       : {
           market: 'text-indigo-900',
           hub: 'text-amber-500',
-          iconBg: 'bg-emerald-50 border border-emerald-200',
-          iconColor: 'text-emerald-700',
+          iconBg: 'bg-blue-50 border border-blue-200',
+          iconColor: 'text-blue-700',
         };
 
   return (

@@ -32,7 +32,7 @@ export function LogoVariations() {
 
           {/* Logo 2: Bold Geometric */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-emerald-50 to-red-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-blue-50 to-red-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Bold geometric */}
                 <g transform="translate(40, 20)">
@@ -45,7 +45,7 @@ export function LogoVariations() {
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Bold Hexagon</h3>
             <p className="text-gray-600 text-sm text-center">Trading arrows in hexagon shape</p>
-            <button className="w-full mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
               Choose This
             </button>
           </div>
@@ -74,33 +74,33 @@ export function LogoVariations() {
 
           {/* Logo 4: Tech Connected */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-blue-50 to-blue-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Tech nodes */}
                 <g transform="translate(35, 20)">
                   {/* Nodes */}
-                  <circle cx="15" cy="15" r="3.5" fill="#059669" />
-                  <circle cx="50" cy="15" r="3.5" fill="#059669" />
-                  <circle cx="32.5" cy="45" r="3.5" fill="#059669" />
+                  <circle cx="15" cy="15" r="3.5" fill="#2563EB" />
+                  <circle cx="50" cy="15" r="3.5" fill="#2563EB" />
+                  <circle cx="32.5" cy="45" r="3.5" fill="#2563EB" />
                   {/* Connections */}
-                  <line x1="15" y1="15" x2="50" y2="15" stroke="#059669" strokeWidth="1.5" opacity="0.6" />
-                  <line x1="15" y1="15" x2="32.5" y2="45" stroke="#059669" strokeWidth="1.5" opacity="0.6" />
-                  <line x1="50" y1="15" x2="32.5" y2="45" stroke="#059669" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="15" y1="15" x2="50" y2="15" stroke="#2563EB" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="15" y1="15" x2="32.5" y2="45" stroke="#2563EB" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="50" y1="15" x2="32.5" y2="45" stroke="#2563EB" strokeWidth="1.5" opacity="0.6" />
                   {/* Center */}
-                  <circle cx="32.5" cy="25" r="2" fill="#059669" />
+                  <circle cx="32.5" cy="25" r="2" fill="#2563EB" />
                 </g>
               </svg>
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Connected Network</h3>
             <p className="text-gray-600 text-sm text-center">Tech-focused interconnected nodes</p>
-            <button className="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
               Choose This
             </button>
           </div>
 
           {/* Logo 5: Retro Vintage */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-yellow-50 to-emerald-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-yellow-50 to-blue-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Retro vintage */}
                 <g transform="translate(40, 15)">

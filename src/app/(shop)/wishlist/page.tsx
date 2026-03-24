@@ -142,7 +142,7 @@ export default function WishlistPage() {
         <Navigation />
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full text-center">
           <p className="text-xl mb-4">Please login to view your wishlist</p>
-          <a href="/login" className="text-emerald-600 hover:underline">
+          <a href="/login" className="text-blue-600 hover:underline">
             Go to login page
           </a>
         </div>
@@ -176,7 +176,7 @@ export default function WishlistPage() {
             <p className="text-xl text-gray-600 mb-4">Your wishlist is empty</p>
             <a
               href="/products"
-              className="inline-block bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
             >
               Continue Shopping
             </a>
@@ -206,7 +206,7 @@ export default function WishlistPage() {
                         <div>
                           <a
                             href={`/product/${item.product.id}`}
-                            className="font-semibold hover:text-emerald-600"
+                            className="font-semibold hover:text-blue-600"
                           >
                             {item.product.title}
                           </a>
@@ -224,7 +224,7 @@ export default function WishlistPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={item.product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
+                      <span className={item.product.stock > 0 ? 'text-blue-600' : 'text-red-600'}>
                         {item.product.stock > 0 ? `${item.product.stock} in stock` : 'Out of stock'}
                       </span>
                     </td>
@@ -236,7 +236,7 @@ export default function WishlistPage() {
                         <button
                           onClick={() => handleAddToCart(item.product)}
                           disabled={item.product.stock === 0}
-                          className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:bg-gray-400"
+                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
                         >
                           Add to Cart
                         </button>

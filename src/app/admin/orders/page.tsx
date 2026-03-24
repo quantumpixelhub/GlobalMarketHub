@@ -144,7 +144,7 @@ export default function OrdersPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'DELIVERED':
-        return 'bg-green-100 text-green-700';
+        return 'bg-blue-100 text-blue-700';
       case 'PENDING':
         return 'bg-yellow-100 text-yellow-700';
       case 'PROCESSING':
@@ -255,13 +255,13 @@ export default function OrdersPage() {
                         <button
                           onClick={() => saveOrderUpdate(order.id)}
                           disabled={savingOrderId === order.id}
-                          className="text-xs px-3 py-1.5 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-400"
+                          className="text-xs px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
                         >
                           {savingOrderId === order.id ? 'Saving...' : 'Save'}
                         </button>
                         <button
                           onClick={() => setSelectedOrder(order)}
-                          className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                          className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
                         >
                           <Eye size={18} />
                         </button>
@@ -319,7 +319,7 @@ export default function OrdersPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Amount</p>
-                  <p className="text-2xl font-bold text-emerald-600">
+                  <p className="text-2xl font-bold text-blue-600">
                     ৳{selectedOrder.totalAmount.toLocaleString()}
                   </p>
                 </div>

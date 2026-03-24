@@ -292,7 +292,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="relative hover:text-emerald-600 transition-colors group"
+              className="relative hover:text-blue-600 transition-colors group"
               title="Wishlist"
             >
               <Heart size={22} />
@@ -309,7 +309,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative hover:text-emerald-600 transition-colors group"
+              className="relative hover:text-blue-600 transition-colors group"
               title="Shopping Cart"
             >
               <ShoppingCart size={22} />
@@ -328,7 +328,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               <div className="flex items-center gap-3 pl-3 border-l">
                 <Link
                   href="/account"
-                  className="flex items-center gap-2 hover:text-emerald-600 transition-colors"
+                  className="flex items-center gap-2 hover:text-blue-600 transition-colors"
                   title="My Account"
                 >
                   {profileImage ? (
@@ -354,14 +354,14 @@ export const Navigation: React.FC<NavigationProps> = ({
               <div className="flex items-center gap-3 md:gap-4 pl-3 border-l">
                 <Link
                   href="/login"
-                  className="text-sm hover:text-emerald-600 transition-colors"
+                  className="text-sm hover:text-blue-600 transition-colors"
                 >
                   Login
                 </Link>
                 <span className="text-gray-300">|</span>
                 <Link
                   href="/register"
-                  className="text-sm hover:text-emerald-600 transition-colors"
+                  className="text-sm hover:text-blue-600 transition-colors"
                 >
                   Register
                 </Link>
@@ -392,7 +392,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                       <div key={category.id} className="relative group flex-shrink-0">
                         <Link
                           href={`/products/${category.slug}`}
-                          className="flex items-center gap-1.5 text-xs whitespace-nowrap hover:text-emerald-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
+                          className="flex items-center gap-1.5 text-xs whitespace-nowrap hover:text-blue-600 transition-colors py-3 px-1.5 border-b-2 border-transparent hover:border-blue-600"
                         >
                           <span className="text-[13px] leading-none opacity-85">{category.icon || '📦'}</span>
                           {category.name}
@@ -405,7 +405,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                               <Link
                                 key={sub.id}
                                 href={`/products/${category.slug}/${sub.slug}`}
-                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors first:rounded-t last:rounded-b whitespace-nowrap"
                               >
                                 <span className="opacity-85 leading-none">{sub.icon || '📦'}</span>
                                 {sub.image && (
@@ -455,7 +455,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {categoryTree.map((parent) => (
                     <details key={`all-${parent.id}`} className="rounded border border-gray-100 overflow-hidden">
-                      <summary className="list-none cursor-pointer flex items-start gap-3 font-semibold text-gray-900 hover:text-emerald-600 p-2 bg-gray-50/50 hover:bg-emerald-50/50">
+                      <summary className="list-none cursor-pointer flex items-start gap-3 font-semibold text-gray-900 hover:text-blue-600 p-2 bg-gray-50/50 hover:bg-blue-50/50">
                         <span className="text-base opacity-85 flex-shrink-0 w-6 text-center">{parent.icon || '📦'}</span>
                         {parent.image && (
                           <img
@@ -471,7 +471,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                         <div className="flex-1 min-w-0">
                           <Link
                             href={`/products/${parent.slug}`}
-                            className="block hover:text-emerald-600 font-semibold text-sm"
+                            className="block hover:text-blue-600 font-semibold text-sm"
                           >
                             {parent.name}
                           </Link>
@@ -485,7 +485,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                             <Link
                               key={`all-sub-${sub.id}`}
                               href={`/products/${parent.slug}/${sub.slug}`}
-                              className="flex items-center gap-2 text-xs text-gray-600 hover:text-emerald-600 p-1"
+                              className="flex items-center gap-2 text-xs text-gray-600 hover:text-blue-600 p-1"
                             >
                               <span className="opacity-85">{sub.icon || '📦'}</span>
                               {sub.image && (
@@ -511,7 +511,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <div className="pt-3 mt-3 border-t border-gray-200">
                   <Link
                     href="/products"
-                    className="text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+                    className="text-xs font-semibold text-blue-700 hover:text-blue-800"
                   >
                     Browse all products
                   </Link>

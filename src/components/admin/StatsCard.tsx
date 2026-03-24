@@ -31,7 +31,7 @@ export default function StatsCard({
           <div className="mt-2 flex items-baseline gap-2">
             <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
             {trend && (
-              <span className={`text-sm font-medium ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`text-sm font-medium ${trend.isPositive ? 'text-blue-600' : 'text-red-600'}`}>
                 {trend.isPositive ? '+' : '-'}{Math.abs(trend.value)}%
               </span>
             )}

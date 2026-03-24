@@ -345,7 +345,7 @@ export default function CheckoutPage() {
         <div className="flex-1 max-w-7xl mx-auto px-4 py-10 w-full">
           <div className="min-h-[55vh] flex items-center justify-center">
             <div className="w-full max-w-xl bg-white border border-gray-200 rounded-2xl shadow-sm p-8 text-center">
-              <div className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-emerald-100 border-t-emerald-600 animate-spin" />
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
               <h2 className="text-2xl font-bold text-gray-900">Preparing your checkout</h2>
               <p className="text-gray-600 mt-2">Please wait while we load your cart, delivery options, and payment methods.</p>
               <div className="mt-6 grid grid-cols-3 gap-2">
@@ -396,8 +396,8 @@ export default function CheckoutPage() {
         )}
 
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Step 1</p>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Step 1</p>
             <p className="font-semibold text-gray-900">Delivery Details</p>
             <p className="text-xs text-gray-600 mt-1">Address and shipping options</p>
           </div>
@@ -462,7 +462,7 @@ export default function CheckoutPage() {
                           onClick={() => setNewAddressData((prev) => ({ ...prev, paymentMethod: option.id }))}
                           className={`text-left p-3 rounded-lg border-2 transition ${
                             newAddressData.paymentMethod === option.id
-                              ? 'border-emerald-600 bg-emerald-50'
+                              ? 'border-blue-600 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300 bg-white'
                           }`}
                         >
@@ -496,7 +496,7 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <button type="submit" disabled={submitting || !cart?.items?.length} className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold">
+                  <button type="submit" disabled={submitting || !cart?.items?.length} className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold">
                     {submitting ? 'Processing...' : 'Save Address & Proceed to Pay'}
                   </button>
                 </form>
@@ -588,7 +588,7 @@ export default function CheckoutPage() {
                         onClick={() => setGuestData((prev) => ({ ...prev, paymentMethod: option.id }))}
                         className={`text-left p-3 rounded-lg border-2 transition ${
                           guestData.paymentMethod === option.id
-                            ? 'border-emerald-600 bg-emerald-50'
+                            ? 'border-blue-600 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
@@ -642,7 +642,7 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={submitting || !cart?.items?.length}
-                  className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold"
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
                 >
                   {submitting ? 'Processing...' : 'Place Order & Proceed to Pay'}
                 </button>
@@ -674,12 +674,12 @@ export default function CheckoutPage() {
                 <span>Tax (Imported 8%):</span>
                 <span>৳{tax.toLocaleString()}</span>
               </div>
-              <div className="bg-emerald-50 border border-emerald-200 rounded p-3 mb-2">
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-2">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="font-medium">Shipping:</span>
-                  <span className="font-bold text-emerald-600">৳{shipping.toLocaleString()}</span>
+                  <span className="font-bold text-blue-600">৳{shipping.toLocaleString()}</span>
                 </div>
-                <p className="text-xs text-emerald-700">
+                <p className="text-xs text-blue-700">
                   {activeDeliveryArea === 'inside-dhaka' ? '🏙️ Inside Dhaka' : '🚗 Outside Dhaka'} • {activeDeliverySpeed === 'standard' ? '📦 Standard (2-4 days)' : '⚡ Express (24-48 hrs)'}
                 </p>
               </div>
@@ -687,7 +687,7 @@ export default function CheckoutPage() {
 
             <div className="border-t pt-4 flex justify-between font-bold text-lg">
               <span>Total:</span>
-              <span className="text-emerald-600">
+              <span className="text-blue-600">
                 ৳{grandTotal.toLocaleString()}
               </span>
             </div>

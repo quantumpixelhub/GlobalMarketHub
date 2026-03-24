@@ -12,7 +12,7 @@ export default function AboutPage() {
 
       <div className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-12">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h1 className="text-4xl font-bold mb-4">About GlobalMarketHub</h1>
             <p className="text-lg opacity-90">Connecting sellers and buyers worldwide</p>
@@ -32,22 +32,22 @@ export default function AboutPage() {
           {/* Values Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <div className="bg-white rounded-lg shadow p-6 text-center">
-              <Globe size={40} className="mx-auto text-emerald-600 mb-4" />
+              <Globe size={40} className="mx-auto text-blue-600 mb-4" />
               <h3 className="font-bold text-lg mb-2">Global Reach</h3>
               <p className="text-gray-600">Connect with millions of customers worldwide</p>
             </div>
             <div className="bg-white rounded-lg shadow p-6 text-center">
-              <Users size={40} className="mx-auto text-emerald-600 mb-4" />
+              <Users size={40} className="mx-auto text-blue-600 mb-4" />
               <h3 className="font-bold text-lg mb-2">Community First</h3>
               <p className="text-gray-600">Building a trusted community of sellers and buyers</p>
             </div>
             <div className="bg-white rounded-lg shadow p-6 text-center">
-              <Zap size={40} className="mx-auto text-emerald-600 mb-4" />
+              <Zap size={40} className="mx-auto text-blue-600 mb-4" />
               <h3 className="font-bold text-lg mb-2">Innovation</h3>
               <p className="text-gray-600">Leveraging technology for better experiences</p>
             </div>
             <div className="bg-white rounded-lg shadow p-6 text-center">
-              <Award size={40} className="mx-auto text-emerald-600 mb-4" />
+              <Award size={40} className="mx-auto text-blue-600 mb-4" />
               <h3 className="font-bold text-lg mb-2">Quality</h3>
               <p className="text-gray-600">Ensuring high standards in all operations</p>
             </div>
@@ -66,15 +66,15 @@ export default function AboutPage() {
 
           {/* Stats Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="bg-emerald-600 text-white rounded-lg p-8 text-center">
+            <div className="bg-blue-600 text-white rounded-lg p-8 text-center">
               <div className="text-4xl font-bold mb-2">50K+</div>
               <p className="text-lg">Products Available</p>
             </div>
-            <div className="bg-emerald-600 text-white rounded-lg p-8 text-center">
+            <div className="bg-blue-600 text-white rounded-lg p-8 text-center">
               <div className="text-4xl font-bold mb-2">1000+</div>
               <p className="text-lg">Active Sellers</p>
             </div>
-            <div className="bg-emerald-600 text-white rounded-lg p-8 text-center">
+            <div className="bg-blue-600 text-white rounded-lg p-8 text-center">
               <div className="text-4xl font-bold mb-2">100K+</div>
               <p className="text-lg">Happy Customers</p>
             </div>

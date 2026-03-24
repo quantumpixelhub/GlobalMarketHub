@@ -90,7 +90,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         {isAuthenticated && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700"
+            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
           >
             {showForm ? 'Cancel' : 'Write a Review'}
           </button>
@@ -133,7 +133,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="Summary of your experience"
                 required
               />
@@ -145,7 +145,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-600 h-24"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 h-24"
                 placeholder="Share your experience with this product"
                 required
               />
@@ -154,7 +154,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
             {/* Submit */}
             <button
               type="submit"
-              className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700"
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
             >
               Submit Review
             </button>
@@ -193,7 +193,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               <p className="text-sm text-gray-700 mb-3">{review.content}</p>
 
               {/* Helpful Button */}
-              <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-600">
+              <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
                 <ThumbsUp size={16} />
                 <span>Helpful ({review.helpfulCount})</span>
               </button>
