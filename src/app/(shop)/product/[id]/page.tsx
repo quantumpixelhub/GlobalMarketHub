@@ -332,7 +332,14 @@ export default function ProductDetailPage() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation showCategoryLinks={false} />
         <div className="pt-6 flex justify-center">
-          <div className="h-10 w-10 rounded-full border-4 border-rose-100 border-t-rose-600 animate-spin" aria-hidden="true" />
+          <div className="inline-flex items-center gap-3 rounded-full bg-white/90 border border-gray-200 px-4 py-2 shadow-sm">
+            <div className="relative h-8 w-8" aria-hidden="true">
+              <div className="absolute inset-0 rounded-full border-2 border-rose-200" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-rose-600 animate-spin" />
+              <div className="absolute inset-1 rounded-full border-2 border-transparent border-t-orange-500 animate-spin [animation-duration:1.4s]" />
+            </div>
+            <span className="text-sm font-medium text-gray-600">Loading product...</span>
+          </div>
         </div>
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full animate-pulse">
           <div className="mb-6">
