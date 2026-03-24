@@ -52,6 +52,12 @@ const PAYMENT_OPTIONS = [
   { id: 'stripe', name: 'Credit/Debit Card', note: 'Visa, Mastercard, Amex' },
 ] as const;
 
+const PAYMENT_LOGO_URLS: Record<string, string> = {
+  uddoktapay: 'https://uddoktapay.com/favicon.ico',
+  bkash: 'https://www.bkash.com/favicon.ico',
+  nagad: 'https://www.nagad.com.bd/favicon.ico',
+};
+
 interface GuestCheckoutData {
   firstName: string;
   lastName: string;
@@ -87,9 +93,22 @@ export default function CheckoutPage() {
   const [guestDeliverySpeed, setGuestDeliverySpeed] = useState('standard');
   const [newAddressDeliveryArea, setNewAddressDeliveryArea] = useState('inside-dhaka');
   const [newAddressDeliverySpeed, setNewAddressDeliverySpeed] = useState('standard');
+  const [logoLoadError, setLogoLoadError] = useState<Record<string, boolean>>({});
   const { showToast } = useToast();
 
   const renderPaymentIcon = (methodId: string) => {
+    const logoUrl = PAYMENT_LOGO_URLS[methodId];
+    if (logoUrl && !logoLoadError[methodId]) {
+      return (
+        <img
+          src={logoUrl}
+          alt={`${methodId} logo`}
+          className="w-5 h-5 object-contain"
+          onError={() => setLogoLoadError((prev) => ({ ...prev, [methodId]: true }))}
+        />
+      );
+    }
+
     switch (methodId) {
       case 'uddoktapay':
         return <ShieldCheck size={18} className="text-sky-600" />;

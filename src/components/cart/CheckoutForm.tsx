@@ -8,6 +8,12 @@ import {
   WalletCards,
 } from 'lucide-react';
 
+const PAYMENT_LOGO_URLS: Record<string, string> = {
+  uddoktapay: 'https://uddoktapay.com/favicon.ico',
+  bkash: 'https://www.bkash.com/favicon.ico',
+  nagad: 'https://www.nagad.com.bd/favicon.ico',
+};
+
 interface Address {
   id: string;
   label: string;
@@ -43,6 +49,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [paymentMethod, setPaymentMethod] = useState('uddoktapay');
   const [deliveryArea, setDeliveryArea] = useState(initialDeliveryArea);
   const [deliverySpeed, setDeliverySpeed] = useState(initialDeliverySpeed);
+  const [logoLoadError, setLogoLoadError] = useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
     onDeliveryOptionsChange?.({ deliveryArea, deliverySpeed });
@@ -59,6 +66,18 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   };
 
   const renderPaymentIcon = (methodId: string) => {
+    const logoUrl = PAYMENT_LOGO_URLS[methodId];
+    if (logoUrl && !logoLoadError[methodId]) {
+      return (
+        <img
+          src={logoUrl}
+          alt={`${methodId} logo`}
+          className="w-5 h-5 object-contain"
+          onError={() => setLogoLoadError((prev) => ({ ...prev, [methodId]: true }))}
+        />
+      );
+    }
+
     switch (methodId) {
       case 'uddoktapay':
         return <ShieldCheck size={20} className="text-sky-600" />;
