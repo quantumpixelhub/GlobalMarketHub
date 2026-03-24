@@ -190,7 +190,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
       {/* Header */}
       <div
         className={`${
-          isEscalated ? 'bg-orange-500' : 'bg-emerald-600'
+          isEscalated ? 'bg-emerald-500' : 'bg-emerald-600'
         } text-white px-4 py-3 rounded-t-lg flex items-center justify-between`}
       >
         <div className="flex items-center gap-2">
@@ -277,7 +277,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
       {/* Input */}
       <div className="border-t border-gray-200 p-3 bg-white rounded-b-lg">
         {isEscalated && (
-          <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded mb-2 border border-orange-200">
+          <div className="text-xs text-emerald-600 bg-emerald-50 p-2 rounded mb-2 border border-emerald-200">
             ℹ️ You've been escalated to a human agent. Response may take a few minutes.
           </div>
         )}

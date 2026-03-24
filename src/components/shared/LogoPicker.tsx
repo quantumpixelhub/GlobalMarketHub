@@ -135,7 +135,7 @@ const logoOptions: LogoOption[] = [
     description: 'Movement and progress focused design',
     color1: '#EF4444',
     color2: '#B91C1C',
-    bgGradient: 'from-red-50 to-orange-100',
+    bgGradient: 'from-red-50 to-emerald-100',
     svg: `<g transform="translate(33, 18)">
       <path d="M20 15 L28 25 L20 35" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M35 15 L43 25 L35 35" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />

@@ -14,7 +14,7 @@ const colorClasses: Record<BadgeColor, string> = {
   yellow: 'bg-yellow-100 text-yellow-800',
   blue: 'bg-blue-100 text-blue-800',
   purple: 'bg-purple-100 text-purple-800',
-  orange: 'bg-orange-100 text-orange-800',
+  orange: 'bg-emerald-100 text-emerald-800',
 };
 
 const sizeClasses = {

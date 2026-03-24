@@ -43,7 +43,7 @@ export default function SettingsPage() {
       type="button"
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-        checked ? 'bg-orange-500' : 'bg-gray-300'
+        checked ? 'bg-emerald-500' : 'bg-gray-300'
       }`}
     >
       <span
@@ -67,7 +67,7 @@ export default function SettingsPage() {
   }) => (
     <div className="bg-white rounded-lg p-6 border border-gray-200">
       <div className="flex items-center gap-3 mb-4">
-        <Icon size={24} className="text-orange-500" />
+        <Icon size={24} className="text-emerald-500" />
         <div>
           <h3 className="text-lg font-bold text-gray-900">{title}</h3>
           <p className="text-sm text-gray-600">{description}</p>
@@ -88,7 +88,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSubmit}
           disabled={isSaving}
-          className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-medium py-2 px-6 rounded-lg flex items-center gap-2 transition"
+          className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-medium py-2 px-6 rounded-lg flex items-center gap-2 transition"
         >
           <Save size={18} />
           {isSaving ? 'Saving...' : 'Save Changes'}
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                   type="text"
                   value={formData.storeName}
                   onChange={(e) => handleChange('storeName', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
               <div>
@@ -140,7 +140,7 @@ export default function SettingsPage() {
                   type="text"
                   value={formData.currency}
                   onChange={(e) => handleChange('currency', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
                 type="text"
                 value={formData.tagline}
                 onChange={(e) => handleChange('tagline', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -160,7 +160,7 @@ export default function SettingsPage() {
               <textarea
                 value={formData.aboutText}
                 onChange={(e) => handleChange('aboutText', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
                 rows={4}
               />
             </div>
@@ -180,7 +180,7 @@ export default function SettingsPage() {
                 type="email"
                 value={formData.supportEmail}
                 onChange={(e) => handleChange('supportEmail', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                 type="tel"
                 value={formData.supportPhone}
                 onChange={(e) => handleChange('supportPhone', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function SettingsPage() {
               type="number"
               value={formData.freeShippingThreshold}
               onChange={(e) => handleChange('freeShippingThreshold', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <p className="text-xs text-gray-600 mt-2">
               Orders above this amount qualify for free shipping. Set to 0 to disable.
@@ -274,7 +274,7 @@ export default function SettingsPage() {
                 type="url"
                 value={formData.facebookUrl}
                 onChange={(e) => handleChange('facebookUrl', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -283,7 +283,7 @@ export default function SettingsPage() {
                 type="url"
                 value={formData.instagramUrl}
                 onChange={(e) => handleChange('instagramUrl', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -292,7 +292,7 @@ export default function SettingsPage() {
                 type="url"
                 value={formData.youtubeUrl}
                 onChange={(e) => handleChange('youtubeUrl', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -301,7 +301,7 @@ export default function SettingsPage() {
                 type="url"
                 value={formData.linkedinUrl}
                 onChange={(e) => handleChange('linkedinUrl', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>

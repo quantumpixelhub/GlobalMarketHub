@@ -105,7 +105,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                pathname === item.href ? 'bg-orange-500 text-white' : 'hover:bg-gray-800 text-gray-100'
+                pathname === item.href ? 'bg-emerald-500 text-white' : 'hover:bg-gray-800 text-gray-100'
               }`}
             >
               <item.icon size={20} />

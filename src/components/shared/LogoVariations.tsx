@@ -32,7 +32,7 @@ export function LogoVariations() {
 
           {/* Logo 2: Bold Geometric */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-orange-50 to-red-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-emerald-50 to-red-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Bold geometric */}
                 <g transform="translate(40, 20)">
@@ -45,7 +45,7 @@ export function LogoVariations() {
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Bold Hexagon</h3>
             <p className="text-gray-600 text-sm text-center">Trading arrows in hexagon shape</p>
-            <button className="w-full mt-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors">
               Choose This
             </button>
           </div>
@@ -100,7 +100,7 @@ export function LogoVariations() {
 
           {/* Logo 5: Retro Vintage */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-yellow-50 to-emerald-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Retro vintage */}
                 <g transform="translate(40, 15)">
