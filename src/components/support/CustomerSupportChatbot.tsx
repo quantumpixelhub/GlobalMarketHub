@@ -190,7 +190,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
       {/* Header */}
       <div
         className={`${
-          isEscalated ? 'bg-emerald-500' : 'bg-emerald-600'
+          isEscalated ? 'bg-emerald-600' : 'bg-emerald-600'
         } text-white px-4 py-3 rounded-t-lg flex items-center justify-between`}
       >
         <div className="flex items-center gap-2">
@@ -289,7 +289,7 @@ export const CustomerSupportChatbot: React.FC<ChatbotProps> = ({
             onKeyPress={handleKeyPress}
             placeholder="Ask me anything..."
             disabled={isLoading || isEscalated}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm disabled:bg-gray-100"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm disabled:bg-gray-100"
           />
           <button
             onClick={handleSendMessage}

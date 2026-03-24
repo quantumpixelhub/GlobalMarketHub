@@ -529,7 +529,7 @@ export default function HomePage() {
                       <span className="absolute top-2 left-2 text-sm bg-violet-600 text-white px-2 py-1 rounded-full">Fresh</span>
                     )}
                     {index === 2 && (
-                      <span className="absolute top-2 right-2 text-sm bg-emerald-500 text-white px-2 py-1 rounded">Best Seller</span>
+                      <span className="absolute top-2 right-2 text-sm bg-emerald-600 text-white px-2 py-1 rounded">Best Seller</span>
                     )}
                   </div>
                   <div className="min-h-[62px]">

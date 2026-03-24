@@ -71,7 +71,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <p className="text-sm font-medium text-gray-800">Admin User</p>
               <p className="text-xs text-gray-500">Administrator</p>
             </div>
-            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow">
+            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold shadow">
               A
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                pathname === item.href ? 'bg-emerald-500 text-white' : 'hover:bg-gray-800 text-gray-100'
+                pathname === item.href ? 'bg-emerald-600 text-white' : 'hover:bg-gray-800 text-gray-100'
               }`}
             >
               <item.icon size={20} />

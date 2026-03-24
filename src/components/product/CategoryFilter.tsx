@@ -172,7 +172,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 type="number"
                 value={localMin}
                 onChange={(e) => setLocalMin(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-600"
               />
             </div>
             <div>
@@ -181,7 +181,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 type="number"
                 value={localMax}
                 onChange={(e) => setLocalMax(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-600"
               />
             </div>
             <button

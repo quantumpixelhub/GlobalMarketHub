@@ -218,7 +218,7 @@ export default function CouponsPage() {
             type="text"
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
             placeholder="e.g., SAVE10"
           />
         </div>
@@ -230,7 +230,7 @@ export default function CouponsPage() {
               type="text"
               value={formData.expires}
               onChange={(e) => setFormData({ ...formData, expires: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
               placeholder="12/31/2026"
             />
           </div>
@@ -239,7 +239,7 @@ export default function CouponsPage() {
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value as Coupon['status'] })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
@@ -255,7 +255,7 @@ export default function CouponsPage() {
               type="number"
               value={formData.discount}
               onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
               placeholder="10"
             />
           </div>
@@ -265,7 +265,7 @@ export default function CouponsPage() {
               type="number"
               value={formData.minOrder}
               onChange={(e) => setFormData({ ...formData, minOrder: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
               placeholder="500"
             />
           </div>
@@ -277,7 +277,7 @@ export default function CouponsPage() {
             type="number"
             value={formData.totalUsage}
             onChange={(e) => setFormData({ ...formData, totalUsage: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
             placeholder="100"
           />
         </div>

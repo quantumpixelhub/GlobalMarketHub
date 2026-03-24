@@ -586,7 +586,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleBuyNow}
                   disabled={effectiveStock === 0}
-                  className="bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 disabled:bg-gray-400 font-semibold"
+                  className="bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 font-semibold"
                 >
                   Buy Now
                 </button>

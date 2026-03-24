@@ -404,7 +404,7 @@ function SearchContent() {
             id="sort-mode"
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value as SortMode)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
           >
             <option value="best_value">Best Value</option>
             <option value="best_price">Best Price</option>

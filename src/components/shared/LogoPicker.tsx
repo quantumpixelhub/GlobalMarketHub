@@ -68,13 +68,13 @@ const logoOptions: LogoOption[] = [
     id: 'tech-nexus',
     name: 'Tech Nexus',
     description: 'Modern technology-focused design with connected elements',
-    color1: '#10B981',
+    color1: '#059669',
     color2: '#047857',
     bgGradient: 'from-emerald-50 to-emerald-100',
     svg: `<g transform="translate(32, 18)">
-      <circle cx="15" cy="20" r="3.5" fill="#10B981" />
-      <circle cx="45" cy="20" r="3.5" fill="#10B981" />
-      <circle cx="30" cy="40" r="3.5" fill="#10B981" />
+      <circle cx="15" cy="20" r="3.5" fill="#059669" />
+      <circle cx="45" cy="20" r="3.5" fill="#059669" />
+      <circle cx="30" cy="40" r="3.5" fill="#059669" />
       <line x1="15" y1="20" x2="45" y2="20" stroke="#047857" strokeWidth="2" opacity="0.7" />
       <line x1="15" y1="20" x2="30" y2="40" stroke="#047857" strokeWidth="2" opacity="0.7" />
       <line x1="45" y1="20" x2="30" y2="40" stroke="#047857" strokeWidth="2" opacity="0.7" />

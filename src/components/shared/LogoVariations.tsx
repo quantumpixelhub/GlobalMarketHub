@@ -45,7 +45,7 @@ export function LogoVariations() {
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Bold Hexagon</h3>
             <p className="text-gray-600 text-sm text-center">Trading arrows in hexagon shape</p>
-            <button className="w-full mt-4 px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
               Choose This
             </button>
           </div>
@@ -79,13 +79,13 @@ export function LogoVariations() {
                 {/* Tech nodes */}
                 <g transform="translate(35, 20)">
                   {/* Nodes */}
-                  <circle cx="15" cy="15" r="3.5" fill="#10b981" />
-                  <circle cx="50" cy="15" r="3.5" fill="#10b981" />
-                  <circle cx="32.5" cy="45" r="3.5" fill="#10b981" />
+                  <circle cx="15" cy="15" r="3.5" fill="#059669" />
+                  <circle cx="50" cy="15" r="3.5" fill="#059669" />
+                  <circle cx="32.5" cy="45" r="3.5" fill="#059669" />
                   {/* Connections */}
-                  <line x1="15" y1="15" x2="50" y2="15" stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
-                  <line x1="15" y1="15" x2="32.5" y2="45" stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
-                  <line x1="50" y1="15" x2="32.5" y2="45" stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="15" y1="15" x2="50" y2="15" stroke="#059669" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="15" y1="15" x2="32.5" y2="45" stroke="#059669" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="50" y1="15" x2="32.5" y2="45" stroke="#059669" strokeWidth="1.5" opacity="0.6" />
                   {/* Center */}
                   <circle cx="32.5" cy="25" r="2" fill="#059669" />
                 </g>

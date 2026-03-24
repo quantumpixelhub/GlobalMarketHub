@@ -208,7 +208,7 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-600"
               >
                 <option value="createdAt">Newest First</option>
                 <option value="price">Price: Low to High</option>
