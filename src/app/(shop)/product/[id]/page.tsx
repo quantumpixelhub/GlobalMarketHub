@@ -331,6 +331,9 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation showCategoryLinks={false} />
+        <div className="pt-6 flex justify-center">
+          <div className="h-10 w-10 rounded-full border-4 border-rose-100 border-t-rose-600 animate-spin" aria-hidden="true" />
+        </div>
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full animate-pulse">
           <div className="mb-6">
             <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
