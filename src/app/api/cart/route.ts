@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { productId, quantity, variantId, priceSnapshot } = await request.json();
+    const { productId, quantity, variantId } = await request.json();
 
     if (!productId || !quantity || quantity < 1) {
       return NextResponse.json(
@@ -186,10 +186,8 @@ export async function POST(request: NextRequest) {
       }
 
       effectivePrice = Number(variant.price);
-    } else if (priceSnapshot !== undefined && Number.isFinite(Number(priceSnapshot))) {
-      // Guest/client fallback path for non-variant items.
-      effectivePrice = Number(priceSnapshot);
     }
+    // Note: priceSnapshot parameter is ignored for security. Price must always come from DB.
 
     // Check if item already in cart
     const existingItem = await prisma.cartItem.findFirst({

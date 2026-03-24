@@ -248,7 +248,7 @@ export default function CheckoutPage() {
           guestCartItems: cart.items.map((item) => ({
             productId: item.productId || item.product?.id,
             quantity: item.quantity,
-            priceSnapshot: item.priceSnapshot,
+            // Note: priceSnapshot is not sent; backend will fetch DB prices
           })),
         }),
       });

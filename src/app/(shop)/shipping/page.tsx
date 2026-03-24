@@ -118,7 +118,7 @@ export default function ShippingInfoPage() {
               Once your order ships, you'll receive a tracking number via email. You can use this number to track your package in real-time on our platform.
             </p>
             <a href="/products" className="inline-block bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700 transition">
-              Go to Dashboard
+              Continue Shopping
             </a>
           </div>
         </div>

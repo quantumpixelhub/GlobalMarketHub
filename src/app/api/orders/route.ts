@@ -256,10 +256,13 @@ export async function POST(request: NextRequest) {
       const normalizedDeliveryArea = normalizeDeliveryArea(deliveryArea || guestInfo?.deliveryArea);
       const normalizedDeliverySpeed = normalizeDeliverySpeed(deliverySpeed || guestInfo?.deliverySpeed);
 
-      const subtotal = guestCartItems.reduce(
-        (sum: number, item: any) => sum + Number(item.priceSnapshot) * Number(item.quantity || 1),
-        0
-      );
+      // Rebuild subtotal from DB product prices (server-authoritative)
+      const subtotal = guestCartItems.reduce((sum: number, item: any) => {
+        const productId = String(item.productId || "");
+        const product = guestProducts.find((p) => p.id === productId);
+        const price = product ? Number(product.currentPrice) : 0;
+        return sum + price * Number(item.quantity || 1);
+      }, 0);
 
       const guestProductIds = Array.from(
         new Set(
@@ -272,7 +275,7 @@ export async function POST(request: NextRequest) {
       const guestProducts = guestProductIds.length > 0
         ? await prisma.product.findMany({
             where: { id: { in: guestProductIds } },
-            select: { id: true, certifications: true, specifications: true },
+            select: { id: true, currentPrice: true, certifications: true, specifications: true },
           })
         : [];
 
@@ -281,8 +284,11 @@ export async function POST(request: NextRequest) {
       );
 
       const importedSubtotal = guestCartItems.reduce((sum: number, item: any) => {
-        const lineTotal = Number(item.priceSnapshot) * Number(item.quantity || 1);
-        const mappedProduct = guestProductMap.get(String(item.productId || ""));
+        const productId = String(item.productId || "");
+        const product = guestProducts.find((p) => p.id === productId);
+        const price = product ? Number(product.currentPrice) : 0;
+        const lineTotal = price * Number(item.quantity || 1);
+        const mappedProduct = guestProductMap.get(productId);
         const imported = mappedProduct
           ? isImportedProduct(mappedProduct.certifications, mappedProduct.specifications)
           : isImportedGuestItem(item);
@@ -325,11 +331,16 @@ export async function POST(request: NextRequest) {
           paymentMethod: "PENDING",
           items: {
             createMany: {
-              data: guestCartItems.map((item: any) => ({
-                productId: item.productId,
-                quantity: Number(item.quantity || 1),
-                price: Number(item.priceSnapshot),
-              })),
+              data: guestCartItems.map((item: any) => {
+                const productId = String(item.productId || "");
+                const product = guestProducts.find((p) => p.id === productId);
+                const price = product ? Number(product.currentPrice) : 0;
+                return {
+                  productId: item.productId,
+                  quantity: Number(item.quantity || 1),
+                  price, // Use DB-authoritative price only
+                };
+              }),
             },
           },
           notes: "Guest checkout order",
