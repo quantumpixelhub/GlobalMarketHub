@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 
 function normalizeText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
@@ -110,8 +111,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const view = normalizeText(searchParams.get('view') || '').toLowerCase();
 
-    const incompleteStatuses = ['PENDING', 'PROCESSING', 'SHIPPED'];
-    const whereClause =
+    const incompleteStatuses: OrderStatus[] = [
+      OrderStatus.PENDING,
+      OrderStatus.PROCESSING,
+      OrderStatus.SHIPPED,
+    ];
+    const whereClause: Prisma.OrderWhereInput =
       view === 'incomplete'
         ? {
             status: {
@@ -120,7 +125,7 @@ export async function GET(request: NextRequest) {
           }
         : view === 'refunded'
           ? {
-              paymentStatus: 'REFUNDED' as const,
+              paymentStatus: PaymentStatus.REFUNDED,
             }
           : {};
 
@@ -161,7 +166,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.order.count({
         where: {
-          paymentStatus: 'REFUNDED',
+          paymentStatus: PaymentStatus.REFUNDED,
         },
       }),
     ]);
