@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/ToastProvider';
+import { CustomerSupportChatbot } from '@/components/support/CustomerSupportChatbot';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ToastProvider>
           <main>{children}</main>
+        @@          <CustomerSupportChatbot />
         </ToastProvider>
       </body>
     </html>

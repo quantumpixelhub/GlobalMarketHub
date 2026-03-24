@@ -44,6 +44,7 @@ model User {
   reviews    Review[]
   wishlist   WishlistItem[]
   payments   PaymentTransaction[]
+    customerMessages CustomerMessage[]
   
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -292,6 +293,7 @@ model Order {
   
   // Payment
   payment   PaymentTransaction?
+    customerMessages CustomerMessage[]
   
   // Tracking
   trackingNumber String?
@@ -501,6 +503,40 @@ model ExternalProduct {
   @@unique([platform, externalId])
   @@index([productId])
   @@index([platform])
+}
+// ============================================================================
+// CUSTOMER SUPPORT & CHATBOT
+// ============================================================================
+
+model CustomerMessage {
+  id        String   @id @default(cuid())
+  
+  userId    String?  // NULL for guest users
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  orderId   String?  // Related order if any
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  
+  // Message details
+  userMessage String
+  agentResponse String?
+  messageType String @default("GENERAL") // GENERAL, ORDER_INQUIRY, COD_QUESTION, RETURN_REQUEST, COMPLAINT
+  
+  // Status
+  status    String @default("OPEN") // OPEN, RESOLVED, ESCALATED
+  escalatedToHuman Boolean @default(false)
+  
+  // Metadata
+  sentiment String? // POSITIVE, NEUTRAL, NEGATIVE
+  category  String? // Auto-categorized
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ============================================================================
