@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -28,7 +28,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onPriceChange,
 }) => {
   const [showCategories, setShowCategories] = useState(true);
-  const [expandedParentSlugs, setExpandedParentSlugs] = useState<Set<string>>(new Set());
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const [showPrice, setShowPrice] = useState(true);
   const [localMin, setLocalMin] = useState(minPrice);
   const [localMax, setLocalMax] = useState(maxPrice);
@@ -56,18 +56,6 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     onPriceChange?.(localMin, localMax);
   };
 
-  const toggleParent = (slug: string) => {
-    setExpandedParentSlugs((prev) => {
-      const next = new Set(prev);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      return next;
-    });
-  };
-
   return (
     <div className="bg-white rounded-lg">
       {/* Categories Section */}
@@ -93,57 +81,49 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             </button>
             {mainCategories.map((category) => {
               const subcategories = subcategoriesByParent[category.id] || [];
-              const isExpanded = expandedParentSlugs.has(category.slug);
+              const isHovered = hoveredCategoryId === category.id;
 
               return (
-                <div key={category.id} className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    {subcategories.length > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleParent(category.slug)}
-                        className="p-1 rounded hover:bg-gray-100"
-                        aria-label={isExpanded ? 'Collapse sub-categories' : 'Expand sub-categories'}
-                      >
-                        <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>
-                    ) : (
-                      <span className="w-6" />
-                    )}
+                <div
+                  key={category.id}
+                  className="relative"
+                  onMouseEnter={() => setHoveredCategoryId(category.id)}
+                  onMouseLeave={() => setHoveredCategoryId(null)}
+                >
+                  <button
+                    onClick={() => onCategoryChange?.(category.slug)}
+                    className={`w-full text-left px-3 py-2 rounded bg-emerald-50 flex items-center justify-between ${
+                      selectedCategory === category.slug
+                        ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                        : 'text-gray-800 hover:bg-emerald-100'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {category.icon && <span className="text-base leading-none">{category.icon}</span>}
+                      {category.image && (
+                        <img
+                          src={category.image}
+                          alt=""
+                          aria-hidden="true"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                          className="w-5 h-5 rounded object-cover"
+                        />
+                      )}
+                      <span>{category.name}</span>
+                    </span>
+                    {subcategories.length > 0 && <ChevronRight size={18} />}
+                  </button>
 
-                    <button
-                      onClick={() => onCategoryChange?.(category.slug)}
-                      className={`block w-full text-left px-3 py-2 rounded bg-emerald-50 ${
-                        selectedCategory === category.slug
-                          ? 'bg-emerald-100 text-emerald-700 font-semibold'
-                          : 'text-gray-800 hover:bg-emerald-100'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        {category.icon && <span className="text-base leading-none">{category.icon}</span>}
-                        {category.image && (
-                          <img
-                            src={category.image}
-                            alt=""
-                            aria-hidden="true"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                            className="w-5 h-5 rounded object-cover"
-                          />
-                        )}
-                        <span>{category.name}</span>
-                      </span>
-                    </button>
-                  </div>
-
-                  {subcategories.length > 0 && isExpanded && (
-                    <div className="pl-5 space-y-1">
+                  {/* Hover Sub-categories Panel */}
+                  {subcategories.length > 0 && isHovered && (
+                    <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
                       {subcategories.map((subcategory) => (
                         <button
                           key={subcategory.id}
                           onClick={() => onCategoryChange?.(subcategory.slug)}
-                          className={`block w-full text-left px-3 py-1.5 rounded text-sm ${
+                          className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
                             selectedCategory === subcategory.slug
                               ? 'bg-emerald-100 text-emerald-700 font-semibold'
                               : 'hover:bg-gray-100 text-gray-700'
