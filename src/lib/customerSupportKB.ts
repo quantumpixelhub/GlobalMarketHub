@@ -351,19 +351,61 @@ Search for "GlobalMarketHub" in your app store!`,
   },
 ];
 
+const QUERY_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'by',
+  'for',
+  'from',
+  'how',
+  'i',
+  'in',
+  'is',
+  'it',
+  'last',
+  'me',
+  'most',
+  'of',
+  'on',
+  'or',
+  'the',
+  'this',
+  'to',
+  'was',
+  'what',
+  'which',
+  'with',
+]);
+
+function normalizeTokens(input: string): string[] {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token.length >= 3 && !QUERY_STOP_WORDS.has(token));
+}
+
 /**
  * Find relevant FAQ items based on user query
  */
 export function findRelevantFAQs(query: string, limit: number = 3): FAQItem[] {
   const lowerQuery = query.toLowerCase();
+  const queryTokens = normalizeTokens(query);
   
   return SUPPORT_KB
     .map((faq) => {
       let score = 0;
+      let strongSignalCount = 0;
       
       // Exact question match
       if (faq.question.toLowerCase().includes(lowerQuery)) {
         score += 10;
+        strongSignalCount += 1;
       }
       
       // Keyword matches
@@ -371,18 +413,29 @@ export function findRelevantFAQs(query: string, limit: number = 3): FAQItem[] {
         lowerQuery.includes(kw.toLowerCase())
       );
       score += matchedKeywords.length * 3;
+      strongSignalCount += matchedKeywords.length;
       
       // Question word matches
-      const queryWords = lowerQuery.split(/\s+/);
-      const questionWords = faq.question.toLowerCase().split(/\s+/);
-      const commonWords = queryWords.filter((qw) =>
-        questionWords.some((fw) => fw.includes(qw) || qw.includes(fw))
+      const questionTokens = normalizeTokens(faq.question);
+      const commonWords = queryTokens.filter((token) =>
+        questionTokens.some((questionToken) =>
+          questionToken.includes(token) || token.includes(questionToken)
+        )
       );
       score += commonWords.length;
+
+      // Keep category intent strong by rejecting weak/noisy overlaps.
+      if (strongSignalCount === 0 && commonWords.length < 2) {
+        score = 0;
+      }
       
-      return { faq, score };
+      return { faq, score, strongSignalCount, commonWordsCount: commonWords.length };
     })
-    .filter(({ score }) => score > 0)
+    .filter(({ score, strongSignalCount, commonWordsCount }) => {
+      if (score < 3) return false;
+      if (strongSignalCount > 0) return true;
+      return commonWordsCount >= 3;
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(({ faq }) => faq);

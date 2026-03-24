@@ -20,6 +20,19 @@ export interface AIAgentResponse {
   suggestedFAQs?: Array<{ question: string; answer: string }>;
 }
 
+function isAnalyticsQuestion(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('most sold') ||
+    lower.includes('best sold') ||
+    lower.includes('best selling') ||
+    lower.includes('top selling') ||
+    lower.includes('highest selling') ||
+    lower.includes('sales report') ||
+    lower.includes('last week')
+  );
+}
+
 /**
  * Main function to get AI response
  * This uses a combination of:
@@ -29,6 +42,16 @@ export interface AIAgentResponse {
  */
 export async function getAIResponse(userMessage: string): Promise<AIAgentResponse> {
   try {
+    if (isAnalyticsQuestion(userMessage)) {
+      return {
+        message:
+          "This looks like a business analytics question. I can help with customer support topics, but for 'most sold last week' please check Admin > Analytics in your dashboard. If you want, I can help you find order status, payment, return, or delivery details.",
+        category: 'ANALYTICS_REQUEST',
+        sentiment: 'NEUTRAL',
+        escalateToHuman: false,
+      };
+    }
+
     // Step 1: Categorize the message
     const category = categorizeMessage(userMessage);
     const sentiment = analyzeSentiment(userMessage);
@@ -136,6 +159,10 @@ async function generateLLMResponse(
   category: string,
   sentiment: string
 ): Promise<string> {
+  if (isAnalyticsQuestion(userMessage)) {
+    return "I cannot access business sales analytics from this customer support chat. For 'most sold in last week', open Admin > Analytics. I can still help with orders, returns, delivery, and payment questions here.";
+  }
+
   // Try to use Hugging Face API if available
   try {
     const response = await callFreeHuggingFaceAPI(userMessage);
