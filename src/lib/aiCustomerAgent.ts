@@ -20,6 +20,115 @@ export interface AIAgentResponse {
   suggestedFAQs?: Array<{ question: string; answer: string }>;
 }
 
+type OpenDomainIntent =
+  | 'PRODUCT_RECOMMENDATION'
+  | 'SALES_ANALYTICS'
+  | 'ORDER_CANCELLATION'
+  | 'WARRANTY'
+  | 'PRICING'
+  | 'UNKNOWN';
+
+function detectOpenDomainIntent(message: string): OpenDomainIntent {
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes('recommend') ||
+    lower.includes('suggest') ||
+    lower.includes('best product') ||
+    lower.includes('which product')
+  ) {
+    return 'PRODUCT_RECOMMENDATION';
+  }
+
+  if (
+    lower.includes('most sold') ||
+    lower.includes('top sold') ||
+    lower.includes('best selling') ||
+    lower.includes('top selling') ||
+    lower.includes('sales report')
+  ) {
+    return 'SALES_ANALYTICS';
+  }
+
+  if (
+    lower.includes('cancel order') ||
+    lower.includes('order cancel') ||
+    lower.includes('cancel my order')
+  ) {
+    return 'ORDER_CANCELLATION';
+  }
+
+  if (lower.includes('warranty') || lower.includes('guarantee')) {
+    return 'WARRANTY';
+  }
+
+  if (
+    lower.includes('price') ||
+    lower.includes('cost') ||
+    lower.includes('cheap') ||
+    lower.includes('discount')
+  ) {
+    return 'PRICING';
+  }
+
+  return 'UNKNOWN';
+}
+
+function generateGeneralIntentResponse(userMessage: string): string {
+  const intent = detectOpenDomainIntent(userMessage);
+
+  if (intent === 'PRODUCT_RECOMMENDATION') {
+    return `I can help you choose the right product. Please share:
+1. Product type (phone, laptop, skincare, etc.)
+2. Your budget range
+3. Brand preference (optional)
+
+Then I will suggest suitable options for you.`;
+  }
+
+  if (intent === 'SALES_ANALYTICS') {
+    return `That is an analytics query. For top/most sold products, please check Admin > Analytics in your dashboard.
+
+If you want customer support help, I can assist with order tracking, delivery, returns, and payment issues.`;
+  }
+
+  if (intent === 'ORDER_CANCELLATION') {
+    return `You can cancel an order before shipment.
+
+Steps:
+1. Go to My Orders
+2. Open your order
+3. Click Cancel (if available)
+
+Share your Order Number (ORD-...) and I can guide you based on its current status.`;
+  }
+
+  if (intent === 'WARRANTY') {
+    return `Warranty depends on product category and seller policy.
+
+Please share:
+1. Product name
+2. Order Number (ORD-...)
+
+I will guide you to the exact warranty/claim process.`;
+  }
+
+  if (intent === 'PRICING') {
+    return `Prices and discounts can vary by seller and campaign.
+
+Please tell me the product name or category, and I will guide you to the best available options and current offers.`;
+  }
+
+  return `I want to answer correctly. Please rephrase your question with one of these topics:
+- Order tracking/status
+- Delivery time
+- Payment/COD
+- Return/refund
+- Account/login
+
+If your question is about business analytics, use Admin > Analytics.`;
+}
+
 function isAnalyticsQuestion(message: string): boolean {
   const lower = message.toLowerCase();
   return (
@@ -58,6 +167,11 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
 
     // Step 2: Find relevant FAQs
     const relevantFAQs = findRelevantFAQs(userMessage, 2);
+    const lowerMessage = userMessage.toLowerCase();
+    const hasDirectKeywordMatch =
+      relevantFAQs.length > 0
+        ? relevantFAQs[0].keywords.some((kw) => lowerMessage.includes(kw.toLowerCase()))
+        : false;
 
     // Step 3: Determine if escalation needed
     const shouldEscalate =
@@ -70,7 +184,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
     // Step 4: Generate response
     let responseMessage = '';
 
-    if (relevantFAQs.length > 0) {
+    if (relevantFAQs.length > 0 && (category !== 'GENERAL' || hasDirectKeywordMatch)) {
       // We found relevant FAQs - provide them
       responseMessage = generateKBResponse(userMessage, relevantFAQs, sentiment);
     } else {
@@ -279,15 +393,7 @@ Share your Order Number and I can guide you through the exact process!`;
 
 Our human team typically responds within 1-2 hours. We'll resolve this for you!`;
   } else {
-    response += `I'm here to help! I can assist with:
-✅ Order tracking
-✅ Payment methods
-✅ Returns & refunds
-✅ Delivery times
-✅ COD availability
-✅ Account & login
-
-What would you like help with?`;
+    response += generateGeneralIntentResponse(userMessage);
   }
 
   response += '\n\n📞 Or reach our human agents: support@globalmarkethub.com';
