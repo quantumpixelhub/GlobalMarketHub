@@ -60,11 +60,9 @@ const computeMoq = (stock: number) => {
 
 export default function HomePage() {
   const BANNER_CARD_STEP = 236;
-  const FEATURED_INITIAL_COUNT = 16;
-  const FEATURED_LOAD_STEP = 16;
+  const FEATURED_PAGE_SIZE = 16;
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [visibleFeaturedCount, setVisibleFeaturedCount] = useState(FEATURED_INITIAL_COUNT);
-  const [isLoadingMoreFeatured, setIsLoadingMoreFeatured] = useState(false);
+  const [featuredPage, setFeaturedPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [activeBanner, setActiveBanner] = useState<'topSell' | 'topRanking' | 'topReviews' | 'random'>('topSell');
   const [randomBannerProducts, setRandomBannerProducts] = useState<Product[]>([]);
@@ -96,7 +94,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    setVisibleFeaturedCount(FEATURED_INITIAL_COUNT);
+    setFeaturedPage(1);
   }, [featuredProducts]);
 
   useEffect(() => {
@@ -155,17 +153,15 @@ export default function HomePage() {
   };
 
   const newArrivals = featuredProducts.slice(6, 12);
-  const visibleFeaturedProducts = featuredProducts.slice(0, visibleFeaturedCount);
-  const hasMoreFeaturedProducts = visibleFeaturedCount < featuredProducts.length;
+  const totalFeaturedPages = Math.max(1, Math.ceil(featuredProducts.length / FEATURED_PAGE_SIZE));
+  const safeFeaturedPage = Math.min(featuredPage, totalFeaturedPages);
+  const featuredStartIndex = (safeFeaturedPage - 1) * FEATURED_PAGE_SIZE;
+  const featuredEndIndex = featuredStartIndex + FEATURED_PAGE_SIZE;
+  const visibleFeaturedProducts = featuredProducts.slice(featuredStartIndex, featuredEndIndex);
 
-  const handleLoadMoreFeatured = () => {
-    if (isLoadingMoreFeatured || !hasMoreFeaturedProducts) return;
-    setIsLoadingMoreFeatured(true);
-
-    window.setTimeout(() => {
-      setVisibleFeaturedCount((prev) => prev + FEATURED_LOAD_STEP);
-      setIsLoadingMoreFeatured(false);
-    }, 350);
+  const handleFeaturedPageChange = (page: number) => {
+    const nextPage = Math.max(1, Math.min(page, totalFeaturedPages));
+    setFeaturedPage(nextPage);
   };
 
   const getBannerPageStep = (container: HTMLDivElement) => {
@@ -646,22 +642,45 @@ export default function HomePage() {
         />
         {!loading && featuredProducts.length > 0 && (
           <p className="mt-5 text-center text-sm text-gray-600">
-            Showing {visibleFeaturedProducts.length} of {featuredProducts.length} products
+            Showing {Math.min(featuredEndIndex, featuredProducts.length)} of {featuredProducts.length} products
           </p>
         )}
-        {!loading && hasMoreFeaturedProducts && (
+        {!loading && totalFeaturedPages > 1 && (
           <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              onClick={handleLoadMoreFeatured}
-              disabled={isLoadingMoreFeatured}
-              className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-8 py-3 text-white font-semibold hover:bg-rose-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {isLoadingMoreFeatured && (
-                <span className="h-4 w-4 rounded-full border-2 border-white/60 border-t-white animate-spin" />
-              )}
-              {isLoadingMoreFeatured ? 'Loading...' : 'Load More Products'}
-            </button>
+            <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+              <button
+                type="button"
+                onClick={() => handleFeaturedPageChange(safeFeaturedPage - 1)}
+                disabled={safeFeaturedPage === 1}
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
+
+              {Array.from({ length: totalFeaturedPages }, (_, index) => index + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => handleFeaturedPageChange(page)}
+                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+                    page === safeFeaturedPage
+                      ? 'bg-rose-600 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => handleFeaturedPageChange(safeFeaturedPage + 1)}
+                disabled={safeFeaturedPage === totalFeaturedPages}
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

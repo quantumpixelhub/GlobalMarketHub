@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/shared/Navigation';
 import { ReviewSection } from '@/components/product/ReviewSection';
-import { Heart, ChevronLeft, ChevronRight, ScanSearch, Package, ThumbsUp } from 'lucide-react';
+import { Heart, ChevronLeft, ChevronRight, ScanSearch, Package, ThumbsUp, ArrowLeft } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
@@ -64,6 +64,7 @@ const asNumber = (value: unknown, fallback = 0): number => {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const productId = params.id as string;
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -412,7 +413,26 @@ export default function ProductDetailPage() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation showCategoryLinks={false} />
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-          <p>Product not found</p>
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <p className="text-lg font-semibold text-gray-900">Product not found</p>
+            <p className="text-sm text-gray-600 mt-1">This product may have been removed or is no longer active.</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-white font-semibold hover:bg-rose-700"
+              >
+                <ArrowLeft size={16} />
+                Back
+              </button>
+              <Link
+                href="/products"
+                className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-gray-700 font-semibold hover:bg-gray-50"
+              >
+                Browse Products
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
