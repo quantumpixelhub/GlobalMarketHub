@@ -5,7 +5,6 @@
  */
 
 import {
-  SUPPORT_KB,
   SUPPORT_SYSTEM_PROMPT,
   findRelevantFAQs,
   categorizeMessage,
@@ -50,7 +49,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
 
     if (relevantFAQs.length > 0) {
       // We found relevant FAQs - provide them
-      responseMessage = generateKBResponse(userMessage, relevantFAQs, category, sentiment);
+      responseMessage = generateKBResponse(userMessage, relevantFAQs, sentiment);
     } else {
       // No direct match - use free LLM or fallback
       responseMessage = await generateLLMResponse(userMessage, category, sentiment);
@@ -93,7 +92,6 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
 function generateKBResponse(
   userMessage: string,
   faqs: Array<{ question: string; answer: string; category: string; id: string }>,
-  category: string,
   sentiment: string
 ): string {
   let response = '';
