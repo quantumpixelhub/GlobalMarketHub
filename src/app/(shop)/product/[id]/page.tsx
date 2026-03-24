@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/shared/Navigation';
 import { ReviewSection } from '@/components/product/ReviewSection';
-import { Heart, ChevronLeft, ChevronRight, ScanSearch } from 'lucide-react';
+import { Heart, ChevronLeft, ChevronRight, ScanSearch, Package, ThumbsUp } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
@@ -690,20 +690,36 @@ export default function ProductDetailPage() {
 
             {/* Trust Signals */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              <div className="bg-rose-50 border border-rose-100 rounded-lg p-4">
-                <p className="text-xs uppercase tracking-wide text-rose-700 font-semibold">Total Sold</p>
-                <p className="text-2xl font-bold text-rose-700 mt-1">
-                  {(product.totalSold || 0).toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">Units delivered successfully</p>
+              <div className="group relative overflow-hidden rounded-xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-rose-100/70 px-4 py-3 shadow-sm">
+                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-rose-200/40" />
+                <div className="relative flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-600 text-white shadow-sm">
+                    <Package size={18} />
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-rose-700 font-semibold">Total Sold</p>
+                    <p className="text-2xl leading-7 font-extrabold text-rose-700">
+                      {(product.totalSold || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <p className="relative mt-2 text-xs text-gray-600">Delivered units completed successfully</p>
               </div>
 
-              <div className="bg-orange-50 border border-orange-100 rounded-lg p-4">
-                <p className="text-xs uppercase tracking-wide text-orange-700 font-semibold">Positive Reviews</p>
-                <p className="text-2xl font-bold text-orange-700 mt-1">
-                  {(product.positiveReviews || 0).toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">Approved reviews with 4★ and above</p>
+              <div className="group relative overflow-hidden rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-orange-100/70 px-4 py-3 shadow-sm">
+                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-200/40" />
+                <div className="relative flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm">
+                    <ThumbsUp size={18} />
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-orange-700 font-semibold">Positive Reviews</p>
+                    <p className="text-2xl leading-7 font-extrabold text-orange-700">
+                      {(product.positiveReviews || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <p className="relative mt-2 text-xs text-gray-600">Approved ratings at 4 stars and above</p>
               </div>
             </div>
 
