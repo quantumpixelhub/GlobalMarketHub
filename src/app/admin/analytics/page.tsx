@@ -39,7 +39,7 @@ const orderStatusData = [
   { name: 'Processing', value: 1, color: '#3B82F6' },
   { name: 'Shipped', value: 1, color: '#8B5CF6' },
   { name: 'Pending', value: 2, color: '#F59E0B' },
-  { name: 'Delivered', value: 1, color: '#2563EB' },
+  { name: 'Delivered', value: 1, color: '#ff5a5f' },
 ];
 
 export default function AnalyticsPage() {
@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
           icon={ShoppingCart}
           subtitle={`${analytics.completedOrders} completed`}
           bgColor="bg-white"
-          iconColor="text-blue-500"
+          iconColor="text-rose-500"
           trend={{ value: 12, isPositive: true }}
         />
         <StatsCard
@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
           icon={TrendingUp}
           subtitle="All-time total"
           bgColor="bg-white"
-          iconColor="text-blue-500"
+          iconColor="text-rose-500"
           trend={{ value: 8, isPositive: true }}
         />
         <StatsCard
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
           icon={Package}
           subtitle={`${analytics.lowStockCount} low stock items`}
           bgColor="bg-white"
-          iconColor="text-blue-600"
+          iconColor="text-rose-600"
           trend={{ value: 3, isPositive: false }}
         />
       </div>
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
         {/* Monthly Sales Chart */}
         <div className="lg:col-span-2 bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center gap-2 mb-6">
-            <BarChart3 size={24} className="text-blue-600" />
+            <BarChart3 size={24} className="text-rose-600" />
             <h3 className="text-lg font-bold text-gray-900">Monthly Sales</h3>
           </div>
           <ResponsiveContainer width="100%" height={300}>
@@ -170,7 +170,7 @@ export default function AnalyticsPage() {
         {/* Orders by Status */}
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center gap-2 mb-6">
-            <PieChart size={24} className="text-blue-600" />
+            <PieChart size={24} className="text-rose-600" />
             <h3 className="text-lg font-bold text-gray-900">Orders by Status</h3>
           </div>
           <ResponsiveContainer width="100%" height={300}>

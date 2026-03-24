@@ -55,7 +55,7 @@ export default function FAQPage() {
 
       <div className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
+        <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
             <p className="text-lg opacity-90">Find answers to common questions</p>
@@ -74,7 +74,7 @@ export default function FAQPage() {
                   <h3 className="text-lg font-semibold text-gray-900 text-left">{faq.question}</h3>
                   <ChevronDown
                     size={24}
-                    className={`flex-shrink-0 text-blue-600 transition ${
+                    className={`flex-shrink-0 text-rose-600 transition ${
                       openItems.includes(index) ? 'transform rotate-180' : ''
                     }`}
                   />
@@ -88,14 +88,14 @@ export default function FAQPage() {
             ))}
           </div>
 
-          <div className="mt-12 bg-blue-50 rounded-lg p-8 text-center">
+          <div className="mt-12 bg-rose-50 rounded-lg p-8 text-center">
             <h2 className="text-2xl font-bold mb-4">Didn't find your answer?</h2>
             <p className="text-gray-700 mb-6">
               Our customer support team is ready to help. Get in touch with us for any other questions.
             </p>
             <a
               href="/contact"
-              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+              className="inline-block bg-rose-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-rose-700 transition"
             >
               Contact Support
             </a>

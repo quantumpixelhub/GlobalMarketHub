@@ -12,7 +12,7 @@ export default function ShippingInfoPage() {
 
       <div className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
+        <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h1 className="text-4xl font-bold mb-4">Shipping Information</h1>
             <p className="text-lg opacity-90">Fast and reliable delivery to your doorstep</p>
@@ -25,7 +25,7 @@ export default function ShippingInfoPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div className="bg-white rounded-lg shadow p-8">
               <div className="flex items-center gap-4 mb-4">
-                <Truck className="text-blue-600" size={32} />
+                <Truck className="text-rose-600" size={32} />
                 <h2 className="text-2xl font-bold">Standard Shipping</h2>
               </div>
               <p className="text-gray-700 mb-4">
@@ -41,7 +41,7 @@ export default function ShippingInfoPage() {
 
             <div className="bg-white rounded-lg shadow p-8">
               <div className="flex items-center gap-4 mb-4">
-                <Clock className="text-blue-600" size={32} />
+                <Clock className="text-rose-600" size={32} />
                 <h2 className="text-2xl font-bold">Express Shipping</h2>
               </div>
               <p className="text-gray-700 mb-4">
@@ -61,28 +61,28 @@ export default function ShippingInfoPage() {
             <h2 className="text-2xl font-bold mb-8">Shipping Process</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
+                <div className="bg-rose-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
                   1
                 </div>
                 <h3 className="font-bold mb-2">Order Placed</h3>
                 <p className="text-sm text-gray-600">Your order is confirmed and processing begins</p>
               </div>
               <div className="text-center">
-                <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
+                <div className="bg-rose-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
                   2
                 </div>
                 <h3 className="font-bold mb-2">Packed & Labeled</h3>
                 <p className="text-sm text-gray-600">Items are carefully packed and labeled</p>
               </div>
               <div className="text-center">
-                <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
+                <div className="bg-rose-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
                   3
                 </div>
                 <h3 className="font-bold mb-2">Picked Up</h3>
                 <p className="text-sm text-gray-600">Courier collects your package</p>
               </div>
               <div className="text-center">
-                <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
+                <div className="bg-rose-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold">
                   4
                 </div>
                 <h3 className="font-bold mb-2">Delivered</h3>
@@ -109,15 +109,15 @@ export default function ShippingInfoPage() {
           </div>
 
           {/* Tracking */}
-          <div className="bg-blue-50 rounded-lg p-8">
+          <div className="bg-rose-50 rounded-lg p-8">
             <div className="flex items-center gap-4 mb-4">
-              <MapPin className="text-blue-600" size={32} />
+              <MapPin className="text-rose-600" size={32} />
               <h2 className="text-2xl font-bold">Track Your Order</h2>
             </div>
             <p className="text-gray-700 mb-4">
               Once your order ships, you'll receive a tracking number via email. You can use this number to track your package in real-time on our platform.
             </p>
-            <a href="/products" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
+            <a href="/products" className="inline-block bg-rose-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-rose-700 transition">
               Continue Shopping
             </a>
           </div>

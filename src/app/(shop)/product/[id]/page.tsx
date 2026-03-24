@@ -504,7 +504,7 @@ export default function ProductDetailPage() {
             {/* Pricing */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-3xl font-bold text-blue-600">
+                <span className="text-3xl font-bold text-rose-600">
                   ৳{effectivePrice.toLocaleString()}
                 </span>
                 <span className="text-lg text-gray-400 line-through">
@@ -534,8 +534,8 @@ export default function ProductDetailPage() {
                             onClick={() => setSelectedAttributes((prev) => ({ ...prev, [key]: value }))}
                             className={`px-3 py-2 rounded-lg border text-sm font-medium transition ${
                               selected
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                                ? 'bg-rose-600 text-white border-rose-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-rose-400'
                             }`}
                           >
                             {value}
@@ -554,7 +554,7 @@ export default function ProductDetailPage() {
             {/* Stock Status */}
             <div className="mb-6">
               <p className={`text-sm font-semibold ${
-                effectiveStock > 0 ? 'text-blue-600' : 'text-red-600'
+                effectiveStock > 0 ? 'text-rose-600' : 'text-red-600'
               }`}>
                 {effectiveStock > 0 ? `${effectiveStock} in stock` : 'Out of stock'}
               </p>
@@ -593,7 +593,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={() => handleAddToCart(false)}
                   disabled={effectiveStock === 0}
-                  className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
+                  className="bg-rose-600 text-white py-2 rounded-lg hover:bg-rose-700 disabled:bg-gray-400 font-semibold"
                 >
                   Add to Cart
                 </button>
@@ -650,7 +650,7 @@ export default function ProductDetailPage() {
             {product.category?.slug && (
               <Link
                 href={`/products/${product.category.slug}`}
-                className="text-sm font-semibold text-blue-700 hover:text-blue-800"
+                className="text-sm font-semibold text-rose-700 hover:text-rose-800"
               >
                 View more in {product.category.name}
               </Link>
@@ -667,7 +667,7 @@ export default function ProductDetailPage() {
                 <Link
                   key={item.id}
                   href={`/product/${item.id}`}
-                  className="block rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition overflow-hidden"
+                  className="block rounded-xl border border-gray-200 hover:border-rose-300 hover:shadow-sm transition overflow-hidden"
                 >
                   <img
                     src={item.mainImage}
@@ -677,7 +677,7 @@ export default function ProductDetailPage() {
                   <div className="p-3">
                     <p className="text-sm font-medium text-gray-900 line-clamp-2 min-h-[40px]">{item.title}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="font-bold text-blue-700">৳{item.currentPrice.toLocaleString()}</span>
+                      <span className="font-bold text-rose-700">৳{item.currentPrice.toLocaleString()}</span>
                       {item.originalPrice > item.currentPrice && (
                         <span className="text-xs text-gray-400 line-through">৳{item.originalPrice.toLocaleString()}</span>
                       )}

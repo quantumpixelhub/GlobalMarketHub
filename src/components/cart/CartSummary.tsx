@@ -67,7 +67,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
     return (
       <div className="bg-white rounded-lg p-8 text-center">
         <p className="text-gray-500 mb-4">Your cart is empty</p>
-        <Link href="/products" className="text-blue-600 hover:underline">
+        <Link href="/products" className="text-rose-600 hover:underline">
           Continue shopping
         </Link>
       </div>
@@ -94,7 +94,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
             <div className="flex-1">
               <Link
                 href={`/product/${item.product.id}`}
-                className="font-semibold hover:text-blue-600 line-clamp-2"
+                className="font-semibold hover:text-rose-600 line-clamp-2"
               >
                 {item.product.title}
               </Link>
@@ -161,15 +161,15 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
         )}
 
         {hasDeliveryOptions && (
-          <div className="flex justify-between text-sm bg-blue-50 rounded p-2">
+          <div className="flex justify-between text-sm bg-rose-50 rounded p-2">
             <span>Shipping:</span>
-            <span className="font-semibold text-blue-600">৳{shipping.toLocaleString()}</span>
+            <span className="font-semibold text-rose-600">৳{shipping.toLocaleString()}</span>
           </div>
         )}
 
         <div className="border-t pt-2 flex justify-between font-bold text-lg">
           <span>Total:</span>
-          <span className="text-blue-600">
+          <span className="text-rose-600">
             {hasDeliveryOptions ? `৳${total.toLocaleString()}` : 'Calculate at checkout'}
           </span>
         </div>
@@ -178,7 +178,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
       {/* Checkout Button */}
       <button
         onClick={() => onCheckout?.()}
-        className="w-full bg-blue-600 text-white py-3 hover:bg-blue-700 transition-colors font-semibold"
+        className="w-full bg-rose-600 text-white py-3 hover:bg-rose-700 transition-colors font-semibold"
       >
         Proceed to Checkout
       </button>

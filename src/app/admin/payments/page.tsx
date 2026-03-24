@@ -117,7 +117,7 @@ export default function PaymentsPage() {
       type="button"
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-        checked ? 'bg-blue-600' : 'bg-gray-300'
+        checked ? 'bg-rose-600' : 'bg-gray-300'
       }`}
     >
       <span
@@ -140,7 +140,7 @@ export default function PaymentsPage() {
           type="button"
           onClick={saveConfig}
           disabled={isSaving}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-2 px-6 rounded-lg flex items-center gap-2 transition"
+          className="bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium py-2 px-6 rounded-lg flex items-center gap-2 transition"
         >
           <Save size={18} />
           {isSaving ? 'Saving...' : 'Save Changes'}
@@ -207,7 +207,7 @@ export default function PaymentsPage() {
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="font-semibold text-blue-600">Nagad</p>
+                  <p className="font-semibold text-rose-600">Nagad</p>
                   <p className="text-sm text-gray-600">Accept Nagad mobile wallet payments</p>
                 </div>
                 <ToggleSwitch
@@ -216,14 +216,14 @@ export default function PaymentsPage() {
                 />
               </div>
               {paymentConfig.nagadEnabled && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-4 border-blue-600 py-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-4 border-rose-600 py-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Nagad Number</label>
                     <input
                       type="tel"
                       value={paymentConfig.nagadNumber}
                       onChange={(e) => handleChange('nagadNumber', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     />
                   </div>
                   <div>
@@ -231,7 +231,7 @@ export default function PaymentsPage() {
                     <select
                       value={paymentConfig.nagadAccountType}
                       onChange={(e) => handleChange('nagadAccountType', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     >
                       <option>Personal</option>
                       <option>Merchant</option>
@@ -283,7 +283,7 @@ export default function PaymentsPage() {
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="font-semibold text-blue-600">iPay</p>
+                  <p className="font-semibold text-rose-600">iPay</p>
                   <p className="text-sm text-gray-600">Accept iPay mobile wallet payments</p>
                 </div>
                 <ToggleSwitch
@@ -292,14 +292,14 @@ export default function PaymentsPage() {
                 />
               </div>
               {paymentConfig.ipayEnabled && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-4 border-blue-500 py-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-4 border-rose-500 py-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">iPay Number</label>
                     <input
                       type="tel"
                       value={paymentConfig.ipayNumber}
                       onChange={(e) => handleChange('ipayNumber', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
                   </div>
                 </div>
@@ -331,14 +331,14 @@ export default function PaymentsPage() {
             </div>
 
             {paymentConfig.uddoktaEnabled && (
-              <div className="grid grid-cols-1 gap-4 pl-4 border-l-4 border-blue-600 py-2">
+              <div className="grid grid-cols-1 gap-4 pl-4 border-l-4 border-rose-600 py-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
                   <input
                     type="password"
                     value={paymentConfig.uddoktaApiKey}
                     onChange={(e) => handleChange('uddoktaApiKey', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     placeholder="Enter your UddoktaPay API key"
                   />
                 </div>
@@ -348,7 +348,7 @@ export default function PaymentsPage() {
                     type="url"
                     value={paymentConfig.uddoktaBaseUrl}
                     onChange={(e) => handleChange('uddoktaBaseUrl', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                   />
                   <p className="text-xs text-gray-600 mt-2">
                     Use sandbox URL for testing, switch to live URL for production
@@ -384,9 +384,9 @@ export default function PaymentsPage() {
         </div>
 
         {/* Note */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
+        <div className="bg-rose-50 border border-rose-200 rounded-lg p-4 flex gap-3">
           <span className="text-xl">💡</span>
-          <p className="text-sm text-blue-900">
+          <p className="text-sm text-rose-900">
             Cash on Delivery is always available. Toggle the methods above to show them at checkout.
           </p>
         </div>

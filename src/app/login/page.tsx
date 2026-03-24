@@ -51,7 +51,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-600 to-rose-700 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8">
           {/* Header */}
@@ -85,7 +85,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your@email.com"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 focus:border-transparent"
                   required
                 />
               </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 focus:border-transparent"
                   required
                 />
               </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200"
+              className="w-full mt-6 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -135,16 +135,16 @@ export default function LoginPage() {
           <div className="text-center">
             <p className="text-gray-600 text-sm">
               Don't have an account?{' '}
-              <Link href="/register" className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link href="/register" className="text-rose-600 hover:text-rose-700 font-semibold">
                 Create one now
               </Link>
             </p>
           </div>
 
           {/* Test Credentials Info */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800 text-xs font-semibold mb-2">Demo Credentials:</p>
-            <p className="text-blue-700 text-xs">
+          <div className="mt-6 p-4 bg-rose-50 border border-rose-200 rounded-lg">
+            <p className="text-rose-800 text-xs font-semibold mb-2">Demo Credentials:</p>
+            <p className="text-rose-700 text-xs">
               Admin Email: quantumpixelhub@gmail.com<br />
               Admin Password: admin@quantumhub
             </p>

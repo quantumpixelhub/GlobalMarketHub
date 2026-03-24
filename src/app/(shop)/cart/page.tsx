@@ -125,15 +125,15 @@ export default function CartPage() {
       <Navigation cartItemCount={cart?.itemCount} />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        <Link href="/products" className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6">
+        <Link href="/products" className="flex items-center gap-2 text-rose-600 hover:text-rose-700 mb-6">
           <ArrowLeft size={20} />
           <span>Continue Shopping</span>
         </Link>
 
         {isGuestCheckout && (
-          <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="font-semibold text-blue-900">You are shopping as a guest</p>
-            <p className="text-sm text-blue-800 mt-1">
+          <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4">
+            <p className="font-semibold text-rose-900">You are shopping as a guest</p>
+            <p className="text-sm text-rose-800 mt-1">
               You can checkout and pay now. Registering an account lets you save addresses, track orders, and reorder faster.
             </p>
           </div>
@@ -147,7 +147,7 @@ export default function CartPage() {
             {!cart?.items.length ? (
               <div className="bg-white rounded-lg p-8 text-center">
                 <p className="text-gray-500 mb-4">Your cart is empty</p>
-                <Link href="/products" className="text-blue-600 hover:underline">
+                <Link href="/products" className="text-rose-600 hover:underline">
                   Continue shopping
                 </Link>
               </div>

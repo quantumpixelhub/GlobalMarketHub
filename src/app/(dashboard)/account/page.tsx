@@ -250,7 +250,7 @@ export default function AccountPage() {
             <div className="bg-white rounded-lg p-6 mb-6">
               <div className="flex flex-col items-center gap-4 mb-6 pb-6 border-b">
                 <div className="relative">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center overflow-hidden">
                     {profile?.profileImage ? (
                       <img
                         src={profile.profileImage}
@@ -258,10 +258,10 @@ export default function AccountPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User className="text-blue-600" size={40} />
+                      <User className="text-rose-600" size={40} />
                     )}
                   </div>
-                  <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 shadow-lg">
+                  <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 bg-rose-600 text-white rounded-full p-2 cursor-pointer hover:bg-rose-700 shadow-lg">
                     <Camera size={16} />
                   </label>
                   <input
@@ -276,7 +276,7 @@ export default function AccountPage() {
                 <div className="text-center">
                   <p className="font-bold">{profile?.firstName} {profile?.lastName}</p>
                   <p className="text-sm text-gray-600">{profile?.email}</p>
-                  {imageUploading && <p className="text-xs text-blue-600 mt-1">Uploading...</p>}
+                  {imageUploading && <p className="text-xs text-rose-600 mt-1">Uploading...</p>}
                 </div>
               </div>
 
@@ -285,7 +285,7 @@ export default function AccountPage() {
                   onClick={() => setActiveTab('profile')}
                   className={`w-full text-left px-4 py-2 rounded ${
                     activeTab === 'profile'
-                      ? 'bg-blue-100 text-blue-700 font-semibold'
+                      ? 'bg-rose-100 text-rose-700 font-semibold'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -296,7 +296,7 @@ export default function AccountPage() {
                   onClick={() => setActiveTab('orders')}
                   className={`w-full text-left px-4 py-2 rounded ${
                     activeTab === 'orders'
-                      ? 'bg-blue-100 text-blue-700 font-semibold'
+                      ? 'bg-rose-100 text-rose-700 font-semibold'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -307,7 +307,7 @@ export default function AccountPage() {
                   onClick={() => setActiveTab('addresses')}
                   className={`w-full text-left px-4 py-2 rounded ${
                     activeTab === 'addresses'
-                      ? 'bg-blue-100 text-blue-700 font-semibold'
+                      ? 'bg-rose-100 text-rose-700 font-semibold'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -335,7 +335,7 @@ export default function AccountPage() {
                   <h2 className="text-2xl font-bold">My Profile</h2>
                   <button
                     onClick={() => setEditMode(!editMode)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 bg-rose-600 text-white rounded hover:bg-rose-700"
                   >
                     {editMode ? 'Cancel' : 'Edit'}
                   </button>
@@ -379,7 +379,7 @@ export default function AccountPage() {
                     <button
                       onClick={handleSaveProfile}
                       disabled={saving}
-                      className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                      className="px-6 py-2 bg-rose-600 text-white rounded hover:bg-rose-700 disabled:bg-gray-400"
                     >
                       {saving ? 'Saving...' : 'Save Changes'}
                     </button>
@@ -420,7 +420,7 @@ export default function AccountPage() {
                     <p className="text-gray-600">No orders yet</p>
                     <a
                       href="/products"
-                      className="inline-block mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                      className="inline-block mt-4 bg-rose-600 text-white px-6 py-2 rounded hover:bg-rose-700"
                     >
                       Start Shopping
                     </a>
@@ -438,10 +438,10 @@ export default function AccountPage() {
                             <p className="text-sm text-gray-600">Status</p>
                             <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                               order.status === 'COMPLETED'
-                                ? 'bg-blue-100 text-blue-700'
+                                ? 'bg-rose-100 text-rose-700'
                                 : order.status === 'PENDING'
                                 ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-blue-100 text-blue-700'
+                                : 'bg-rose-100 text-rose-700'
                             }`}>
                               {order.status}
                             </span>
@@ -469,7 +469,7 @@ export default function AccountPage() {
                   <h2 className="text-2xl font-bold">My Addresses</h2>
                   <button
                     onClick={() => setShowAddressForm((prev) => !prev)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 bg-rose-600 text-white rounded hover:bg-rose-700"
                   >
                     {showAddressForm ? 'Cancel' : 'Add New Address'}
                   </button>
@@ -569,7 +569,7 @@ export default function AccountPage() {
                     <button
                       type="submit"
                       disabled={addressSaving}
-                      className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                      className="px-5 py-2 bg-rose-600 text-white rounded hover:bg-rose-700 disabled:bg-gray-400"
                     >
                       {addressSaving ? 'Saving...' : 'Save Address'}
                     </button>
@@ -582,7 +582,7 @@ export default function AccountPage() {
                       <div
                         key={address.id}
                         className={`border rounded-lg p-4 ${
-                          address.isDefault ? 'border-blue-600 bg-blue-50' : ''
+                          address.isDefault ? 'border-rose-600 bg-rose-50' : ''
                         }`}
                       >
                         <div className="flex justify-between items-start">
@@ -593,7 +593,7 @@ export default function AccountPage() {
                               {address.upazila}, {address.district}, {address.division}
                             </p>
                             {address.isDefault && (
-                              <span className="inline-block mt-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                              <span className="inline-block mt-2 bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-sm font-semibold">
                                 Default Address
                               </span>
                             )}

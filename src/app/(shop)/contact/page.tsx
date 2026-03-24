@@ -32,7 +32,7 @@ export default function ContactPage() {
 
       <div className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
+        <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
             <p className="text-lg opacity-90">We're here to help. Get in touch with us anytime.</p>
@@ -48,27 +48,27 @@ export default function ContactPage() {
 
               <div className="bg-white rounded-lg shadow p-6 mb-6">
                 <div className="flex gap-4 mb-6">
-                  <Mail className="text-blue-600 flex-shrink-0" size={24} />
+                  <Mail className="text-rose-600 flex-shrink-0" size={24} />
                   <div>
                     <h3 className="font-bold mb-1">Email</h3>
-                    <a href="mailto:support@globalhub.com" className="text-blue-600 hover:underline">
+                    <a href="mailto:support@globalhub.com" className="text-rose-600 hover:underline">
                       support@globalhub.com
                     </a>
                   </div>
                 </div>
 
                 <div className="flex gap-4 mb-6">
-                  <Phone className="text-blue-600 flex-shrink-0" size={24} />
+                  <Phone className="text-rose-600 flex-shrink-0" size={24} />
                   <div>
                     <h3 className="font-bold mb-1">Phone</h3>
-                    <a href="tel:+8801700000000" className="text-blue-600 hover:underline">
+                    <a href="tel:+8801700000000" className="text-rose-600 hover:underline">
                       +880 1700 000000
                     </a>
                   </div>
                 </div>
 
                 <div className="flex gap-4 mb-6">
-                  <MapPin className="text-blue-600 flex-shrink-0" size={24} />
+                  <MapPin className="text-rose-600 flex-shrink-0" size={24} />
                   <div>
                     <h3 className="font-bold mb-1">Address</h3>
                     <p className="text-gray-700">
@@ -79,7 +79,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <Clock className="text-blue-600 flex-shrink-0" size={24} />
+                  <Clock className="text-rose-600 flex-shrink-0" size={24} />
                   <div>
                     <h3 className="font-bold mb-1">Business Hours</h3>
                     <p className="text-gray-700">
@@ -104,7 +104,7 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     placeholder="Your name"
                   />
                 </div>
@@ -117,7 +117,7 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -130,7 +130,7 @@ export default function ContactPage() {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     placeholder="Subject"
                   />
                 </div>
@@ -143,14 +143,14 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                     placeholder="Your message..."
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+                  className="w-full bg-rose-600 text-white py-3 rounded-lg font-bold hover:bg-rose-700 transition"
                 >
                   Send Message
                 </button>

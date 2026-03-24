@@ -83,7 +83,7 @@ export default function MockPaymentPage({ searchParams }: PaymentMockPageProps) 
                 </Link>
                 <Link
                   href="/account"
-                  className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                  className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700"
                 >
                   {isWalletMode ? 'I Have Paid' : 'Continue'}
                 </Link>
@@ -93,7 +93,7 @@ export default function MockPaymentPage({ searchParams }: PaymentMockPageProps) 
 
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 h-fit">
             <div className="flex items-center gap-2 mb-4">
-              <ShieldCheck className="text-blue-600" size={20} />
+              <ShieldCheck className="text-rose-600" size={20} />
               <p className="font-semibold text-gray-900">Payment Summary</p>
             </div>
             <div className="space-y-3 text-sm">
@@ -107,11 +107,11 @@ export default function MockPaymentPage({ searchParams }: PaymentMockPageProps) 
               </div>
               <div className="border-t pt-3 flex justify-between text-base">
                 <span className="font-semibold text-gray-900">Total</span>
-                <span className="font-bold text-blue-700">৳{amountNumber.toLocaleString()}</span>
+                <span className="font-bold text-rose-700">৳{amountNumber.toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800">
+            <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
               <div className="flex items-start gap-2">
                 <CheckCircle2 size={16} className="mt-0.5" />
                 <p>All transactions are encrypted and tracked by order reference for secure verification.</p>

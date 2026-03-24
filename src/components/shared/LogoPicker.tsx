@@ -20,7 +20,7 @@ const logoOptions: LogoOption[] = [
     description: 'Clean, modern design perfect for contemporary brands',
     color1: '#3B82F6',
     color2: '#1E40AF',
-    bgGradient: 'from-blue-50 to-blue-100',
+    bgGradient: 'from-rose-50 to-rose-100',
     svg: `<g transform="translate(35, 15)">
       <rect x="10" y="20" width="40" height="25" rx="4" fill="#3B82F6" opacity="0.15" />
       <path d="M25 20 L35 20 L38 45 L22 45 Z" fill="#3B82F6" />
@@ -68,13 +68,13 @@ const logoOptions: LogoOption[] = [
     id: 'tech-nexus',
     name: 'Tech Nexus',
     description: 'Modern technology-focused design with connected elements',
-    color1: '#2563EB',
+    color1: '#ff5a5f',
     color2: '#047857',
-    bgGradient: 'from-blue-50 to-blue-100',
+    bgGradient: 'from-rose-50 to-rose-100',
     svg: `<g transform="translate(32, 18)">
-      <circle cx="15" cy="20" r="3.5" fill="#2563EB" />
-      <circle cx="45" cy="20" r="3.5" fill="#2563EB" />
-      <circle cx="30" cy="40" r="3.5" fill="#2563EB" />
+      <circle cx="15" cy="20" r="3.5" fill="#ff5a5f" />
+      <circle cx="45" cy="20" r="3.5" fill="#ff5a5f" />
+      <circle cx="30" cy="40" r="3.5" fill="#ff5a5f" />
       <line x1="15" y1="20" x2="45" y2="20" stroke="#047857" strokeWidth="2" opacity="0.7" />
       <line x1="15" y1="20" x2="30" y2="40" stroke="#047857" strokeWidth="2" opacity="0.7" />
       <line x1="45" y1="20" x2="30" y2="40" stroke="#047857" strokeWidth="2" opacity="0.7" />
@@ -115,7 +115,7 @@ const logoOptions: LogoOption[] = [
     description: 'Modern cosmic design with vibrant energy',
     color1: '#06B6D4',
     color2: '#0891B2',
-    bgGradient: 'from-cyan-50 to-blue-100',
+    bgGradient: 'from-cyan-50 to-rose-100',
     svg: `<defs>
       <radialGradient id="cosmicGrad" cx="50%" cy="50%" r="50%">
         <stop offset="0%" stopColor="#06B6D4" />
@@ -135,7 +135,7 @@ const logoOptions: LogoOption[] = [
     description: 'Movement and progress focused design',
     color1: '#EF4444',
     color2: '#B91C1C',
-    bgGradient: 'from-red-50 to-blue-100',
+    bgGradient: 'from-red-50 to-rose-100',
     svg: `<g transform="translate(33, 18)">
       <path d="M20 15 L28 25 L20 35" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M35 15 L43 25 L35 35" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -163,7 +163,7 @@ export function LogoPicker() {
               key={logo.id}
               className={`relative group transition-all cursor-pointer ${
                 selectedLogo === logo.id
-                  ? 'ring-4 ring-blue-500 shadow-2xl scale-105'
+                  ? 'ring-4 ring-rose-500 shadow-2xl scale-105'
                   : 'ring-2 ring-gray-700 hover:ring-4 hover:ring-gray-500'
               }`}
               onClick={() => setSelectedLogo(logo.id)}
@@ -194,14 +194,14 @@ export function LogoPicker() {
 
                 {/* Badge */}
                 {logo.recommended && (
-                  <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                  <div className="absolute top-3 right-3 bg-rose-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
                     ✨ Recommended
                   </div>
                 )}
 
                 {/* Selection Indicator */}
                 {selectedLogo === logo.id && (
-                  <div className="absolute bottom-3 right-3 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                  <div className="absolute bottom-3 right-3 bg-rose-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
                     ✓
                   </div>
                 )}
@@ -274,7 +274,7 @@ export function LogoPicker() {
 
                 {/* CTA Buttons */}
                 <div className="flex gap-4">
-                  <button className="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                  <button className="flex-1 bg-rose-600 text-white font-semibold py-3 rounded-lg hover:bg-rose-700 transition-colors">
                     Select This Logo
                   </button>
                   <button className="flex-1 bg-gray-200 text-gray-900 font-semibold py-3 rounded-lg hover:bg-gray-300 transition-colors">
@@ -291,7 +291,7 @@ export function LogoPicker() {
           <h3 className="text-2xl font-bold text-white mb-6">Quick Comparison</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-white">
             <div>
-              <h4 className="font-semibold mb-3 text-blue-300">Best For Modern Brands</h4>
+              <h4 className="font-semibold mb-3 text-rose-300">Best For Modern Brands</h4>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li>✓ Modern Flat Market</li>
                 <li>✓ Premium Gradient Sphere</li>
@@ -307,7 +307,7 @@ export function LogoPicker() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-3 text-blue-300">Best For Professional</h4>
+              <h4 className="font-semibold mb-3 text-rose-300">Best For Professional</h4>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li>✓ Enterprise Pro</li>
                 <li>✓ Tech Nexus</li>

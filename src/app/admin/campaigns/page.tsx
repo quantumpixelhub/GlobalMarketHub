@@ -216,7 +216,7 @@ export default function CampaignsPage() {
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
             placeholder="Eid Mega Deals"
           />
         </div>
@@ -227,7 +227,7 @@ export default function CampaignsPage() {
             type="text"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
             placeholder="Festival picks with big markdowns"
           />
         </div>
@@ -239,7 +239,7 @@ export default function CampaignsPage() {
               type="text"
               value={formData.badge}
               onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
               placeholder="Seasonal"
             />
           </div>
@@ -249,7 +249,7 @@ export default function CampaignsPage() {
               type="text"
               value={formData.discountText}
               onChange={(e) => setFormData({ ...formData, discountText: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
               placeholder="Up to 15% off"
             />
           </div>
@@ -262,7 +262,7 @@ export default function CampaignsPage() {
               type="text"
               value={formData.startsAt}
               onChange={(e) => setFormData({ ...formData, startsAt: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
               placeholder="03/20/2026"
             />
           </div>
@@ -272,7 +272,7 @@ export default function CampaignsPage() {
               type="text"
               value={formData.endsAt}
               onChange={(e) => setFormData({ ...formData, endsAt: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
               placeholder="04/10/2026"
             />
           </div>
@@ -283,7 +283,7 @@ export default function CampaignsPage() {
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as Campaign['status'] })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
           >
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>

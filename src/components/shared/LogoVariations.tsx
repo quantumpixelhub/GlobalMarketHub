@@ -8,7 +8,7 @@ export function LogoVariations() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Logo 1: Modern Minimalist */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-rose-50 to-cyan-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Minimalist design */}
                 <g transform="translate(50, 25)">
@@ -25,14 +25,14 @@ export function LogoVariations() {
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Minimalist Cyber</h3>
             <p className="text-gray-600 text-sm text-center">Modern, clean shopping bag with global dots</p>
-            <button className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors">
               Choose This
             </button>
           </div>
 
           {/* Logo 2: Bold Geometric */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-blue-50 to-red-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-rose-50 to-red-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Bold geometric */}
                 <g transform="translate(40, 20)">
@@ -45,7 +45,7 @@ export function LogoVariations() {
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Bold Hexagon</h3>
             <p className="text-gray-600 text-sm text-center">Trading arrows in hexagon shape</p>
-            <button className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-rose-600 text-white rounded hover:bg-rose-700 transition-colors">
               Choose This
             </button>
           </div>
@@ -74,33 +74,33 @@ export function LogoVariations() {
 
           {/* Logo 4: Tech Connected */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-blue-50 to-blue-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-rose-50 to-rose-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Tech nodes */}
                 <g transform="translate(35, 20)">
                   {/* Nodes */}
-                  <circle cx="15" cy="15" r="3.5" fill="#2563EB" />
-                  <circle cx="50" cy="15" r="3.5" fill="#2563EB" />
-                  <circle cx="32.5" cy="45" r="3.5" fill="#2563EB" />
+                  <circle cx="15" cy="15" r="3.5" fill="#ff5a5f" />
+                  <circle cx="50" cy="15" r="3.5" fill="#ff5a5f" />
+                  <circle cx="32.5" cy="45" r="3.5" fill="#ff5a5f" />
                   {/* Connections */}
-                  <line x1="15" y1="15" x2="50" y2="15" stroke="#2563EB" strokeWidth="1.5" opacity="0.6" />
-                  <line x1="15" y1="15" x2="32.5" y2="45" stroke="#2563EB" strokeWidth="1.5" opacity="0.6" />
-                  <line x1="50" y1="15" x2="32.5" y2="45" stroke="#2563EB" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="15" y1="15" x2="50" y2="15" stroke="#ff5a5f" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="15" y1="15" x2="32.5" y2="45" stroke="#ff5a5f" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="50" y1="15" x2="32.5" y2="45" stroke="#ff5a5f" strokeWidth="1.5" opacity="0.6" />
                   {/* Center */}
-                  <circle cx="32.5" cy="25" r="2" fill="#2563EB" />
+                  <circle cx="32.5" cy="25" r="2" fill="#ff5a5f" />
                 </g>
               </svg>
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Connected Network</h3>
             <p className="text-gray-600 text-sm text-center">Tech-focused interconnected nodes</p>
-            <button className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+            <button className="w-full mt-4 px-4 py-2 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors">
               Choose This
             </button>
           </div>
 
           {/* Logo 5: Retro Vintage */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-yellow-50 to-blue-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-yellow-50 to-rose-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Retro vintage */}
                 <g transform="translate(40, 15)">
@@ -143,7 +143,7 @@ export function LogoVariations() {
 
           {/* Logo 7: Dynamic Globe */}
           <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded">
+            <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-indigo-50 to-rose-50 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 {/* Dynamic globe */}
                 <g transform="translate(35, 15)">
@@ -184,7 +184,7 @@ export function LogoVariations() {
           </div>
 
           {/* Logo 9: Premium Gradient Fusion */}
-          <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border-2 border-blue-300">
+          <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border-2 border-rose-300">
             <div className="flex items-center justify-center h-24 mb-6 bg-gradient-to-br from-slate-900 to-slate-800 rounded">
               <svg viewBox="0 0 200 100" className="h-20 w-auto" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -204,11 +204,11 @@ export function LogoVariations() {
             </div>
             <h3 className="font-bold text-xl mb-2 text-center">Premium Gradient</h3>
             <p className="text-gray-600 text-sm text-center">
-              <span className="text-blue-600 font-semibold">✨ RECOMMENDED ✨</span>
+              <span className="text-rose-600 font-semibold">✨ RECOMMENDED ✨</span>
               <br />
               Modern gradient with shopping icon
             </p>
-            <button className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-pink-500 text-white rounded hover:opacity-90 transition-opacity font-semibold">
+            <button className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded hover:opacity-90 transition-opacity font-semibold">
               Choose This (Recommended)
             </button>
           </div>

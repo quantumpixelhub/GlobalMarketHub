@@ -21,7 +21,7 @@ export default function StatsCard({
   icon: Icon,
   trend,
   bgColor = 'bg-gray-50',
-  iconColor = 'text-blue-500',
+  iconColor = 'text-rose-500',
 }: StatsCardProps) {
   return (
     <div className={`${bgColor} rounded-lg p-6 border border-gray-200`}>
@@ -31,7 +31,7 @@ export default function StatsCard({
           <div className="mt-2 flex items-baseline gap-2">
             <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
             {trend && (
-              <span className={`text-sm font-medium ${trend.isPositive ? 'text-blue-600' : 'text-red-600'}`}>
+              <span className={`text-sm font-medium ${trend.isPositive ? 'text-rose-600' : 'text-red-600'}`}>
                 {trend.isPositive ? '+' : '-'}{Math.abs(trend.value)}%
               </span>
             )}

@@ -78,7 +78,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-rose-600 to-rose-700 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8">
           {/* Header */}
@@ -113,7 +113,7 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={handleChange}
                     placeholder="First"
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 text-sm"
                     required
                   />
                 </div>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
                     value={formData.lastName}
                     onChange={handleChange}
                     placeholder="Last"
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 text-sm"
                     required
                   />
                 </div>
@@ -152,7 +152,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your@email.com"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 text-sm"
                   required
                 />
               </div>
@@ -172,7 +172,7 @@ export default function RegisterPage() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+880 1234567890"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 text-sm"
                 />
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 text-sm"
                   required
                 />
               </div>
@@ -212,7 +212,7 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 text-sm"
                   required
                 />
               </div>
@@ -222,7 +222,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200 text-sm"
+              className="w-full mt-6 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200 text-sm"
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
@@ -242,7 +242,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <p className="text-gray-600 text-sm">
               Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link href="/login" className="text-rose-600 hover:text-rose-700 font-semibold">
                 Sign in here
               </Link>
             </p>
@@ -252,11 +252,11 @@ export default function RegisterPage() {
           <div className="mt-6 text-center text-xs text-gray-600">
             <p>
               By signing up, you agree to our{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-700">
+              <a href="#" className="text-rose-600 hover:text-rose-700">
                 Terms of Service
               </a>
               {' '}and{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-700">
+              <a href="#" className="text-rose-600 hover:text-rose-700">
                 Privacy Policy
               </a>
             </p>

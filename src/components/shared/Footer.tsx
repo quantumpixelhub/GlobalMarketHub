@@ -13,8 +13,8 @@ export const Footer: React.FC = () => {
           <div>
             <div className="mb-4">
               <Link href="/" className="inline-flex items-center gap-2">
-                <span className="rounded-full bg-blue-600/20 p-2 ring-1 ring-blue-400/40">
-                  <Globe2 size={22} className="text-blue-300" />
+                <span className="rounded-full bg-rose-600/20 p-2 ring-1 ring-rose-400/40">
+                  <Globe2 size={22} className="text-rose-300" />
                 </span>
                 <span className="text-3xl font-extrabold tracking-tight leading-none">
                   <span className="text-white">GlobalMarket</span>
@@ -136,7 +136,7 @@ export const Footer: React.FC = () => {
                   placeholder="your@email.com"
                   className="flex-1 px-3 py-2 rounded text-black"
                 />
-                <button className="bg-blue-600 px-6 py-2 rounded hover:bg-blue-700">
+                <button className="bg-rose-600 px-6 py-2 rounded hover:bg-rose-700">
                   Subscribe
                 </button>
               </div>
@@ -147,13 +147,13 @@ export const Footer: React.FC = () => {
               <div className="flex items-center gap-4 mb-3">
                 <h4 className="font-bold">Follow Us</h4>
                 <div className="flex gap-4">
-                  <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Follow us on Facebook">
+                  <a href="#" className="text-gray-300 hover:text-rose-400 transition-colors" aria-label="Follow us on Facebook">
                   <Facebook size={24} />
                   </a>
-                  <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Follow us on Twitter">
+                  <a href="#" className="text-gray-300 hover:text-rose-400 transition-colors" aria-label="Follow us on Twitter">
                   <Twitter size={24} />
                   </a>
-                  <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Follow us on Instagram">
+                  <a href="#" className="text-gray-300 hover:text-rose-400 transition-colors" aria-label="Follow us on Instagram">
                   <Instagram size={24} />
                   </a>
                 </div>

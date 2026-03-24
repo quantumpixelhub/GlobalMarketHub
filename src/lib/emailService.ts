@@ -39,7 +39,7 @@ export async function sendOrderConfirmationEmail(
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <div style="max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563EB;">Order Confirmation</h1>
+          <h1 style="color: #ff5a5f;">Order Confirmation</h1>
           
           <p>Hi ${customerName},</p>
           
@@ -126,7 +126,7 @@ export async function sendShippingNotificationEmail(
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <div style="max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563EB;">Your Order is on the Way!</h1>
+          <h1 style="color: #ff5a5f;">Your Order is on the Way!</h1>
           
           <p>Hi ${customerName},</p>
           
@@ -209,7 +209,7 @@ export async function sendReviewRequestEmail(
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <div style="max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563EB;">Share Your Experience</h1>
+          <h1 style="color: #ff5a5f;">Share Your Experience</h1>
           
           <p>Hi ${customerName},</p>
           
@@ -219,7 +219,7 @@ export async function sendReviewRequestEmail(
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.NEXT_PUBLIC_APP_URL}/product/${productId}#reviews" 
-               style="background-color: #2563EB; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+               style="background-color: #ff5a5f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Write a Review
             </a>
           </div>

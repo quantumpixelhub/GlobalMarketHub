@@ -69,7 +69,7 @@ export default function BlogPage() {
 
       <div className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-16">
+        <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white py-16">
           <div className="max-w-7xl mx-auto px-4">
             <h1 className="text-4xl font-bold mb-4">GlobalMarketHub Blog</h1>
             <p className="text-lg opacity-90">Tips, trends, and insights for smarter shopping and selling</p>
@@ -82,19 +82,19 @@ export default function BlogPage() {
             {blogs.map((blog) => (
               <div key={blog.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
                 {/* Image */}
-                <div className="bg-gradient-to-r from-blue-100 to-blue-50 h-48 flex items-center justify-center text-6xl">
+                <div className="bg-gradient-to-r from-rose-100 to-rose-50 h-48 flex items-center justify-center text-6xl">
                   {blog.image}
                 </div>
 
                 {/* Content */}
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                    <span className="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-full">
                       {blog.category}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-blue-600">
+                  <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-rose-600">
                     {blog.title}
                   </h3>
 
@@ -115,7 +115,7 @@ export default function BlogPage() {
 
                   <a
                     href="#"
-                    className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition"
+                    className="inline-flex items-center gap-2 text-rose-600 font-semibold hover:text-rose-700 transition"
                   >
                     Read More
                     <ArrowRight size={16} />
@@ -128,25 +128,25 @@ export default function BlogPage() {
           {/* Pagination */}
           <div className="mt-12 flex justify-center gap-2">
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">Previous</button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">1</button>
+            <button className="px-4 py-2 bg-rose-600 text-white rounded-lg">1</button>
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">2</button>
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">3</button>
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">Next</button>
           </div>
 
           {/* Newsletter Section */}
-          <div className="mt-16 bg-blue-50 rounded-lg p-8 text-center">
+          <div className="mt-16 bg-rose-50 rounded-lg p-8 text-center">
             <h2 className="text-2xl font-bold mb-4">Subscribe to Our Blog</h2>
             <p className="text-gray-700 mb-6">Get the latest tips and insights delivered to your inbox</p>
             <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
               />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition"
+                className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-rose-700 transition"
               >
                 Subscribe
               </button>

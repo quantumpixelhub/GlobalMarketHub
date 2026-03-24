@@ -51,7 +51,7 @@ export const EmojiCategoryBrowser: React.FC = () => {
           <span className="text-4xl flex-shrink-0">
             {category.description || '📦'}
           </span>
-          <span className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
+          <span className="font-medium text-gray-800 group-hover:text-rose-600 transition-colors">
             {category.name}
           </span>
         </Link>

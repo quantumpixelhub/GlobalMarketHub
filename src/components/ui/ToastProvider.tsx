@@ -51,10 +51,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((toast) => {
           const colorClass =
             toast.type === 'success'
-              ? 'border-blue-300 bg-blue-50 text-blue-900'
+              ? 'border-rose-300 bg-rose-50 text-rose-900'
               : toast.type === 'error'
               ? 'border-red-300 bg-red-50 text-red-900'
-              : 'border-blue-300 bg-blue-50 text-blue-900';
+              : 'border-rose-300 bg-rose-50 text-rose-900';
 
           return (
             <div

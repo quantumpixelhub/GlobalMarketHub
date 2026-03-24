@@ -54,9 +54,9 @@ export default function UsersPage() {
       case 'ADMIN':
         return 'bg-red-100 text-red-700';
       case 'SELLER':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-rose-100 text-rose-700';
       case 'CUSTOMER':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-rose-100 text-rose-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -77,8 +77,8 @@ export default function UsersPage() {
             <div key={user.id} className="bg-white rounded-lg shadow p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="text-blue-600" size={24} />
+                  <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center">
+                    <User className="text-rose-600" size={24} />
                   </div>
                   <div>
                     <p className="font-bold text-gray-800">{user.firstName} {user.lastName}</p>
@@ -93,12 +93,12 @@ export default function UsersPage() {
                 <div className="flex items-center gap-2 text-gray-600">
                   <Mail size={16} />
                   <span>{user.email}</span>
-                  {user.emailVerified && <span className="text-blue-600">✓</span>}
+                  {user.emailVerified && <span className="text-rose-600">✓</span>}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <Phone size={16} />
                   <span>{user.phone}</span>
-                  {user.phoneVerified && <span className="text-blue-600">✓</span>}
+                  {user.phoneVerified && <span className="text-rose-600">✓</span>}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <Calendar size={16} />
