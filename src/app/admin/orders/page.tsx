@@ -17,7 +17,16 @@ interface Order {
   customerAddress?: string;
   courierName?: string;
   totalAmount: number;
+  paymentStatus?: string;
   createdAt: string;
+  payment?: {
+    id: string;
+    gatewayName: string;
+    gatewayTransactionId?: string | null;
+    status: string;
+    amount: number;
+    completedAt?: string | null;
+  } | null;
   user?: {
     email: string;
     firstName: string;
@@ -40,6 +49,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [edits, setEdits] = useState<Record<string, EditableOrderFields>>({});
   const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
+  const [refundingOrderId, setRefundingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -167,6 +177,88 @@ export default function OrdersPage() {
     if (value === 'Partially Assigned') return 'bg-amber-100 text-amber-700';
     if (value === 'Pending Assignment') return 'bg-red-100 text-red-700';
     return 'bg-gray-100 text-gray-700';
+  };
+
+  const canRefundOrder = (order: Order) => {
+    const gateway = String(order.payment?.gatewayName || '').toLowerCase();
+    const txStatus = String(order.payment?.status || '').toUpperCase();
+    const orderPaymentStatus = String(order.paymentStatus || '').toUpperCase();
+
+    if (gateway !== 'uddoktapay') return false;
+    if (txStatus === 'REFUNDED' || orderPaymentStatus === 'REFUNDED') return false;
+    return txStatus === 'SUCCESS' || orderPaymentStatus === 'SUCCESS';
+  };
+
+  const refundOrder = async (order: Order) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login again');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Initiate refund for ${order.orderNumber}? This will call UddoktaPay refund API.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setRefundingOrderId(order.id);
+
+      const res = await fetch('/api/admin/payments/refund', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          reason: 'Admin initiated refund from Orders panel',
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || 'Refund failed');
+        return;
+      }
+
+      alert('Refund processed successfully');
+
+      setOrders((prev) =>
+        prev.map((item) => {
+          if (item.id !== order.id) return item;
+          return {
+            ...item,
+            paymentStatus: 'REFUNDED',
+            payment: item.payment
+              ? {
+                  ...item.payment,
+                  status: 'REFUNDED',
+                }
+              : item.payment,
+          };
+        })
+      );
+
+      setSelectedOrder((prev) => {
+        if (!prev || prev.id !== order.id) return prev;
+        return {
+          ...prev,
+          paymentStatus: 'REFUNDED',
+          payment: prev.payment
+            ? {
+                ...prev.payment,
+                status: 'REFUNDED',
+              }
+            : prev.payment,
+        };
+      });
+    } catch (error) {
+      console.error('Refund error:', error);
+      alert('Refund failed');
+    } finally {
+      setRefundingOrderId(null);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -376,6 +468,12 @@ export default function OrdersPage() {
                   </span>
                 </div>
                 <div>
+                  <p className="text-sm text-gray-600">Payment</p>
+                  <p className="font-semibold">
+                    {selectedOrder.payment?.gatewayName || 'N/A'} | {selectedOrder.payment?.status || selectedOrder.paymentStatus || 'PENDING'}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-600">Items</p>
                   <p className="font-semibold">{selectedOrder.items.length} items</p>
                 </div>
@@ -385,6 +483,18 @@ export default function OrdersPage() {
                     {new Date(selectedOrder.createdAt).toLocaleString()}
                   </p>
                 </div>
+                {canRefundOrder(selectedOrder) && (
+                  <button
+                    type="button"
+                    onClick={() => refundOrder(selectedOrder)}
+                    disabled={refundingOrderId === selectedOrder.id}
+                    className="w-full bg-amber-500 text-white py-2 rounded hover:bg-amber-600 disabled:bg-gray-400"
+                  >
+                    {refundingOrderId === selectedOrder.id
+                      ? 'Processing Refund...'
+                      : 'Refund via UddoktaPay'}
+                  </button>
+                )}
                 <button
                   onClick={() => setSelectedOrder(null)}
                   className="w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300"

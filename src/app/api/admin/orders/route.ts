@@ -134,6 +134,16 @@ export async function GET(request: NextRequest) {
             },
           },
           items: true,
+          payment: {
+            select: {
+              id: true,
+              gatewayName: true,
+              gatewayTransactionId: true,
+              status: true,
+              amount: true,
+              completedAt: true,
+            },
+          },
         },
       }),
       prisma.order.count({ where: whereClause }),
@@ -200,6 +210,16 @@ export async function PATCH(request: NextRequest) {
           },
         },
         items: true,
+        payment: {
+          select: {
+            id: true,
+            gatewayName: true,
+            gatewayTransactionId: true,
+            status: true,
+            amount: true,
+            completedAt: true,
+          },
+        },
       },
     });
 
@@ -229,6 +249,16 @@ export async function PATCH(request: NextRequest) {
           },
         },
         items: true,
+        payment: {
+          select: {
+            id: true,
+            gatewayName: true,
+            gatewayTransactionId: true,
+            status: true,
+            amount: true,
+            completedAt: true,
+          },
+        },
       },
     });
 
