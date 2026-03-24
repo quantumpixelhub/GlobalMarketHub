@@ -5,22 +5,47 @@ import { verifyPaymentStatus } from '@/lib/paymentGateway';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const transactionId = searchParams.get('transaction_id');
+    const gatewayTransactionId = searchParams.get('transaction_id');
+    const internalTxnId = searchParams.get('internal_txn');
+    const orderId = searchParams.get('order_id');
     const gateway = searchParams.get('gateway') || 'uddoktapay';
 
-    if (!transactionId) {
+    if (!internalTxnId && !gatewayTransactionId && !orderId) {
       return NextResponse.redirect(
         new URL('/payment/failure?reason=missing_transaction', request.url)
       );
     }
 
-    // Get transaction from database
-    const transaction = await prisma.paymentTransaction.findUnique({
-      where: { id: transactionId },
-      include: {
-        order: true,
-      },
-    });
+    // Resolve transaction using whichever identifier is available.
+    let transaction = null;
+
+    if (internalTxnId) {
+      transaction = await prisma.paymentTransaction.findUnique({
+        where: { id: internalTxnId },
+        include: { order: true },
+      });
+    }
+
+    if (!transaction && gatewayTransactionId) {
+      transaction = await prisma.paymentTransaction.findFirst({
+        where: { gatewayTransactionId },
+        include: { order: true },
+      });
+    }
+
+    if (!transaction && gatewayTransactionId) {
+      transaction = await prisma.paymentTransaction.findUnique({
+        where: { id: gatewayTransactionId },
+        include: { order: true },
+      });
+    }
+
+    if (!transaction && orderId) {
+      transaction = await prisma.paymentTransaction.findFirst({
+        where: { orderId },
+        include: { order: true },
+      });
+    }
 
     if (!transaction) {
       return NextResponse.redirect(
@@ -36,12 +61,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify payment with gateway
-    const verification = await verifyPaymentStatus(gateway, transactionId);
+    const verificationRef = transaction.gatewayTransactionId || gatewayTransactionId || transaction.id;
+    const verification = await verifyPaymentStatus(gateway, verificationRef);
 
     if (!verification.success) {
       // Update transaction to failed
       await prisma.paymentTransaction.update({
-        where: { id: transactionId },
+        where: { id: transaction.id },
         data: {
           status: 'FAILED',
           errorMessage: verification.message,
@@ -64,9 +90,10 @@ export async function GET(request: NextRequest) {
 
     // Payment successful - update transaction and order
     const updatedTransaction = await prisma.paymentTransaction.update({
-      where: { id: transactionId },
+      where: { id: transaction.id },
       data: {
         status: 'SUCCESS',
+        gatewayTransactionId: transaction.gatewayTransactionId || gatewayTransactionId || null,
         completedAt: new Date(),
         gatewayResponse: verification,
       },
@@ -84,7 +111,7 @@ export async function GET(request: NextRequest) {
 
     // Log successful payment
     console.log(`✓ Payment verified successfully:`, {
-      transactionId,
+      transactionId: transaction.id,
       orderId: updatedOrder.id,
       amount: updatedTransaction.amount,
       gateway: gateway,
@@ -92,7 +119,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.redirect(
-      new URL(`/payment/success?orderId=${updatedOrder.id}&transactionId=${transactionId}`, request.url)
+      new URL(`/payment/success?orderId=${updatedOrder.id}&transactionId=${transaction.id}`, request.url)
     );
   } catch (error) {
     console.error('Payment callback error:', error);

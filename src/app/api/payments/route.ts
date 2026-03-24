@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
+import { initiateUddoktaPay } from "@/lib/paymentGateway";
 
 function isPlaceholderConfig(value?: string | null): boolean {
   if (!value) return true;
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const paymentUrl = buildGatewayPaymentUrl(
+    let paymentUrl = buildGatewayPaymentUrl(
       request,
       paymentMethod as string,
       transaction.id,
@@ -194,6 +195,60 @@ export async function POST(request: NextRequest) {
       merchantNumber,
       gateway.displayName
     );
+
+    if (String(paymentMethod).toLowerCase() === "uddoktapay") {
+      const shippingAddress = (order.shippingAddress || {}) as Record<string, unknown>;
+      const fullName = [shippingAddress.firstName, shippingAddress.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+      const uddoktaResponse = await initiateUddoktaPay({
+        gateway: "uddoktapay",
+        amount: Number(order.totalAmount),
+        // Use internal transaction id so callback can map directly.
+        orderId: transaction.id,
+        customerEmail: String(order.user?.email || shippingAddress.email || "customer@example.com"),
+        customerPhone: String(order.user?.phone || shippingAddress.phone || ""),
+        customerName: fullName || "Customer",
+      });
+
+      if (!uddoktaResponse.success || !uddoktaResponse.paymentUrl) {
+        await prisma.paymentTransaction.update({
+          where: { id: transaction.id },
+          data: {
+            status: "FAILED",
+            errorMessage: uddoktaResponse.message || "Failed to initiate UddoktaPay",
+            completedAt: new Date(),
+          },
+        });
+
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { paymentStatus: "FAILED" },
+        });
+
+        return NextResponse.json(
+          { error: uddoktaResponse.message || "Failed to initiate UddoktaPay" },
+          { status: 400 }
+        );
+      }
+
+      paymentUrl = uddoktaResponse.paymentUrl;
+
+      await prisma.paymentTransaction.update({
+        where: { id: transaction.id },
+        data: {
+          gatewayTransactionId: uddoktaResponse.transactionId || null,
+          gatewayResponse: {
+            initiatedAt: new Date().toISOString(),
+            providerTransactionId: uddoktaResponse.transactionId,
+            paymentUrl: uddoktaResponse.paymentUrl,
+            message: uddoktaResponse.message,
+          },
+        },
+      });
+    }
 
     return NextResponse.json(
       {

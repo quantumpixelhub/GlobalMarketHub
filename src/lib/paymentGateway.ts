@@ -24,20 +24,19 @@ interface PaymentResponse {
  */
 export async function initiateUddoktaPay(config: PaymentConfig): Promise<PaymentResponse> {
   const apiKey = process.env.UDDOKTAPAY_API_KEY;
-  const apiSecret = process.env.UDDOKTAPAY_API_SECRET;
   const checkoutV2Url =
     process.env.UDDOKTAPAY_CHECKOUT_V2_URL ||
     process.env.UDDOKTAPAY_CHECKOUT_URL ||
     process.env.UDDOKTAPAY_PAYMENT_URL ||
     'https://eshopping.paymently.io/api/checkout-v2';
 
-  if (!apiKey || !apiSecret) {
-    console.warn('UddoktaPay credentials not configured');
+  if (!apiKey) {
+    console.warn('UddoktaPay API key not configured');
     return {
       success: true,
       transactionId: `MOCK_UDDOKTA_${config.orderId}`,
       paymentUrl: `https://sandbox.uddoktapay.com/payment/${config.orderId}`,
-      message: 'Payment initiated (Mock Mode - API credentials not configured)',
+      message: 'Payment initiated (Mock Mode - API key not configured)',
     };
   }
 
@@ -54,7 +53,7 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
         customer_email: config.customerEmail,
         customer_phone: config.customerPhone,
         customer_name: config.customerName,
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/callback?internal_txn=${encodeURIComponent(config.orderId)}&gateway=uddoktapay`,
       }),
     });
 
