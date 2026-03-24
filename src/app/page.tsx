@@ -72,6 +72,7 @@ export default function HomePage() {
   const [bannerPage, setBannerPage] = useState(0);
   const [bannerPages, setBannerPages] = useState(1);
   const bannerTrackRef = useRef<HTMLDivElement | null>(null);
+  const featuredSectionRef = useRef<HTMLDivElement | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const { showToast } = useToast();
 
@@ -161,7 +162,16 @@ export default function HomePage() {
 
   const handleFeaturedPageChange = (page: number) => {
     const nextPage = Math.max(1, Math.min(page, totalFeaturedPages));
+    if (nextPage === safeFeaturedPage) return;
     setFeaturedPage(nextPage);
+
+    // Keep context clear when paginating from the bottom by returning to the grid header.
+    window.setTimeout(() => {
+      const el = featuredSectionRef.current;
+      if (!el) return;
+      const targetY = el.getBoundingClientRect().top + window.scrollY - 110;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+    }, 50);
   };
 
   const getBannerPageStep = (container: HTMLDivElement) => {
@@ -632,7 +642,7 @@ export default function HomePage() {
       </div>
 
       {/* Featured Products */}
-      <div className="max-w-7xl mx-auto px-4 py-12 w-full" id="featured-products">
+      <div className="max-w-7xl mx-auto px-4 py-12 w-full" id="featured-products" ref={featuredSectionRef}>
         <h2 className="text-3xl font-bold mb-8">Featured Products</h2>
         <ProductGrid
           products={visibleFeaturedProducts}
