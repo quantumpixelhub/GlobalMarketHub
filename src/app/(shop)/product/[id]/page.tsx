@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/shared/Navigation';
-import { Footer } from '@/components/shared/Footer';
 import { ReviewSection } from '@/components/product/ReviewSection';
 import { Heart, ChevronLeft, ChevronRight, ScanSearch } from 'lucide-react';
 import { addToGuestCart } from '@/lib/guestCart';
@@ -335,7 +334,6 @@ export default function ProductDetailPage() {
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
           <p>Loading product...</p>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -347,7 +345,6 @@ export default function ProductDetailPage() {
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
           <p>Product not found</p>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -713,7 +710,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 }
