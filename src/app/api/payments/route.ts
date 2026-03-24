@@ -109,15 +109,18 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await authenticate(request);
     const { orderId, paymentMethod, isGuestCheckout } = await request.json();
+    const requestedPaymentMethod = String(paymentMethod || "").toLowerCase();
+    const routeViaUddokta = ["uddoktapay", "bkash", "nagad", "rocket"].includes(requestedPaymentMethod);
+    const effectiveGatewayName = routeViaUddokta ? "uddoktapay" : requestedPaymentMethod;
 
-    if (!orderId || !paymentMethod) {
+    if (!orderId || !requestedPaymentMethod) {
       return NextResponse.json(
         { error: "Order ID and payment method are required" },
         { status: 400 }
       );
     }
 
-    if (String(paymentMethod).toLowerCase() === "cod") {
+    if (requestedPaymentMethod === "cod") {
       return NextResponse.json(
         { error: "Cash on Delivery is not available" },
         { status: 400 }
@@ -153,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     // Get payment gateway config
     const gateway = await prisma.paymentGatewayConfig.findUnique({
-      where: { gatewayName: paymentMethod as string },
+      where: { gatewayName: requestedPaymentMethod },
     });
 
     if (!gateway || !gateway.isEnabled) {
@@ -172,13 +175,13 @@ export async function POST(request: NextRequest) {
       data: {
         orderId: orderId as string,
         userId: order.userId,
-        gatewayName: paymentMethod as string,
+        gatewayName: effectiveGatewayName,
         amount: order.totalAmount,
         currency: "BDT",
         status: "PENDING",
         transactionFee: gateway.transactionFee,
         netAmount: (order.totalAmount as any) - (gateway.transactionFee as any),
-        paymentMethod: paymentMethod as string,
+        paymentMethod: requestedPaymentMethod,
         customerDetails: {
           email: order.user?.email,
           phone: order.user?.phone,
@@ -188,7 +191,7 @@ export async function POST(request: NextRequest) {
 
     let paymentUrl = buildGatewayPaymentUrl(
       request,
-      paymentMethod as string,
+      effectiveGatewayName,
       transaction.id,
       order.totalAmount as unknown as number,
       order.id,
@@ -196,7 +199,7 @@ export async function POST(request: NextRequest) {
       gateway.displayName
     );
 
-    if (String(paymentMethod).toLowerCase() === "uddoktapay") {
+    if (routeViaUddokta) {
       const shippingAddress = (order.shippingAddress || {}) as Record<string, unknown>;
       const fullName = [shippingAddress.firstName, shippingAddress.lastName]
         .filter(Boolean)
