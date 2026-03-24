@@ -10,6 +10,13 @@ import {
   categorizeMessage,
   analyzeSentiment,
 } from './customerSupportKB';
+import {
+  getTopSellingProducts,
+  getTopSellingProductsOverall,
+  formatProductsForChat,
+  detectTimePeriod,
+  extractCategory,
+} from './salesAnalytics';
 
 export interface AIAgentResponse {
   message: string;
@@ -282,9 +289,14 @@ Once you share these details, I can guide you to the best options with top ratin
   }
 
   if (intent === 'SALES_ANALYTICS') {
-    return `That is an analytics query. For business sales reports, please check **Admin > Analytics** in your dashboard.
+    return `That's a great question! I can help you find popular products. 🔥
 
-If you want customer support help instead, I can assist with order tracking, delivery, returns, and payment issues. What can I help with? 😊`;
+**What would you like to know?**
+- Most sold products overall?
+- Most sold in a specific category (Electronics, Fashion, Beauty, Home)?
+- Trending products this month?
+
+Tell me what interests you, and I'll show you our bestsellers! 🛍️`;
   }
 
   if (intent === 'ORDER_CANCELLATION') {
@@ -403,8 +415,13 @@ function isAnalyticsQuestion(message: string): boolean {
     lower.includes('best selling') ||
     lower.includes('top selling') ||
     lower.includes('highest selling') ||
-    lower.includes('sales report') ||
-    lower.includes('last week')
+    lower.includes('sales') ||
+    lower.includes('popular') ||
+    lower.includes('trending') ||
+    lower.includes('which.*is most sold') ||
+    lower.includes('last week') ||
+    lower.includes('last month') ||
+    lower.includes('last 30 days')
   );
 }
 
@@ -413,15 +430,28 @@ function isAnalyticsQuestion(message: string): boolean {
  * This uses a combination of:
  * 1. Knowledge base matching
  * 2. Simple pattern recognition
- * 3. Free LLM fallback (if available)
+ * 3. Real sales data for product recommendations
+ * 4. Free LLM fallback (if available)
  */
 export async function getAIResponse(userMessage: string): Promise<AIAgentResponse> {
   try {
+    // Special handling for sales/analytics queries - fetch real data
     if (isAnalyticsQuestion(userMessage)) {
+      const category = extractCategory(userMessage);
+      const days = detectTimePeriod(userMessage);
+
+      let topProducts;
+      if (category) {
+        topProducts = await getTopSellingProducts(category, days, 5);
+      } else {
+        topProducts = await getTopSellingProductsOverall(days, 5);
+      }
+
+      const responseMessage = formatProductsForChat(topProducts);
+
       return {
-        message:
-          "This looks like a business analytics question. I can help with customer support topics, but for 'most sold last week' please check Admin > Analytics in your dashboard. If you want, I can help you find order status, payment, return, or delivery details.",
-        category: 'ANALYTICS_REQUEST',
+        message: responseMessage,
+        category: 'SALES_INQUIRY',
         sentiment: 'NEUTRAL',
         escalateToHuman: false,
       };
@@ -553,10 +583,6 @@ async function generateLLMResponse(
   category: string,
   sentiment: string
 ): Promise<string> {
-  if (isAnalyticsQuestion(userMessage)) {
-    return "I cannot access business sales analytics from this customer support chat. For 'most sold in last week', open Admin > Analytics. I can still help with orders, returns, delivery, and payment questions here.";
-  }
-
   // Try to use Hugging Face API if available
   try {
     const response = await callFreeHuggingFaceAPI(userMessage);
