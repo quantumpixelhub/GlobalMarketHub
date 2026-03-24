@@ -18,6 +18,7 @@ interface User {
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -106,11 +107,64 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              <button className="w-full mt-4 px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 text-sm font-semibold">
+              <button
+                type="button"
+                onClick={() => setSelectedUser(user)}
+                className="w-full mt-4 px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 text-sm font-semibold"
+              >
                 View Details
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">User Details</h2>
+
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-gray-500">Name</p>
+                <p className="font-semibold text-gray-900">{selectedUser.firstName} {selectedUser.lastName}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Role</p>
+                <p className="font-semibold text-gray-900">{selectedUser.role}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Email</p>
+                <p className="font-semibold text-gray-900">{selectedUser.email}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Phone</p>
+                <p className="font-semibold text-gray-900">{selectedUser.phone}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Email Verified</p>
+                <p className="font-semibold text-gray-900">{selectedUser.emailVerified ? 'Yes' : 'No'}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Phone Verified</p>
+                <p className="font-semibold text-gray-900">{selectedUser.phoneVerified ? 'Yes' : 'No'}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Joined</p>
+                <p className="font-semibold text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedUser(null)}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
