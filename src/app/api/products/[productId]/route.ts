@@ -64,26 +64,50 @@ export async function GET(
   { params }: { params: { productId: string } }
 ) {
   try {
-    const product = await prisma.product.findUnique({
-      where: { id: params.productId },
-      include: {
-        category: { select: { id: true, name: true, slug: true } },
-        seller: { select: { id: true, storeName: true, rating: true, email: true, reviewCount: true } },
-        variants: true,
-        reviews: {
-          where: { isApproved: true },
-          select: {
-            id: true,
-            rating: true,
-            title: true,
-            content: true,
-            user: { select: { firstName: true, lastName: true } },
-            createdAt: true,
+    const productId = params.productId;
+
+    const [product, soldAggregate, positiveReviewCount] = await Promise.all([
+      prisma.product.findUnique({
+        where: { id: productId },
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          seller: { select: { id: true, storeName: true, rating: true, email: true, reviewCount: true } },
+          variants: true,
+          reviews: {
+            where: { isApproved: true },
+            select: {
+              id: true,
+              rating: true,
+              title: true,
+              content: true,
+              user: { select: { firstName: true, lastName: true } },
+              createdAt: true,
+            },
+            take: 5,
           },
-          take: 5,
         },
-      },
-    });
+      }),
+      prisma.orderItem.aggregate({
+        where: {
+          productId,
+          order: {
+            status: 'DELIVERED',
+          },
+        },
+        _sum: {
+          quantity: true,
+        },
+      }),
+      prisma.review.count({
+        where: {
+          productId,
+          isApproved: true,
+          rating: {
+            gte: 4,
+          },
+        },
+      }),
+    ]);
 
     if (!product || !product.isActive) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -91,7 +115,11 @@ export async function GET(
 
     return NextResponse.json(
       {
-        product,
+        product: {
+          ...product,
+          totalSold: soldAggregate._sum.quantity || 0,
+          positiveReviews: positiveReviewCount,
+        },
       },
       { status: 200 }
     );

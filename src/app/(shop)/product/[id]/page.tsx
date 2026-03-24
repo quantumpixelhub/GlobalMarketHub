@@ -21,6 +21,8 @@ interface Product {
   reviewCount: number;
   stock: number;
   sku: string;
+  totalSold?: number;
+  positiveReviews?: number;
   specifications: Record<string, string>;
   seller: {
     id: string;
@@ -88,6 +90,8 @@ export default function ProductDetailPage() {
             rating: asNumber(data.product.rating),
             reviewCount: asNumber(data.product.reviewCount),
             stock: asNumber(data.product.stock),
+            totalSold: asNumber(data.product.totalSold),
+            positiveReviews: asNumber(data.product.positiveReviews),
             seller: {
               ...data.product.seller,
               email: data.product.seller?.email || '',
@@ -681,6 +685,25 @@ export default function ProductDetailPage() {
                 >
                   Add to Cart
                 </button>
+              </div>
+            </div>
+
+            {/* Trust Signals */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div className="bg-rose-50 border border-rose-100 rounded-lg p-4">
+                <p className="text-xs uppercase tracking-wide text-rose-700 font-semibold">Total Sold</p>
+                <p className="text-2xl font-bold text-rose-700 mt-1">
+                  {(product.totalSold || 0).toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Units delivered successfully</p>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-100 rounded-lg p-4">
+                <p className="text-xs uppercase tracking-wide text-orange-700 font-semibold">Positive Reviews</p>
+                <p className="text-2xl font-bold text-orange-700 mt-1">
+                  {(product.positiveReviews || 0).toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Approved reviews with 4★ and above</p>
               </div>
             </div>
 
