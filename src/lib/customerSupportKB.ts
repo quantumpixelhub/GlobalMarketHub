@@ -285,6 +285,320 @@ Still having trouble? Reply with your email and we'll help!`,
     category: 'ACCOUNT',
     keywords: ['password', 'reset', 'forgot', 'login', 'change password'],
   },
+  // ========== COUPONS & OFFERS ==========
+  {
+    id: 'coupon-001',
+    question: 'Are there any coupons available right now?',
+    answer: `Yes! We always have exciting discounts and coupons available! 🎉
+
+**Current Offers**:
+- **New User Coupon**: 20% off on first purchase (max 500 TK)
+- **Festival Sales**: Check our seasonal campaigns for up to 70% discount
+- **Cart Coupons**: Apply discount codes at checkout
+- **Category Deals**: Electronics, Fashion, Beauty on sale regularly
+- **Flash Sales**: Limited-time offers (check daily!)
+
+**How to Find Coupons**:
+1. Check the **Homepage** - Banners show active deals
+2. **Category Pages** - Browse discounts by type
+3. **My Account** - View personalized offers
+4. **Email/SMS** - Subscribe for exclusive deals
+5. **App Notifications** - Get alerts for flash sales
+
+**How to Apply**:
+1. Add items to your cart
+2. Go to checkout
+3. Paste the coupon code
+4. Discount applies automatically
+
+Have a specific coupon code? Paste it and I'll help verify!`,
+    category: 'OFFERS',
+    keywords: ['coupon', 'discount', 'promo', 'code', 'offer', 'deal', 'sale'],
+  },
+  {
+    id: 'coupon-002',
+    question: 'How do I use a coupon code?',
+    answer: `Using a coupon is simple! Follow these steps:
+
+1. **Add Items** - Browse and add products to your cart
+2. **Go to Cart** - Click the shopping cart icon
+3. **Review Items** - Make sure everything is correct
+4. **Enter Code** - Look for "Coupon Code" or "Promo Code" field
+5. **Paste Code** - Enter your coupon code exactly as shown
+6. **Apply** - Click "Apply" button
+7. **Confirm** - Check if discount is applied
+8. **Proceed** - Continue to payment
+
+**Common Issues**:
+- **Code Not Working**: Might be expired or have restrictions
+- **Minimum Amount**: Some coupons require minimum purchase
+- **Usage Limit**: Coupon might have limited uses
+- **Category Specific**: Some codes only work on certain products
+
+Can't apply your code? Share it with me and I'll help troubleshoot!`,
+    category: 'OFFERS',
+    keywords: ['coupon code', 'apply', 'promo', 'discount', 'how to use'],
+  },
+  {
+    id: 'coupon-003',
+    question: 'What is your return discount policy?',
+    answer: `**Discount & Sale Items Return Policy**:
+
+✅ **SALE ITEMS CAN BE RETURNED** within 7 days if:
+- Product is unused/unworn
+- Original packaging intact
+- No signs of wear or use
+- Purchased as sale/discount item
+
+⚠️ **"Final Sale" Items**:
+- Marked as "Non-Returnable" or "Final Sale"
+- Cannot be returned under any circumstances
+- Check product details before purchase
+
+**Refund on Discounted Items**:
+- Refunded at the price you paid (with discount)
+- Not refunded at original price
+- Example: Bought for 500 TK (after 50% off), refund is 500 TK
+
+**To Check if Item is Returnable**:
+1. Go to product page
+2. Scroll to "Return Policy" section
+3. It will clearly state if returnable
+
+Can't find return status? Share your **Order Number** and **Product Name**!`,
+    category: 'OFFERS',
+    keywords: ['sale', 'discount', 'final sale', 'return', 'refund'],
+  },
+
+  // ========== PRODUCTS & CATEGORIES ==========
+  {
+    id: 'product-001',
+    question: 'How do I search for products?',
+    answer: `Finding products on GlobalMarketHub is easy! Here are multiple ways:
+
+🔍 **Search Bar**
+1. Click the search icon at the top
+2. Type product name, category, or brand
+3. Press Enter or click search
+4. Browse results
+
+📂 **Browse by Category**
+1. Click **Menu** icon (three horizontal lines)
+2. Select category (Electronics, Fashion, Beauty, etc.)
+3. Filter by price, brand, ratings
+4. Click product to view details
+
+⭐ **Filter Options**
+- **Price Range** - Set your budget
+- **Brand** - Choose specific brands
+- **Ratings** - Only show highly rated items
+- **Availability** - In stock only
+- **Seller** - Filter by trusted sellers
+
+💡 **Advanced Tips**:
+- Use specific terms: "Samsung Galaxy A12" instead of "phone"
+- Check customer reviews and ratings
+- Compare prices across sellers
+- Look for verified seller badges
+
+Can't find what you're looking for? Describe the product and I'll help!`,
+    category: 'PRODUCTS',
+    keywords: ['search', 'product', 'find', 'category', 'browse'],
+  },
+  {
+    id: 'product-002',
+    question: 'Are product prices negotiable?',
+    answer: `**Price Policy at GlobalMarketHub**:
+
+❌ **Fixed Prices**
+- All listed prices are fixed and final
+- Not negotiable through chat or support
+- Same price for all customers
+
+✅ **Ways to Get Better Prices**:
+- **Use Coupons** - Apply discount codes for savings
+- **Flash Sales** - Limited-time discounts throughout the day
+- **Seasonal Sales** - Big discounts during festivals
+- **Category Deals** - Regular discounts on specific categories
+- **New User Offer** - 20% discount on first purchase
+- **Compare Sellers** - Same product may be cheaper from different sellers
+
+**Price Comparison**:
+- Multiple sellers sell the same product
+- Prices vary slightly between sellers
+- Click different seller options to compare
+- Choose based on price + seller rating + delivery speed
+
+**Price Drops**:
+- Products may go on sale after being listed
+- You can add to **Wishlist** to track price changes
+- Get notified when price drops
+
+Looking for a specific product? I can help you find the best deal!`,
+    category: 'PRODUCTS',
+    keywords: ['price', 'cost', 'negotiate', 'discount', 'cheaper'],
+  },
+  {
+    id: 'product-003',
+    question: 'What brands and categories do you offer?',
+    answer: `GlobalMarketHub offers a wide range of products! Here's what we have:
+
+📱 **Electronics**
+- Smartphones & Accessories
+- Laptops & Computers
+- Tablets & E-readers
+- Audio & Speakers
+- Smart Home Devices
+
+👗 **Fashion**
+- Men's Clothing
+- Women's Clothing
+- Shoes & Footwear
+- Accessories
+- Designer Brands
+
+💄 **Beauty & Personal Care**
+- Skincare Products
+- Haircare & Cosmetics
+- Fragrances
+- Health & Wellness
+- Personal Hygiene
+
+🏠 **Home & Living**
+- Furniture
+- Kitchen Appliances
+- Bedding & Decor
+- Lighting
+- Organization
+
+🎮 **Books & Media**
+- Books & E-books
+- Educational Materials
+- Movies & Music
+- Gaming Products
+
+**Popular Brands**:
+Samsung, Apple, Sony, HP, Lenovo, Nike, Adidas, L'Oreal, Philips, and 1000+ more!
+
+**Browse Now**:
+1. Click **Categories** in the menu
+2. Select what interests you
+3. Filter by brand if needed
+4. Compare and add to cart
+
+Looking for something specific? Tell me the product type!`,
+    category: 'PRODUCTS',
+    keywords: ['brand', 'category', 'products', 'available', 'offer', 'sell'],
+  },
+
+  // ========== DELIVERY & LOGISTICS ==========
+  {
+    id: 'delivery-001',
+    question: 'Do you deliver to my area?',
+    answer: `We deliver to most areas in Bangladesh! To check if we deliver to you:
+
+**Check Delivery Availability**:
+1. Add an item to cart
+2. Go to **Checkout**
+3. Enter your delivery address
+4. System shows if delivery is available
+5. Choose delivery speed (Standard or Express)
+
+📍 **Our Coverage**:
+✅ **All Dhaka Districts** - Dhaka, Narayanganj, Gazipur, Tangail
+✅ **Major Cities** - Chittagong, Sylhet, Khulna, Rajshahi, Barisal
+✅ **Growing Coverage** - We're expanding to more areas monthly
+
+⚠️ **Remote Areas**:
+- Some remote areas may take 5-7 days
+- May have higher delivery charges
+- Alternative: Ship to nearest city address
+
+**Delivery Options**:
+- **Standard**: 1-2 days (Dhaka), 3-5 days (Other areas)
+- **Express**: Same-day (Dhaka if ordered before 2 PM), Next-day (other areas)
+
+**Track Your Delivery**:
+- Real-time tracking available
+- SMS/Email updates sent automatically
+- Contact courier directly for urgent issues
+
+Your area not showing up? Contact support and we'll check what's possible!`,
+    category: 'DELIVERY',
+    keywords: ['delivery', 'area', 'location', 'ship', 'available'],
+  },
+  {
+    id: 'delivery-002',
+    question: 'What is the delivery charge?',
+    answer: `**Delivery Charges Explained**:
+
+📊 **Standard Delivery** (1-2 days from Dhaka)
+- **Inside Dhaka**: Free delivery on orders above 500 TK (50 TK under 500 TK)
+- **Outside Dhaka**: 50-150 TK depending on distance
+
+⚡ **Express Delivery** (Same-day or next-day)
+- **Dhaka Express**: 99 TK (if ordered before 2 PM)
+- **Same-City Express**: 149 TK
+- **Cross-District Express**: 199 TK
+
+**Free Delivery**:
+✓ Orders above 500 TK (Dhaka)
+✓ Flash sale items (specific times)
+✓ Promotional campaigns
+✓ Bulk orders (seller dependent)
+
+**How Charges Work**:
+1. Add items to cart
+2. Delivery cost shown at **Checkout**
+3. Based on your address and delivery speed
+4. Free shipping threshold: 500 TK
+
+**Reduce Delivery Cost**:
+- Bundle items to reach 500 TK threshold
+- Use standard delivery when possible
+- Look for free shipping promotions
+- Check seller offers (some give free shipping)
+
+Delivery charges seem high? Let me know your location and I can suggest options!`,
+    category: 'DELIVERY',
+    keywords: ['delivery charge', 'shipping', 'cost', 'free delivery', 'charge', 'fee'],
+  },
+  {
+    id: 'delivery-003',
+    question: 'Can I change my delivery address after placing order?',
+    answer: `**Delivery Address Changes**:
+
+⏱️ **Timing is Critical**:
+- **Within 30 minutes**: Easy to change (order still processing)
+- **30 min - 2 hours**: May be possible, but hurry!
+- **After 2 hours**: Difficult (order likely already shipped)
+
+**How to Change Address**:
+1. Go to **My Orders**
+2. Find your order
+3. If still says "Pending", click **Edit Address**
+4. Enter new address
+5. Confirm change
+
+⚠️ **Important**:
+- Must change BEFORE order ships
+- New address must be in delivery area
+- Some sellers may not allow changes
+- If too late, you'll need to return & reorder
+
+**If Address Can't Be Changed**:
+1. **Contact Support**: Provide your Order Number and new address
+2. Ask if order can be **redirected** to new location
+3. May need to pay additional delivery charge
+4. Human team will help escalate
+
+**Pro Tip**: Double-check delivery address BEFORE completing payment!
+
+Need help changing your address? Share your **Order Number** and new location!`,
+    category: 'DELIVERY',
+    keywords: ['change', 'delivery', 'address', 'different', 'redirect'],
+  },
+
   {
     id: 'general-001',
     question: 'How can I contact customer support?',

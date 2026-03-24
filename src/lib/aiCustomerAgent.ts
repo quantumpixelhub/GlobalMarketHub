@@ -26,11 +26,66 @@ type OpenDomainIntent =
   | 'ORDER_CANCELLATION'
   | 'WARRANTY'
   | 'PRICING'
+  | 'PRODUCT_INQUIRY'
+  | 'COUPON_INQUIRY'
+  | 'DELIVERY_INQUIRY'
+  | 'PAYMENT_INQUIRY'
   | 'UNKNOWN';
 
 function detectOpenDomainIntent(message: string): OpenDomainIntent {
   const lower = message.toLowerCase();
 
+  // COUPON INQUIRY
+  if (
+    lower.includes('coupon') ||
+    lower.includes('discount') ||
+    lower.includes('promo') ||
+    lower.includes('offer') ||
+    lower.includes('code') ||
+    lower.includes('deal') ||
+    lower.includes('sale')
+  ) {
+    return 'COUPON_INQUIRY';
+  }
+
+  // DELIVERY INQUIRY
+  if (
+    lower.includes('delivery') ||
+    lower.includes('charge') ||
+    lower.includes('shipping') ||
+    lower.includes('area') ||
+    lower.includes('location') ||
+    lower.includes('address') ||
+    lower.includes('how long')
+  ) {
+    return 'DELIVERY_INQUIRY';
+  }
+
+  // PAYMENT INQUIRY
+  if (
+    lower.includes('payment') ||
+    lower.includes('bkash') ||
+    lower.includes('card') ||
+    lower.includes('security') ||
+    lower.includes('how to pay') ||
+    lower.includes('which method')
+  ) {
+    return 'PAYMENT_INQUIRY';
+  }
+
+  // PRODUCT INQUIRY (do you have X, available, sell)
+  if (
+    (lower.includes('do you') && lower.includes('have')) ||
+    (lower.includes('do you') && lower.includes('sell')) ||
+    lower.includes('available') ||
+    lower.includes('in stock') ||
+    lower.includes('brand') ||
+    lower.includes('category')
+  ) {
+    return 'PRODUCT_INQUIRY';
+  }
+
+  // PRODUCT RECOMMENDATION
   if (
     lower.includes('recommend') ||
     lower.includes('suggest') ||
@@ -40,6 +95,7 @@ function detectOpenDomainIntent(message: string): OpenDomainIntent {
     return 'PRODUCT_RECOMMENDATION';
   }
 
+  // SALES ANALYTICS
   if (
     lower.includes('most sold') ||
     lower.includes('top sold') ||
@@ -50,6 +106,7 @@ function detectOpenDomainIntent(message: string): OpenDomainIntent {
     return 'SALES_ANALYTICS';
   }
 
+  // ORDER CANCELLATION
   if (
     lower.includes('cancel order') ||
     lower.includes('order cancel') ||
@@ -58,15 +115,17 @@ function detectOpenDomainIntent(message: string): OpenDomainIntent {
     return 'ORDER_CANCELLATION';
   }
 
+  // WARRANTY
   if (lower.includes('warranty') || lower.includes('guarantee')) {
     return 'WARRANTY';
   }
 
+  // PRICING
   if (
     lower.includes('price') ||
     lower.includes('cost') ||
     lower.includes('cheap') ||
-    lower.includes('discount')
+    lower.includes('expensive')
   ) {
     return 'PRICING';
   }
@@ -78,82 +137,262 @@ function generateGeneralIntentResponse(userMessage: string): string {
   const intent = detectOpenDomainIntent(userMessage);
   const lowerMsg = userMessage.toLowerCase();
 
+  if (intent === 'COUPON_INQUIRY') {
+    return `Great question! Yes, we have lots of coupons and discounts! 🎉
+
+**Current Offers**:
+• **New User**: 20% off first purchase (max 500 TK)
+• **Flash Sales**: Up to 70% off on select items
+• **Category Deals**: Regular discounts on Electronics, Fashion, Beauty
+• **Seasonal Sales**: Festival & holiday promotions
+
+**How to Find & Use Coupons**:
+1. Check **Homepage** - See all active deals
+2. Browse **Categories** - Category-specific discounts
+3. Enter **Coupon Code** at checkout if you have one
+4. Get **Notifications** - Subscribe to alerts for flash sales
+
+**Tips**:
+✓ New users get automatic 20% discount
+✓ Free delivery on orders above 500 TK
+✓ Bundle items to get better deals
+✓ Check app for exclusive offers
+
+Want to apply a specific coupon code? Share it and I'll help! 😊`;
+  }
+
+  if (intent === 'DELIVERY_INQUIRY') {
+    return `Good question! Let me help with delivery information. 📦
+
+**Delivery Times**:
+🏙️ **Inside Dhaka**
+- Standard: 1-2 business days
+- Express: Same-day (if ordered before 2 PM)
+
+🗺️ **Outside Dhaka**
+- Standard: 3-5 business days
+- Express: 1-2 business days
+
+**Delivery Charges**:
+💰 **Free Delivery**: Orders above 500 TK (Dhaka)
+💰 **Charged Delivery**: 50-199 TK based on location & speed
+
+**Coverage**:
+✅ All districts in Bangladesh
+✅ Major cities + growing to remote areas
+✅ Check at checkout if we deliver to you
+
+**To Check Delivery to Your Area**:
+1. Add items to cart
+2. Go to **Checkout**
+3. Enter your address
+4. System shows delivery options & cost
+
+Do you want to know delivery charges to a specific area? Tell me your location! 📍`;
+  }
+
+  if (intent === 'PAYMENT_INQUIRY') {
+    return `Perfect! I can help with payment information. 💳
+
+**Payment Methods We Accept**:
+💳 **Card Payments** - Visa, MasterCard, Amex (local & international)
+📱 **Mobile Wallets** - BKash, Nagad, Rocket
+🏦 **Online Gateways** - Uddoktapay, Stripe
+💰 **Cash on Delivery** - Available in select areas
+
+**Which Method to Choose**:
+- **Fastest**: Mobile wallets (BKash, Nagad)
+- **Safest**: Card or Uddoktapay
+- **Convenient**: Whatever you prefer!
+- **Limited**: COD only available in some areas
+
+**All Payments Are Secure** 🔒
+✓ SSL 256-bit encryption
+✓ PCI-DSS compliant
+✓ Your card data never stored
+✓ Fraud protection 24/7
+
+**Can't Use COD?**
+If COD isn't available in your area, BKash is a great alternative - instant, secure, and widely used!
+
+Is there a specific payment method you have questions about? Let me know! 😊`;
+  }
+
+  if (intent === 'PRODUCT_INQUIRY') {
+    // Extract what product they're asking about
+    const productMatch = lowerMsg.match(/(?:do you.*?have|do you.*?sell|available)\s+([a-z\s]+)(?:\?|$)/);
+    const product = productMatch ? productMatch[1].trim() : 'products';
+    
+    return `Great question about ${product}! 🛍️
+
+**Yes, we likely have ${product} in stock!** Here's how to find it:
+
+**Search Method** 🔍
+1. Click the **Search Bar** at the top
+2. Type "${product}" or the specific brand
+3. Hit Enter to see all options
+4. Filter by price, brand, seller rating
+
+**Browse by Category** 📂
+1. Click **Menu** (three lines)
+2. Select relevant category
+3. Browse similar items
+4. Check **prices & reviews**
+
+**What You'll Find**:
+✓ Multiple sellers (compare prices!)
+✓ Customer ratings & reviews
+✓ Real product images
+✓ Detailed specifications
+✓ Similar recommendations
+
+**Pro Tips**:
+💡 Read customer reviews carefully
+💡 Compare different sellers' prices
+💡 Check stock status before ordering
+💡 Use coupons for better deals
+
+Looking for something specific in ${product}? I can help guide you! What brand or feature are you looking for?`;
+  }
+
   if (intent === 'PRODUCT_RECOMMENDATION') {
-    return `I can help you find the right product! 
+    return `I'd love to help you find the perfect product! 🎯
 
-Please share:
-1. **Product type** (phone, laptop, skincare, electronics, etc.)
-2. **Your budget** (any budget range)
-3. **Brand preference** (optional)
+To give you the best recommendation, please tell me:
 
-Once you provide these details, I'll suggest the best matching products in our catalog.`;
+1. **What type of product?**
+   - Electronics (phone, laptop, earbuds, etc.)
+   - Fashion (clothes, shoes, accessories)
+   - Beauty (skincare, haircare, cosmetics)
+   - Home & Living (furniture, kitchen, decor)
+   - Other?
+
+2. **Your Budget Range?** 
+   - Under 5,000 TK
+   - 5K-15K TK
+   - 15K-50K TK
+   - 50K+ TK
+   - No budget limit
+
+3. **Brand Preference?** (Optional)
+   - Any brand
+   - Specific brand preference
+
+Once you share these details, I can guide you to the best options with top ratings and best prices! 😊`;
   }
 
   if (intent === 'SALES_ANALYTICS') {
-    return `That is an analytics query. For top/most sold products, please check Admin > Analytics in your dashboard.
+    return `That is an analytics query. For business sales reports, please check **Admin > Analytics** in your dashboard.
 
-If you want customer support help, I can assist with order tracking, delivery, returns, and payment issues.`;
+If you want customer support help instead, I can assist with order tracking, delivery, returns, and payment issues. What can I help with? 😊`;
   }
 
   if (intent === 'ORDER_CANCELLATION') {
-    return `You can cancel an order before shipment.
+    return `You can cancel an order before shipment. Here's how:
 
-**Steps**:
-1. Go to My Orders
-2. Open your order
-3. Click Cancel (if available)
+**Steps to Cancel**:
+1. Go to **My Orders**
+2. Find the order you want to cancel
+3. Click **Cancel** button (if available)
+4. Choose cancellation reason
+5. Confirm cancellation
 
-Share your Order Number (ORD-...) and I can guide you based on its current status.`;
+⏱️ **Important**: Cancellation must be done BEFORE order ships. Once shipped, you'll need to return instead.
+
+**Refund Process**:
+✓ Instant if payment not processed yet
+✓ 2-3 days if payment already taken
+✓ Refunded to original payment method
+
+**Can't See Cancel Button?**
+Your order may already be shipped. In that case, you can **Return** the item instead!
+
+**Share Your Order Number** and I can check the current status:
+- Is it still pending? (Can cancel)
+- Already shipped? (Can return instead)
+
+What's your Order Number? (ORD-XXXXXX) 📦`;
   }
 
   if (intent === 'WARRANTY') {
     return `Warranty depends on product category and seller policy.
 
-Please share:
-1. Product name
-2. Order Number (ORD-...)
+**Typical Coverage**:
+📱 **Electronics**: 1-2 year manufacturer warranty
+👕 **Fashion**: No warranty (return within 7 days if defective)
+💄 **Beauty**: No warranty (return if damaged)
+🏠 **Home**: 1 year warranty (varies by item)
 
-I will guide you to the exact warranty/claim process.`;
+**To Check Warranty for Your Product**:
+1. View the **product page**
+2. Scroll to **Warranty & Support**
+3. Check seller's specific warranty terms
+4. Look for "Warranty" tag
+
+**Claim Warranty**:
+1. Go to **My Orders**
+2. Open the order
+3. Provide **Order Number** + **Purchase Date**
+4. Describe the issue
+5. Submit warranty claim
+
+**What Warranty Covers**:
+✓ Manufacturing defects
+✓ Malfunctioning parts
+✓ Dead on arrival (DOA)
+
+**What It Doesn't Cover**:
+✗ Physical damage from user
+✗ Water damage
+✗ Normal wear & tear
+
+Please share your **Order Number** and **Product Name** to check warranty details! 😊`;
   }
 
   if (intent === 'PRICING') {
-    return `Prices and discounts can vary by seller and campaign.
+    return `I can help with pricing questions! 💰
 
-Please tell me:
-- **Product name** or category you're interested in
-- **Your budget range** (optional)
+**Our Pricing**:
+✓ Fixed prices - not negotiable
+✓ Compare sellers - same product may vary slightly
+✓ Prices shown at checkout include all charges
+✓ No hidden fees
 
-I will guide you to the best available options and current offers.`;
-  }
+**Ways to Save Money**:
+1. **Use Coupons** - Apply promo codes
+2. **Flash Sales** - Limited-time discounts throughout day
+3. **Category Deals** - Regular discounts on specific categories
+4. **Seasonal Sales** - Big discounts during festivals
+5. **Bundle Items** - Get free delivery on orders 500 TK+
+6. **New User Offer** - 20% off first purchase
 
-  // Handle product existence questions (e.g., "do you have serum?", "do you sell laptops?")
-  if (lowerMsg.includes('do you') || lowerMsg.includes('have you') || lowerMsg.includes('sell')) {
-    // Extract potential product category
-    const productTerms = lowerMsg.replace(/do you|have|sell|here|\?|'|"/g, '').trim();
-    if (productTerms.length > 0) {
-      return `Great question! We likely have **${productTerms}** or similar products. 
+**Price Comparison**:
+- Multiple sellers sell same products
+- Prices may differ slightly
+- Choose by: price + seller rating + delivery speed
+- All sellers are verified
 
-To find exactly what you're looking for:
-1. Use the **search bar** at the top to search for "${productTerms}"
-2. Browse by **category** - click the menu icon
-3. Filter by **price, brand, and ratings**
+**Price Drops**:
+- Products go on sale periodically
+- Add to **Wishlist** to track price changes
+- Get notified when item is cheaper
 
-If you can't find it, I can help you explore similar options or recommend alternatives!`;
-    }
+Looking for a specific product? I can help you find the best deal! What are you interested in? 🛍️`;
   }
 
   // Fallback for truly unknown questions
-  return `Thanks for your question! I want to give you the right answer.
+  return `Thanks for your question! I want to give you the right answer. 😊
 
 I can help with:
-✓ **Order tracking** - Share your Order Number (ORD-...)
-✓ **Delivery times** - When will my package arrive?
-✓ **Payment methods** - COD, card, digital wallets
-✓ **Returns & refunds** - How to return items
-✓ **Account help** - Login, profile, addresses
-✓ **Product search** - Help finding items you need
+✓ **Products** - Search, availability, categories, brands
+✓ **Coupons** - Current offers, how to use codes
+✓ **Delivery** - Times, charges, areas we cover
+✓ **Payments** - Methods, security, COD info
+✓ **Orders** - Track, cancel, change address
+✓ **Returns** - How to return, refund timeline
+✓ **Account** - Login, signup, password reset
 
-What can I help you with today? 😊`;
+What would you like help with today?`;
 }
 
 function isAnalyticsQuestion(message: string): boolean {
