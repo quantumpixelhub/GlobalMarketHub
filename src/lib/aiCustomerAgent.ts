@@ -28,6 +28,45 @@ export interface AIAgentResponse {
   suggestedFAQs?: Array<{ question: string; answer: string }>;
 }
 
+function toBulletResponse(message: string): string {
+  const text = message.replace(/\r\n/g, '\n').trim();
+  if (!text) return '- I am here to help.';
+
+  const rawLines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  // Keep existing list-like replies but normalize prefixes.
+  const hasListStructure = rawLines.some((line) => /^([-*•]|\d+[.)])\s+/.test(line));
+  if (hasListStructure) {
+    return rawLines
+      .map((line) => line.replace(/^\d+[.)]\s+/, '- ').replace(/^[-*•]\s+/, '- '))
+      .join('\n');
+  }
+
+  // Convert paragraph text to concise bullets.
+  const chunks = text
+    .split(/\n\s*\n/)
+    .map((chunk) => chunk.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  const bullets = chunks.flatMap((chunk) => {
+    const sentences = chunk
+      .split(/(?<=[.!?])\s+/)
+      .map((sentence) => sentence.trim())
+      .filter(Boolean);
+
+    if (sentences.length <= 1) {
+      return [`- ${chunk}`];
+    }
+
+    return sentences.map((sentence) => `- ${sentence}`);
+  });
+
+  return bullets.join('\n');
+}
+
 type OpenDomainIntent =
   | 'PRODUCT_RECOMMENDATION'
   | 'SALES_ANALYTICS'
@@ -440,7 +479,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
     const commerceInsight = await getCommerceInsightResponse(userMessage);
     if (commerceInsight) {
       return {
-        message: commerceInsight.message,
+        message: toBulletResponse(commerceInsight.message),
         category: commerceInsight.topic,
         sentiment: 'NEUTRAL',
         escalateToHuman: false,
@@ -462,7 +501,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
       const responseMessage = formatProductsForChat(topProducts);
 
       return {
-        message: responseMessage,
+        message: toBulletResponse(responseMessage),
         category: 'SALES_INQUIRY',
         sentiment: 'NEUTRAL',
         escalateToHuman: false,
@@ -480,7 +519,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
       // We detected a specific intent - respond to it directly
       const intentResponse = generateGeneralIntentResponse(userMessage);
       return {
-        message: intentResponse,
+        message: toBulletResponse(intentResponse),
         category: openDomainIntent,
         sentiment,
         escalateToHuman: false,
@@ -515,7 +554,7 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
     }
 
     return {
-      message: responseMessage,
+      message: toBulletResponse(responseMessage),
       category,
       sentiment,
       escalateToHuman: shouldEscalate,
@@ -535,8 +574,9 @@ export async function getAIResponse(userMessage: string): Promise<AIAgentRespons
   } catch (error) {
     console.error('AI Agent Error:', error);
     return {
-      message:
-        "I apologize for the technical difficulty. Let me connect you with our human support team who can better assist you.",
+      message: toBulletResponse(
+        'I apologize for the technical difficulty. Let me connect you with our human support team who can better assist you.'
+      ),
       category: 'GENERAL',
       sentiment: 'NEUTRAL',
       escalateToHuman: true,
