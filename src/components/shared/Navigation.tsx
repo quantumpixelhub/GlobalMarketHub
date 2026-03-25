@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { ShoppingCart, Heart, User, LogOut } from 'lucide-react';
 import { SearchBar } from '../product/SearchBar';
 import { Logo } from './Logo';
@@ -42,7 +41,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   onLogout,
   showCategoryLinks = true,
 }) => {
-  const pathname = usePathname();
   const [resolvedCartCount, setResolvedCartCount] = React.useState(cartItemCount || 0);
   const [resolvedAuth, setResolvedAuth] = React.useState(Boolean(isAuthenticated));
   const [resolvedUserName, setResolvedUserName] = React.useState(userName);
@@ -55,6 +53,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const linksContainerRef = React.useRef<HTMLDivElement>(null);
   const measurementWrapRef = React.useRef<HTMLDivElement>(null);
   const lastScrollYRef = React.useRef(0);
+  const initDoneRef = React.useRef(false);
 
   const mainCategories = React.useMemo(
     () => categories.filter((cat) => !cat.parentId),
@@ -174,24 +173,34 @@ export const Navigation: React.FC<NavigationProps> = ({
   }, []);
 
   React.useEffect(() => {
-    syncCartAndAuthState();
-    fetchCategories();
-    fetchWishlistCount();
+    if (initDoneRef.current) return;
+    initDoneRef.current = true;
 
-    const onStorage = () => syncCartAndAuthState();
-    const onCartUpdated = () => syncCartAndAuthState();
-    const onWishlistUpdated = () => fetchWishlistCount();
+    const init = async () => {
+      syncCartAndAuthState();
+      fetchCategories();
+      fetchWishlistCount();
 
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('cart-updated', onCartUpdated);
-    window.addEventListener('wishlist-updated', onWishlistUpdated);
+      const onStorage = () => syncCartAndAuthState();
+      const onCartUpdated = () => syncCartAndAuthState();
+      const onWishlistUpdated = () => fetchWishlistCount();
 
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('cart-updated', onCartUpdated);
-      window.removeEventListener('wishlist-updated', onWishlistUpdated);
+      window.addEventListener('storage', onStorage);
+      window.addEventListener('cart-updated', onCartUpdated);
+      window.addEventListener('wishlist-updated', onWishlistUpdated);
+
+      return () => {
+        window.removeEventListener('storage', onStorage);
+        window.removeEventListener('cart-updated', onCartUpdated);
+        window.removeEventListener('wishlist-updated', onWishlistUpdated);
+      };
     };
-  }, [pathname, syncCartAndAuthState, fetchCategories, fetchWishlistCount]);
+
+    const cleanup = init();
+    return () => {
+      if (cleanup instanceof Function) cleanup();
+    };
+  }, []);
 
   React.useEffect(() => {
     const linksContainer = linksContainerRef.current;

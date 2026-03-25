@@ -153,9 +153,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 flex-col">
+    <div className="flex min-h-screen bg-gray-100 flex-col">
       {/* Top Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Welcome Back!</h2>
           <p className="text-xs text-gray-500">Manage your store and track performance</p>
@@ -180,12 +180,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <div
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
+        } bg-gray-900 text-white transition-all duration-300 flex flex-col flex-shrink-0 overflow-y-auto`}
       >
         {/* Logo & Sidebar Toggle */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
@@ -261,7 +261,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-6 bg-gray-50">{children}</div>
+        <div className="flex-1 overflow-auto p-6 bg-gray-50 scroll-smooth">{children}</div>
       </div>
       </div>
     </div>
