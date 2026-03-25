@@ -86,6 +86,7 @@ export default function ProductDetailPage() {
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
+  const [isRailHovered, setIsRailHovered] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -488,6 +489,7 @@ export default function ProductDetailPage() {
   const activeSubcategories = activeCategoryId
     ? categories.filter((cat) => cat.parentId === activeCategoryId)
     : [];
+  const isSubmenuOpen = isRailHovered && !!activeCategoryId;
 
   const showPreviousImage = () => {
     setSelectedImage((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
@@ -506,9 +508,13 @@ export default function ProductDetailPage() {
           <div className="hidden lg:block">
             <div
               className="relative h-full"
-              onMouseLeave={() => setHoveredCategoryId(null)}
+              onMouseEnter={() => setIsRailHovered(true)}
+              onMouseLeave={() => {
+                setIsRailHovered(false);
+                setHoveredCategoryId(null);
+              }}
             >
-              <div className="w-[88px] rounded-2xl border border-gray-200 bg-gray-100 p-2 shadow-sm">
+              <div className="w-[88px] rounded-2xl border border-[#d6cec2] p-2 shadow-sm" style={{ backgroundColor: '#F3EDE3' }}>
                 <div className="space-y-2">
                   {parentCategories.map((category) => (
                     <button
@@ -516,11 +522,12 @@ export default function ProductDetailPage() {
                       key={category.id}
                       onMouseEnter={() => setHoveredCategoryId(category.id)}
                       onFocus={() => setHoveredCategoryId(category.id)}
-                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition bg-rose-100 ${
+                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition ${
                         activeCategoryId === category.id
-                          ? 'border-2 border-rose-400 shadow-md'
-                          : 'hover:border-rose-300 border border-transparent'
+                          ? 'border-2 border-[#d17b56] shadow-md'
+                          : 'hover:border-[#d6cec2] border border-transparent'
                       }`}
+                      style={{ backgroundColor: '#EFE7DC' }}
                       aria-label={category.name}
                     >
                       {category.icon || '📦'}
@@ -529,8 +536,8 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              <div className={`pointer-events-none absolute left-[96px] top-0 z-30 w-[320px] rounded-2xl border border-gray-200 bg-white p-4 shadow-xl transition-all duration-200 ${
-                hoveredCategoryId ? 'pointer-events-auto opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
+              <div className={`absolute left-[96px] top-0 z-30 w-[320px] rounded-2xl border border-[#d6cec2] bg-white p-4 shadow-xl transition-all duration-200 ${
+                isSubmenuOpen ? 'pointer-events-auto opacity-100 translate-x-0' : 'pointer-events-none opacity-0 translate-x-2'
               }`}>
                 <div className="mb-3">
                   <p className="text-sm font-semibold text-gray-900">
