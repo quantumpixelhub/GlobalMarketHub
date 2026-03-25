@@ -56,7 +56,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const measurementWrapRef = React.useRef<HTMLDivElement>(null);
   const initDoneRef = React.useRef(false);
   const lastScrollYRef = React.useRef(0);
-  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const scrollDirectionRef = React.useRef(false);
 
   const mainCategories = React.useMemo(
     () => categories.filter((cat) => !cat.parentId),
@@ -209,31 +209,37 @@ export const Navigation: React.FC<NavigationProps> = ({
   }, []);
 
   React.useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollingDown = currentScrollY > lastScrollYRef.current;
-      
-      // Debounce to prevent flickering
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const scroll_delta = Math.abs(currentScrollY - lastScrollYRef.current);
+          
+          // Only check direction if scroll is significant (5px threshold)
+          if (scroll_delta >= 5) {
+            const scrollingDown = currentScrollY > lastScrollYRef.current;
+            
+            // Only update state if direction actually changed
+            if (scrollingDown !== scrollDirectionRef.current) {
+              scrollDirectionRef.current = scrollingDown;
+              setIsScrollingDown(scrollingDown);
+            }
+            
+            lastScrollYRef.current = currentScrollY;
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
-      
-      scrollTimeoutRef.current = setTimeout(() => {
-        if (scrollingDown !== isScrollingDown) {
-          setIsScrollingDown(scrollingDown);
-        }
-        lastScrollYRef.current = currentScrollY;
-      }, 100);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
     };
-  }, [isScrollingDown]);
+  }, []);
 
   React.useEffect(() => {
     const linksContainer = linksContainerRef.current;
