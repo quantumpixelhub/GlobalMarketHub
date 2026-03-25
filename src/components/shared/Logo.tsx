@@ -6,9 +6,10 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   tone?: 'default' | 'light';
   className?: string;
+  imageScale?: number;
 }
 
-export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProps) {
+export function Logo({ size = 'md', tone = 'default', className = '', imageScale = 1 }: LogoProps) {
   const sizeClasses = {
     sm: {
       widthClass: 'w-[170px]',
@@ -16,7 +17,6 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       titleClass: 'text-[30px]',
       iconWrap: 'h-8 w-8',
       iconSize: 18,
-      defaultScaleClass: 'scale-[5]',
     },
     md: {
       widthClass: 'w-[205px]',
@@ -24,7 +24,6 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       titleClass: 'text-[34px]',
       iconWrap: 'h-9 w-9',
       iconSize: 20,
-      defaultScaleClass: 'scale-[5]',
     },
     lg: {
       widthClass: 'w-[245px]',
@@ -32,7 +31,6 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       titleClass: 'text-[38px]',
       iconWrap: 'h-10 w-10',
       iconSize: 22,
-      defaultScaleClass: 'scale-[5]',
     },
   };
 
@@ -64,7 +62,8 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
           alt="GlobalMarketHub"
           fill
           sizes="260px"
-          className={`object-contain ${sizeClasses[size].defaultScaleClass}`}
+          className="object-contain"
+          style={{ transform: `scale(${imageScale})`, transformOrigin: 'left center' }}
           priority={size === 'lg'}
         />
       </span>
