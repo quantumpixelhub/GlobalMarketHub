@@ -298,8 +298,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-4 mb-2 md:mb-3">
+      <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-4">
           {/* Logo */}
           <div className="w-full lg:w-[340px] flex-shrink-0">
             <Logo size="xl" imageSrc="/logo-trimmed.png" className="origin-left" />
@@ -413,7 +413,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
-        <div className={`transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0 pb-0 border-b-0 mt-0' : 'opacity-100 max-h-[220px] pb-0 border-b-2 border-rose-600 mt-2 md:mt-3'}`}
+        <div className={`transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0 pb-0 border-b-0 mt-0' : 'opacity-100 max-h-[220px] pb-0 border-b-2 border-rose-600 mt-0'}`}
           style={{
             overflow: isScrollingDown ? 'hidden' : 'visible'
           }}
