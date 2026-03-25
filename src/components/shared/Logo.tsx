@@ -6,9 +6,10 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   tone?: 'default' | 'light';
   className?: string;
+  imageSrc?: string;
 }
 
-export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProps) {
+export function Logo({ size = 'md', tone = 'default', className = '', imageSrc = '/logo.png' }: LogoProps) {
   const sizeClasses = {
     sm: {
       widthClass: 'w-[170px]',
@@ -64,7 +65,7 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
     >
       <span className={`relative ${sizeClasses[size].widthClass} ${sizeClasses[size].heightClass}`}>
         <Image
-          src="/logo.png"
+          src={imageSrc}
           alt="GlobalMarketHub"
           fill
           sizes="260px"

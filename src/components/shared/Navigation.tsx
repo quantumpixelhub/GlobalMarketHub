@@ -293,7 +293,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-4 mb-2 md:mb-3">
           {/* Logo */}
           <div className="w-full lg:w-[340px] flex-shrink-0">
-            <Logo size="xl" className="origin-left" />
+            <Logo size="xl" imageSrc="/logo-trimmed.png" className="origin-left" />
           </div>
 
           {/* Search Bar */}
