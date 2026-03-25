@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   description: 'Shop organically sourced products, skincare & cosmetics from Daraz, Pickaboo, and Sajgoj',
   keywords: ['e-commerce', 'Bangladesh', 'organic', 'skincare', 'cosmetics'],
   authors: [{ name: 'GlobalMarketHub Team' }],
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
   viewport: { width: 'device-width', initialScale: 1 },
   openGraph: {
     type: 'website',
