@@ -201,7 +201,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
             const totalCount = Number(notificationCounts[item.key] || 0);
             const alreadySeen = Number(seenCounts[item.key] || 0);

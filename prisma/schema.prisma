@@ -32,6 +32,7 @@ model User {
   
   // Role
   role      Role      @default(CUSTOMER)
+  adminPermission AdminPermission?
   
   // Preferences
   language  String    @default("bn")
@@ -574,6 +575,29 @@ model PaymentGatewayConfig {
   logoUrl String?
   supportUrl String?
   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminPermission {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  canUseAdminPanel    Boolean @default(false)
+  manageDashboard     Boolean @default(false)
+  manageProducts      Boolean @default(false)
+  manageOrders        Boolean @default(false)
+  manageCategories    Boolean @default(false)
+  manageCampaigns     Boolean @default(false)
+  manageCoupons       Boolean @default(false)
+  manageUsers         Boolean @default(false)
+  manageReviews       Boolean @default(false)
+  manageMedia         Boolean @default(false)
+  manageNotifications Boolean @default(false)
+  managePayments      Boolean @default(false)
+  manageSettings      Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
