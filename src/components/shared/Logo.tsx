@@ -12,21 +12,24 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
     sm: {
       widthClass: 'w-[130px]',
       heightClass: 'h-[32px]',
+      scaleClass: 'scale-[2.05]',
     },
     md: {
       widthClass: 'w-[158px]',
       heightClass: 'h-[38px]',
+      scaleClass: 'scale-[2.1]',
     },
     lg: {
       widthClass: 'w-[192px]',
       heightClass: 'h-[46px]',
+      scaleClass: 'scale-[2.15]',
     },
   };
 
   const themeClasses =
     tone === 'light'
       ? {
-          imageWrap: 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]',
+          imageWrap: 'brightness-0 invert drop-shadow-[0_1px_2px_rgba(255,255,255,0.25)]',
         }
       : {
           imageWrap: '',
@@ -43,7 +46,7 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
           alt="GlobalMarketHub"
           fill
           sizes="220px"
-          className={`object-contain scale-[1.45] ${themeClasses.imageWrap}`}
+          className={`object-contain ${sizeClasses[size].scaleClass} ${themeClasses.imageWrap}`}
           priority={size === 'lg'}
         />
       </span>
