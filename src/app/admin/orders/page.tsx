@@ -10,6 +10,7 @@ interface Order {
   trackingNumber?: string | null;
   trackingProgress?: string;
   isIncomplete?: boolean;
+  isRecovered?: boolean;
   deliveryStatus?: string;
   customerName?: string;
   customerEmail?: string;
@@ -44,12 +45,15 @@ type EditableOrderFields = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'incomplete' | 'refunded'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'incomplete' | 'recovered' | 'refunded'>('all');
   const [incompleteCount, setIncompleteCount] = useState(0);
+  const [recoveredCount, setRecoveredCount] = useState(0);
+  const [recoveredAmount, setRecoveredAmount] = useState(0);
   const [refundedCount, setRefundedCount] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [edits, setEdits] = useState<Record<string, EditableOrderFields>>({});
   const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
+  const [recoveringOrderId, setRecoveringOrderId] = useState<string | null>(null);
   const [refundingOrderId, setRefundingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,6 +68,8 @@ export default function OrdersPage() {
         const query =
           activeFilter === 'incomplete'
             ? '&view=incomplete'
+            : activeFilter === 'recovered'
+              ? '&view=recovered'
             : activeFilter === 'refunded'
               ? '&view=refunded'
               : '';
@@ -75,6 +81,8 @@ export default function OrdersPage() {
           const data = await res.json();
           const list = data.orders || [];
           setIncompleteCount(Number(data?.summary?.incompleteCount || 0));
+          setRecoveredCount(Number(data?.summary?.recoveredCount || 0));
+          setRecoveredAmount(Number(data?.summary?.recoveredAmount || 0));
           setRefundedCount(Number(data?.summary?.refundedCount || 0));
           setOrders(list);
           const initialEdits: Record<string, EditableOrderFields> = {};
@@ -268,6 +276,54 @@ export default function OrdersPage() {
     }
   };
 
+  const canRecoverOrder = (order: Order) => {
+    return Boolean(order.isIncomplete) && !order.isRecovered;
+  };
+
+  const recoverOrder = async (order: Order) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login again');
+      return;
+    }
+
+    const confirmed = window.confirm(`Recover ${order.orderNumber} and mark it as actively followed up?`);
+    if (!confirmed) return;
+
+    try {
+      setRecoveringOrderId(order.id);
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'recover',
+          orderId: order.id,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || 'Failed to recover order');
+        return;
+      }
+
+      const updatedOrder: Order = data.order;
+      setOrders((prev) => prev.map((item) => (item.id === order.id ? updatedOrder : item)));
+      setSelectedOrder((prev) => (prev?.id === order.id ? updatedOrder : prev));
+      setRecoveredCount((prev) => prev + 1);
+      setRecoveredAmount((prev) => prev + Number(order.totalAmount || 0));
+      setIncompleteCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Recovery error:', error);
+      alert('Failed to recover order');
+    } finally {
+      setRecoveringOrderId(null);
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'DELIVERED':
@@ -286,6 +342,10 @@ export default function OrdersPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Orders Management</h1>
         <p className="text-gray-600 mt-2">View and manage customer orders</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Recovered Orders: <span className="font-semibold text-emerald-700">{recoveredCount}</span> |
+          Recovered Amount: <span className="font-semibold text-emerald-700"> ৳{recoveredAmount.toLocaleString()}</span>
+        </p>
         <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1">
           <button
             type="button"
@@ -304,6 +364,15 @@ export default function OrdersPage() {
             }`}
           >
             Incomplete Tracking ({incompleteCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('recovered')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              activeFilter === 'recovered' ? 'bg-emerald-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Recovered Orders ({recoveredCount})
           </button>
           <button
             type="button"
@@ -337,6 +406,7 @@ export default function OrdersPage() {
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Amount</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Status</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Date</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Recovery</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Action</th>
                 </tr>
               </thead>
@@ -398,7 +468,25 @@ export default function OrdersPage() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {order.isRecovered && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                            Recovered
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
+                        {canRecoverOrder(order) && (
+                          <button
+                            onClick={() => recoverOrder(order)}
+                            disabled={recoveringOrderId === order.id}
+                            className="text-xs px-3 py-1.5 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-400"
+                          >
+                            {recoveringOrderId === order.id ? 'Recovering...' : 'Recover'}
+                          </button>
+                        )}
                         <button
                           onClick={() => saveOrderUpdate(order.id)}
                           disabled={savingOrderId === order.id}
@@ -463,6 +551,10 @@ export default function OrdersPage() {
                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getTrackingProgressColor(selectedOrder.trackingProgress)}`}>
                     {selectedOrder.trackingProgress || 'Pending Assignment'}
                   </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Recovery State</p>
+                  <p className="font-semibold">{selectedOrder.isRecovered ? 'Recovered' : 'Not Recovered'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Payment Email</p>

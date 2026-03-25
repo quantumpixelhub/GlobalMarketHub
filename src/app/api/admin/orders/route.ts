@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 
+const RECOVERY_TAG = '[RECOVERED_ORDER]';
+
 function normalizeText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -47,6 +49,18 @@ function resolveDeliveryStatus(status: string): string {
   }
 }
 
+function hasRecoveryTag(notes: string | null | undefined): boolean {
+  return normalizeText(notes).includes(RECOVERY_TAG);
+}
+
+function appendRecoveryTag(notes: string | null | undefined): string {
+  const normalized = normalizeText(notes);
+  if (normalized.includes(RECOVERY_TAG)) {
+    return normalized;
+  }
+  return normalized ? `${normalized} ${RECOVERY_TAG}` : RECOVERY_TAG;
+}
+
 function normalizeOrder(order: any) {
   const snapshot = asObject(order.shippingAddress);
   const fullName = [order.user?.firstName || '', order.user?.lastName || '']
@@ -56,6 +70,7 @@ function normalizeOrder(order: any) {
   const hasTrackingNumber = Boolean(normalizeText(order.trackingNumber));
   const hasCourier = courierName !== 'Not Assigned';
   const isIncomplete = !['DELIVERED', 'CANCELLED', 'RETURNED'].includes(order.status);
+  const isRecovered = hasRecoveryTag(order.notes);
 
   let trackingProgress = 'Completed';
   if (isIncomplete) {
@@ -77,6 +92,7 @@ function normalizeOrder(order: any) {
     courierName,
     deliveryStatus: resolveDeliveryStatus(order.status),
     isIncomplete,
+    isRecovered,
     trackingProgress,
   };
 }
@@ -123,13 +139,19 @@ export async function GET(request: NextRequest) {
               in: incompleteStatuses,
             },
           }
+        : view === 'recovered'
+          ? {
+              notes: {
+                contains: RECOVERY_TAG,
+              },
+            }
         : view === 'refunded'
           ? {
               paymentStatus: PaymentStatus.REFUNDED,
             }
           : {};
 
-    const [orders, total, incompleteCount, refundedCount] = await Promise.all([
+    const [orders, total, incompleteCount, refundedCount, recoveredCount, recoveredAmountAgg] = await Promise.all([
       prisma.order.findMany({
         where: whereClause,
         skip: (page - 1) * limit,
@@ -169,6 +191,23 @@ export async function GET(request: NextRequest) {
           paymentStatus: PaymentStatus.REFUNDED,
         },
       }),
+      prisma.order.count({
+        where: {
+          notes: {
+            contains: RECOVERY_TAG,
+          },
+        },
+      }),
+      prisma.order.aggregate({
+        where: {
+          notes: {
+            contains: RECOVERY_TAG,
+          },
+        },
+        _sum: {
+          totalAmount: true,
+        },
+      }),
     ]);
 
     const normalizedOrders = orders.map((order) => normalizeOrder(order));
@@ -182,9 +221,18 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
       summary: {
-        filter: view === 'incomplete' ? 'incomplete' : view === 'refunded' ? 'refunded' : 'all',
+        filter:
+          view === 'incomplete'
+            ? 'incomplete'
+            : view === 'recovered'
+              ? 'recovered'
+              : view === 'refunded'
+                ? 'refunded'
+                : 'all',
         incompleteCount,
         refundedCount,
+        recoveredCount,
+        recoveredAmount: Number(recoveredAmountAgg._sum.totalAmount || 0),
       },
     });
   } catch (error) {
@@ -201,6 +249,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
+    const action = normalizeText(body.action).toLowerCase();
     const orderId = normalizeText(body.orderId);
     const status = normalizeText(body.status).toUpperCase();
     const courierName = normalizeText(body.courierName);
@@ -211,7 +260,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const allowedStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED'];
-    if (!allowedStatuses.includes(status)) {
+    if (action !== 'recover' && !allowedStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid delivery status' }, { status: 400 });
     }
 
@@ -244,6 +293,61 @@ export async function PATCH(request: NextRequest) {
     }
 
     const existingSnapshot = asObject(existing.shippingAddress);
+    const nowIso = new Date().toISOString();
+
+    if (action === 'recover') {
+      if (hasRecoveryTag(existing.notes)) {
+        return NextResponse.json({ error: 'Order has already been recovered' }, { status: 400 });
+      }
+
+      if (['DELIVERED', 'CANCELLED', 'RETURNED'].includes(existing.status)) {
+        return NextResponse.json(
+          { error: 'Only incomplete orders can be recovered' },
+          { status: 400 }
+        );
+      }
+
+      const recoveredSnapshot = {
+        ...existingSnapshot,
+        recoveredAt: nowIso,
+        recoveredBy: admin.id,
+      };
+
+      const recoveredOrder = await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: existing.status === 'PENDING' ? 'PROCESSING' : existing.status,
+          notes: appendRecoveryTag(existing.notes),
+          shippingAddress: recoveredSnapshot,
+        },
+        include: {
+          user: {
+            select: {
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          items: true,
+          payment: {
+            select: {
+              id: true,
+              gatewayName: true,
+              gatewayTransactionId: true,
+              status: true,
+              amount: true,
+              completedAt: true,
+            },
+          },
+        },
+      });
+
+      return NextResponse.json({
+        message: 'Order recovered successfully',
+        order: normalizeOrder(recoveredOrder),
+      });
+    }
+
     const nextSnapshot = {
       ...existingSnapshot,
       courierName: courierName || null,

@@ -24,6 +24,8 @@ interface AnalyticsData {
   totalProducts: number;
   completedOrders: number;
   lowStockCount: number;
+  recoveredOrders: number;
+  recoveredAmount: number;
 }
 
 const monthlySalesData = [
@@ -50,6 +52,8 @@ export default function AnalyticsPage() {
     totalProducts: 0,
     completedOrders: 0,
     lowStockCount: 0,
+    recoveredOrders: 0,
+    recoveredAmount: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +79,8 @@ export default function AnalyticsPage() {
             totalUsers: data.totalUsers || 0,
             completedOrders: data.completedOrders || 0,
             lowStockCount: data.lowStockCount || 0,
+            recoveredOrders: data.recoveredOrders || 0,
+            recoveredAmount: data.recoveredAmount || 0,
           });
         } else if (res.status === 403) {
           alert('Admin access required');
@@ -139,6 +145,25 @@ export default function AnalyticsPage() {
           bgColor="bg-white"
           iconColor="text-rose-600"
           trend={{ value: 3, isPositive: false }}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <StatsCard
+          title="Recovered Orders"
+          value={analytics.recoveredOrders}
+          icon={ShoppingCart}
+          subtitle="Recovered from incomplete flow"
+          bgColor="bg-white"
+          iconColor="text-emerald-600"
+        />
+        <StatsCard
+          title="Recovered Amount"
+          value={`৳${analytics.recoveredAmount.toLocaleString()}`}
+          icon={TrendingUp}
+          subtitle="Revenue tied to recovered orders"
+          bgColor="bg-white"
+          iconColor="text-emerald-600"
         />
       </div>
 

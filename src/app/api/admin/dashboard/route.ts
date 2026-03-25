@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 
+const RECOVERY_TAG = '[RECOVERED_ORDER]';
+
 async function authorizeAdmin(request: NextRequest) {
   const auth = await authenticate(request);
   if (!auth.success || !auth.data?.userId) {
@@ -34,6 +36,10 @@ export async function GET(request: NextRequest) {
       completedOrders,
       totalRevenueAgg,
       lowStockCount,
+      incompleteCount,
+      refundedCount,
+      recoveredOrders,
+      recoveredAmountAgg,
       recentOrders,
     ] = await Promise.all([
       prisma.user.count(),
@@ -45,6 +51,31 @@ export async function GET(request: NextRequest) {
         where: {
           isActive: true,
           stock: { lte: 10 },
+        },
+      }),
+      prisma.order.count({
+        where: {
+          status: {
+            in: ['PENDING', 'PROCESSING', 'SHIPPED'],
+          },
+        },
+      }),
+      prisma.order.count({ where: { paymentStatus: 'REFUNDED' } }),
+      prisma.order.count({
+        where: {
+          notes: {
+            contains: RECOVERY_TAG,
+          },
+        },
+      }),
+      prisma.order.aggregate({
+        where: {
+          notes: {
+            contains: RECOVERY_TAG,
+          },
+        },
+        _sum: {
+          totalAmount: true,
         },
       }),
       prisma.order.findMany({
@@ -65,6 +96,24 @@ export async function GET(request: NextRequest) {
       completedOrders,
       totalRevenue: Number(totalRevenueAgg._sum.totalAmount || 0),
       lowStockCount,
+      incompleteCount,
+      refundedCount,
+      recoveredOrders,
+      recoveredAmount: Number(recoveredAmountAgg._sum.totalAmount || 0),
+      notificationCounts: {
+        dashboard: incompleteCount + refundedCount + recoveredOrders,
+        products: lowStockCount,
+        orders: incompleteCount,
+        categories: 0,
+        campaigns: 0,
+        coupons: 0,
+        users: 0,
+        reviews: 0,
+        media: 0,
+        notifications: incompleteCount + refundedCount + lowStockCount + recoveredOrders,
+        payments: refundedCount,
+        settings: 0,
+      },
       recentOrders,
     });
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -26,9 +26,64 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+type NotificationCounts = {
+  dashboard: number;
+  products: number;
+  orders: number;
+  categories: number;
+  campaigns: number;
+  coupons: number;
+  users: number;
+  reviews: number;
+  media: number;
+  notifications: number;
+  payments: number;
+  settings: number;
+};
+
+const emptyCounts: NotificationCounts = {
+  dashboard: 0,
+  products: 0,
+  orders: 0,
+  categories: 0,
+  campaigns: 0,
+  coupons: 0,
+  users: 0,
+  reviews: 0,
+  media: 0,
+  notifications: 0,
+  payments: 0,
+  settings: 0,
+};
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>(emptyCounts);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const fetchNotificationCounts = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/admin/dashboard', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) return;
+        const data = await res.json();
+        setNotificationCounts({
+          ...emptyCounts,
+          ...(data?.notificationCounts || {}),
+        });
+      } catch (error) {
+        console.error('Failed to load menu notification counts:', error);
+      }
+    };
+
+    fetchNotificationCounts();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -36,18 +91,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/analytics' },
-    { icon: Package, label: 'Products', href: '/admin/products' },
-    { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
-    { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
-    { icon: Megaphone, label: 'Campaigns', href: '/admin/campaigns' },
-    { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
-    { icon: Users, label: 'Users', href: '/admin/users' },
-    { icon: Star, label: 'Reviews', href: '/admin/reviews' },
-    { icon: Image, label: 'Media', href: '/admin/media' },
-    { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
-    { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
-    { icon: Settings, label: 'Settings', href: '/admin/settings' },
+    { key: 'dashboard' as const, icon: LayoutDashboard, label: 'Dashboard', href: '/admin/analytics' },
+    { key: 'products' as const, icon: Package, label: 'Products', href: '/admin/products' },
+    { key: 'orders' as const, icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
+    { key: 'categories' as const, icon: FolderTree, label: 'Categories', href: '/admin/categories' },
+    { key: 'campaigns' as const, icon: Megaphone, label: 'Campaigns', href: '/admin/campaigns' },
+    { key: 'coupons' as const, icon: Tag, label: 'Coupons', href: '/admin/coupons' },
+    { key: 'users' as const, icon: Users, label: 'Users', href: '/admin/users' },
+    { key: 'reviews' as const, icon: Star, label: 'Reviews', href: '/admin/reviews' },
+    { key: 'media' as const, icon: Image, label: 'Media', href: '/admin/media' },
+    { key: 'notifications' as const, icon: Bell, label: 'Notifications', href: '/admin/notifications' },
+    { key: 'payments' as const, icon: CreditCard, label: 'Payments', href: '/admin/payments' },
+    { key: 'settings' as const, icon: Settings, label: 'Settings', href: '/admin/settings' },
   ];
 
   return (
@@ -110,6 +165,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             >
               <item.icon size={20} />
               {sidebarOpen && <span>{item.label}</span>}
+              {sidebarOpen && (
+                <span
+                  className={`ml-auto inline-flex min-w-[1.4rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    notificationCounts[item.key] > 0 ? 'bg-rose-500 text-white' : 'bg-gray-700 text-gray-200'
+                  }`}
+                >
+                  {notificationCounts[item.key]}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
