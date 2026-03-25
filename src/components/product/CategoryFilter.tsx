@@ -115,14 +115,14 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 >
                   <button
                     onClick={() => onCategoryChange?.(category.slug)}
-                    className={`w-full text-left py-2 rounded bg-orange-50 flex items-center ${
+                    className={`w-full text-left py-2 rounded bg-gray-50 flex items-center ${
                       selectedCategory === category.slug
-                        ? 'bg-orange-100 text-orange-700 font-semibold'
-                        : 'text-gray-800 hover:bg-orange-100'
+                        ? 'bg-gray-100 text-gray-900 font-semibold'
+                        : 'text-gray-800 hover:bg-gray-100'
                     } ${isSidebarHovered ? 'md:justify-between md:px-3' : 'md:justify-center md:px-2'}`}
                   >
                     <span className={`flex items-center min-w-0 ${isSidebarHovered ? 'md:gap-2' : 'md:gap-0'}`}>
-                      {category.icon && <span className="text-base leading-none">{category.icon}</span>}
+                      {category.icon && <span className="text-base leading-none bg-white rounded-full p-1.5 flex items-center justify-center shadow-sm">{category.icon}</span>}
                       {category.image && (
                         <img
                           src={category.image}
