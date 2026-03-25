@@ -149,7 +149,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
                   {/* Hover Sub-categories Panel */}
                   {subcategories.length > 0 && isHovered && (
-                    <div className={`absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2 ${isSidebarHovered ? '' : 'md:hidden'}`}>
+                    <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
                       {subcategories.map((subcategory) => (
                         <button
                           key={subcategory.id}
