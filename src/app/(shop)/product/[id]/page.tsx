@@ -518,9 +518,10 @@ export default function ProductDetailPage() {
                       onFocus={() => setHoveredCategoryId(category.id)}
                       className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition ${
                         activeCategoryId === category.id
-                          ? 'bg-rose-50 border border-rose-200'
-                          : 'bg-gray-50 hover:bg-rose-50 border border-transparent'
+                          ? 'border border-rose-200'
+                          : 'hover:border-rose-200 border border-transparent'
                       }`}
+                      style={{ backgroundColor: '#FFFFF0' }}
                       aria-label={category.name}
                     >
                       {category.icon || '📦'}
