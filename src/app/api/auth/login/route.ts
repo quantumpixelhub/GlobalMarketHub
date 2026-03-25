@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createToken, verifyPassword } from "@/lib/auth";
 
+const isMaxClientError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return /MaxClientsInSessionMode|max clients reached/i.test(message);
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function findUserByEmailWithRetry(email: string) {
+  try {
+    return await prisma.user.findUnique({ where: { email } });
+  } catch (error) {
+    if (!isMaxClientError(error)) throw error;
+
+    // Retry once after releasing stale connections when the DB pool is saturated.
+    await prisma.$disconnect().catch(() => undefined);
+    await wait(300);
+    return prisma.user.findUnique({ where: { email } });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -16,9 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await findUserByEmailWithRetry(email);
 
     if (!user) {
       return NextResponse.json(
@@ -72,6 +90,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Login error:", error);
+    if (isMaxClientError(error)) {
+      return NextResponse.json(
+        { error: "Server is busy. Please try again in a few seconds." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

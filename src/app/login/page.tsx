@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,23,42,0.55)] p-6 md:p-7">
           {/* Header */}
           <div className="text-center mb-5">
-            <Logo size="md" className="justify-center mb-1" />
+            <Logo size="xl" imageSrc="/logo-trimmed.png" className="justify-center mb-1" />
             <p className="text-slate-600 text-sm md:text-base">Sign in to your account</p>
           </div>
 
