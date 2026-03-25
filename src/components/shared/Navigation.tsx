@@ -51,9 +51,11 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [visibleCategoryCount, setVisibleCategoryCount] = React.useState(0);
   const [linksContainerWidth, setLinksContainerWidth] = React.useState(0);
+  const [isScrollingDown, setIsScrollingDown] = React.useState(false);
   const linksContainerRef = React.useRef<HTMLDivElement>(null);
   const measurementWrapRef = React.useRef<HTMLDivElement>(null);
   const initDoneRef = React.useRef(false);
+  const lastScrollYRef = React.useRef(0);
 
   const mainCategories = React.useMemo(
     () => categories.filter((cat) => !cat.parentId),
@@ -204,6 +206,24 @@ export const Navigation: React.FC<NavigationProps> = ({
       if (cleanup instanceof Function) cleanup();
     };
   }, []);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollYRef.current;
+      
+      if (scrollingDown !== isScrollingDown) {
+        setIsScrollingDown(scrollingDown);
+      }
+      
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isScrollingDown]);
 
   React.useEffect(() => {
     const linksContainer = linksContainerRef.current;
@@ -377,7 +397,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
-        <div className="mt-2 md:mt-3 max-h-[220px] overflow-visible opacity-100 translate-y-0 pb-2 border-b-2 border-rose-600">
+        <div className={`mt-2 md:mt-3 max-h-[220px] overflow-hidden pb-2 border-b-2 border-rose-600 transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0' : 'opacity-100 max-h-[220px]'}`}>
           <div className="flex items-end gap-2 md:gap-3">
             <div ref={linksContainerRef} className="relative flex-1 min-w-0">
               <div className="flex gap-2 md:gap-3 flex-wrap scrollbar-hide">
