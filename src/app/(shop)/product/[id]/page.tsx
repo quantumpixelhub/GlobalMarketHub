@@ -505,10 +505,10 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[88px_minmax(0,1fr)] gap-4">
           <div className="hidden lg:block">
             <div
-              className="group relative h-full"
+              className="relative h-full"
               onMouseLeave={() => setHoveredCategoryId(null)}
             >
-              <div className="w-[88px] rounded-2xl border border-gray-200 bg-[#FEFEFE] p-2 shadow-sm" style={{ backgroundColor: '#FEFEFE' }}>
+              <div className="w-[88px] rounded-2xl border border-gray-200 bg-gray-100 p-2 shadow-sm">
                 <div className="space-y-2">
                   {parentCategories.map((category) => (
                     <button
@@ -516,10 +516,10 @@ export default function ProductDetailPage() {
                       key={category.id}
                       onMouseEnter={() => setHoveredCategoryId(category.id)}
                       onFocus={() => setHoveredCategoryId(category.id)}
-                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition bg-[#FCFCFC] ${
+                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition bg-rose-100 ${
                         activeCategoryId === category.id
-                          ? 'border border-rose-200'
-                          : 'hover:border-rose-200 border border-transparent'
+                          ? 'border-2 border-rose-400 shadow-md'
+                          : 'hover:border-rose-300 border border-transparent'
                       }`}
                       aria-label={category.name}
                     >
@@ -529,7 +529,9 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              <div className="pointer-events-none absolute left-[96px] top-0 z-30 w-[320px] rounded-2xl border border-gray-200 bg-white p-4 shadow-xl opacity-0 translate-x-2 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-x-0">
+              <div className={`pointer-events-none absolute left-[96px] top-0 z-30 w-[320px] rounded-2xl border border-gray-200 bg-white p-4 shadow-xl transition-all duration-200 ${
+                hoveredCategoryId ? 'pointer-events-auto opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
+              }`}>
                 <div className="mb-3">
                   <p className="text-sm font-semibold text-gray-900">
                     {parentCategories.find((cat) => cat.id === activeCategoryId)?.name || 'Category'}
