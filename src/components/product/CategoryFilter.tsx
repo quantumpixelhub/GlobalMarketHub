@@ -28,6 +28,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onPriceChange,
 }) => {
   const [showCategories, setShowCategories] = useState(true);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const [showPrice, setShowPrice] = useState(true);
   const [localMin, setLocalMin] = useState(minPrice);
@@ -56,30 +57,47 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     onPriceChange?.(localMin, localMax);
   };
 
+  const expandedDesktopClasses = isSidebarHovered
+    ? 'md:w-full'
+    : 'md:w-[78px]';
+
+  const showDesktopDetails = isSidebarHovered ? '' : 'md:hidden';
+
   return (
-    <div className="bg-white rounded-lg">
+    <div
+      className={`bg-white rounded-lg transition-all duration-200 md:overflow-hidden ${expandedDesktopClasses}`}
+      onMouseEnter={() => setIsSidebarHovered(true)}
+      onMouseLeave={() => {
+        setIsSidebarHovered(false);
+        setHoveredCategoryId(null);
+      }}
+    >
       {/* Categories Section */}
       <div className="border-b">
         <button
           onClick={() => setShowCategories(!showCategories)}
-          className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50"
+          className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 ${showDesktopDetails}`}
         >
           <span className="font-semibold">Categories</span>
           <ChevronDown size={20} className={showCategories ? 'rotate-180' : ''} />
         </button>
         {showCategories && (
-          <div className="px-4 py-3 space-y-2">
+          <div className={`px-2 md:px-4 py-3 space-y-2 ${isSidebarHovered ? '' : 'md:px-1'}`}>
             <button
               onClick={() => onCategoryChange?.('')}
-              className={`group block w-full text-left px-3 py-2 rounded ${
+              className={`block w-full text-left px-3 py-2 rounded flex items-center ${
                 !selectedCategory
                   ? 'bg-orange-100 text-orange-700 font-semibold'
                   : 'hover:bg-gray-100'
-              }`}
+              } ${isSidebarHovered ? 'md:justify-start md:px-3' : 'md:justify-center md:px-2'}`}
             >
-              <span className="inline-flex items-center gap-2">
+              <span className={`inline-flex items-center min-w-0 ${isSidebarHovered ? 'md:gap-2' : 'md:gap-0'}`}>
                 <span className="text-base leading-none">📚</span>
-                <span className="md:max-w-0 md:opacity-0 md:overflow-hidden md:group-hover:max-w-[220px] md:group-hover:opacity-100 md:group-focus-visible:max-w-[220px] md:group-focus-visible:opacity-100 transition-all duration-200 whitespace-nowrap">
+                <span
+                  className={`whitespace-nowrap overflow-hidden transition-all duration-200 max-w-[220px] opacity-100 ${
+                    isSidebarHovered ? 'md:max-w-[220px] md:opacity-100' : 'md:max-w-0 md:opacity-0'
+                  }`}
+                >
                   All Categories
                 </span>
               </span>
@@ -97,13 +115,13 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 >
                   <button
                     onClick={() => onCategoryChange?.(category.slug)}
-                    className={`group w-full text-left px-3 py-2 rounded bg-orange-50 flex items-center justify-between ${
+                    className={`w-full text-left py-2 rounded bg-orange-50 flex items-center ${
                       selectedCategory === category.slug
                         ? 'bg-orange-100 text-orange-700 font-semibold'
                         : 'text-gray-800 hover:bg-orange-100'
-                    }`}
+                    } ${isSidebarHovered ? 'md:justify-between md:px-3' : 'md:justify-center md:px-2'}`}
                   >
-                    <span className="flex items-center gap-2 min-w-0">
+                    <span className={`flex items-center min-w-0 ${isSidebarHovered ? 'md:gap-2' : 'md:gap-0'}`}>
                       {category.icon && <span className="text-base leading-none">{category.icon}</span>}
                       {category.image && (
                         <img
@@ -113,18 +131,24 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                           }}
-                          className="w-5 h-5 rounded object-cover"
+                          className={`w-5 h-5 rounded object-cover ${isSidebarHovered ? '' : 'md:hidden'}`}
                         />
                       )}
-                      <span className="md:max-w-0 md:opacity-0 md:overflow-hidden md:group-hover:max-w-[220px] md:group-hover:opacity-100 md:group-focus-visible:max-w-[220px] md:group-focus-visible:opacity-100 transition-all duration-200 whitespace-nowrap">
+                      <span
+                        className={`whitespace-nowrap overflow-hidden transition-all duration-200 max-w-[220px] opacity-100 ${
+                          isSidebarHovered ? 'md:max-w-[220px] md:opacity-100' : 'md:max-w-0 md:opacity-0'
+                        }`}
+                      >
                         {category.name}
                       </span>
                     </span>
-                    {subcategories.length > 0 && <ChevronRight size={18} />}
+                    {subcategories.length > 0 && (
+                      <ChevronRight size={18} className={isSidebarHovered ? '' : 'md:hidden'} />
+                    )}
                   </button>
 
                   {/* Hover Sub-categories Panel */}
-                  {subcategories.length > 0 && isHovered && (
+                  {subcategories.length > 0 && isHovered && isSidebarHovered && (
                     <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
                       {subcategories.map((subcategory) => (
                         <button
@@ -163,7 +187,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       </div>
 
       {/* Price Range Section */}
-      <div className="border-b">
+      <div className={`border-b ${showDesktopDetails}`}>
         <button
           onClick={() => setShowPrice(!showPrice)}
           className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50"
@@ -202,7 +226,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       </div>
 
       {/* Ratings Filter */}
-      <div className="border-b px-4 py-3 space-y-2">
+      <div className={`border-b px-4 py-3 space-y-2 ${showDesktopDetails}`}>
         <h3 className="font-semibold mb-3">Ratings</h3>
         {[5, 4, 3, 2, 1].map((rating) => (
           <label key={rating} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
@@ -215,7 +239,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       </div>
 
       {/* Discount Filter */}
-      <div className="px-4 py-3 space-y-2">
+      <div className={`px-4 py-3 space-y-2 ${showDesktopDetails}`}>
         <h3 className="font-semibold mb-3">Discount</h3>
         {['50% or more', '30-50%', '10-30%', 'Below 10%'].map((range) => (
           <label key={range} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
