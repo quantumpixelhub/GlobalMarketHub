@@ -190,7 +190,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logo & Sidebar Toggle */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           {sidebarOpen && (
-            <Logo size="lg" tone="default" imageSrc="/logo-trimmed.png" className="origin-left" />
+            <Logo size="sm" tone="default" imageSrc="/logo-trimmed.png" className="origin-left flex-1 min-w-0" />
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
