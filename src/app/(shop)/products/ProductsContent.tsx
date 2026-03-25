@@ -178,9 +178,9 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="flex flex-col lg:flex-row gap-6">
       {/* Sidebar Filters */}
-      <aside className="lg:col-span-1">
+      <aside className="lg:w-[78px] hover:lg:w-[320px] transition-[width] duration-200 flex-shrink-0">
         <CategoryFilter
           categories={categories}
           selectedCategory={selectedCategory}
@@ -195,7 +195,7 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
       </aside>
 
       {/* Products Area */}
-      <main className="lg:col-span-3">
+      <main className="flex-1 min-w-0">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-lg text-gray-600">Loading products...</div>
