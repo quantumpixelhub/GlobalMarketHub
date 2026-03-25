@@ -57,6 +57,14 @@ interface RecommendedProduct {
   reviewCount: number;
 }
 
+interface CategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string;
+  parentId?: string | null;
+}
+
 const asNumber = (value: unknown, fallback = 0): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -76,6 +84,8 @@ export default function ProductDetailPage() {
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -157,6 +167,21 @@ export default function ProductDetailPage() {
       fetchProduct();
     }
   }, [productId]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        if (!res.ok) return;
+        const data = await res.json();
+        setCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleAddToCart = async (redirectToCheckout = false) => {
     const currentProduct = product;
@@ -458,6 +483,11 @@ export default function ProductDetailPage() {
 
   const allImages = [product.mainImage, ...(product.images || [])].filter(Boolean);
   const selectedImageSrc = allImages[selectedImage] || product.mainImage;
+  const parentCategories = categories.filter((cat) => !cat.parentId).slice(0, 8);
+  const activeCategoryId = hoveredCategoryId || parentCategories[0]?.id || null;
+  const activeSubcategories = activeCategoryId
+    ? categories.filter((cat) => cat.parentId === activeCategoryId)
+    : [];
 
   const showPreviousImage = () => {
     setSelectedImage((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
@@ -472,7 +502,64 @@ export default function ProductDetailPage() {
       <Navigation showCategoryLinks={false} />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[88px_minmax(0,1fr)] gap-4">
+          <div className="hidden lg:block">
+            <div
+              className="group relative h-full"
+              onMouseLeave={() => setHoveredCategoryId(null)}
+            >
+              <div className="w-[88px] rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+                <div className="space-y-2">
+                  {parentCategories.map((category) => (
+                    <button
+                      type="button"
+                      key={category.id}
+                      onMouseEnter={() => setHoveredCategoryId(category.id)}
+                      onFocus={() => setHoveredCategoryId(category.id)}
+                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition ${
+                        activeCategoryId === category.id
+                          ? 'bg-rose-50 border border-rose-200'
+                          : 'bg-gray-50 hover:bg-rose-50 border border-transparent'
+                      }`}
+                      aria-label={category.name}
+                    >
+                      {category.icon || '📦'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pointer-events-none absolute left-[96px] top-0 z-30 w-[320px] rounded-2xl border border-gray-200 bg-white p-4 shadow-xl opacity-0 translate-x-2 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-x-0">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {parentCategories.find((cat) => cat.id === activeCategoryId)?.name || 'Category'}
+                  </p>
+                </div>
+                <div className="space-y-1 max-h-[420px] overflow-auto pr-1">
+                  {activeSubcategories.length === 0 ? (
+                    <p className="text-xs text-gray-500">No sub-categories</p>
+                  ) : (
+                    activeSubcategories.map((sub) => {
+                      const parent = parentCategories.find((cat) => cat.id === activeCategoryId);
+                      return (
+                        <Link
+                          key={sub.id}
+                          href={`/products/${parent?.slug || ''}/${sub.slug}`}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-rose-50 hover:text-rose-700"
+                        >
+                          <span>{sub.icon || '📦'}</span>
+                          <span>{sub.name}</span>
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Images */}
           <div>
             <div className="grid grid-cols-[82px_1fr] gap-4">
@@ -754,6 +841,8 @@ export default function ProductDetailPage() {
                   {product.seller.rating.toFixed(1)} ({product.seller.reviewCount} reviews)
                 </span>
               </div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
