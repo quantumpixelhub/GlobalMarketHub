@@ -115,14 +115,14 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 >
                   <button
                     onClick={() => onCategoryChange?.(category.slug)}
-                    className={`w-full text-left py-2 rounded bg-gray-50 flex items-center ${
+                    className={`w-full text-left py-2 rounded bg-gray-50 flex items-center transition-all ${
                       selectedCategory === category.slug
                         ? 'bg-gray-100 text-gray-900 font-semibold'
                         : 'text-gray-800 hover:bg-gray-100'
                     } ${isSidebarHovered ? 'md:justify-between md:px-3' : 'md:justify-center md:px-2'}`}
                   >
                     <span className={`flex items-center min-w-0 ${isSidebarHovered ? 'md:gap-2' : 'md:gap-0'}`}>
-                      {category.icon && <span className="text-base leading-none bg-white rounded-full p-1.5 flex items-center justify-center shadow-sm">{category.icon}</span>}
+                      {category.icon && <span className={`text-base leading-none rounded-full p-1.5 flex items-center justify-center transition-all duration-200 ${isHovered ? 'bg-orange-400 shadow-md' : 'bg-white shadow-sm'}`}>{category.icon}</span>}
                       {category.image && (
                         <img
                           src={category.image}
@@ -148,8 +148,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                   </button>
 
                   {/* Hover Sub-categories Panel */}
-                  {subcategories.length > 0 && isHovered && isSidebarHovered && (
-                    <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
+                  {subcategories.length > 0 && isHovered && (
+                    <div className={`absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2 ${isSidebarHovered ? '' : 'md:hidden'}`}>
                       {subcategories.map((subcategory) => (
                         <button
                           key={subcategory.id}
