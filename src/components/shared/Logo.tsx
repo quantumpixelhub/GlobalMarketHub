@@ -12,17 +12,17 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
     sm: {
       widthClass: 'w-[130px]',
       heightClass: 'h-[32px]',
-      scaleClass: 'scale-[2.05]',
+      scaleClass: 'scale-[2.45]',
     },
     md: {
       widthClass: 'w-[158px]',
       heightClass: 'h-[38px]',
-      scaleClass: 'scale-[2.1]',
+      scaleClass: 'scale-[2.5]',
     },
     lg: {
       widthClass: 'w-[192px]',
       heightClass: 'h-[46px]',
-      scaleClass: 'scale-[2.15]',
+      scaleClass: 'scale-[2.55]',
     },
   };
 

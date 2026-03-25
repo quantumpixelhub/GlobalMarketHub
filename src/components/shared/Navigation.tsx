@@ -31,6 +31,7 @@ interface ProfileSummary {
   lastName?: string;
   email?: string;
   profileImage?: string;
+  role?: string;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -46,6 +47,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [resolvedUserName, setResolvedUserName] = React.useState(userName);
   const [resolvedWishlistCount, setResolvedWishlistCount] = React.useState(wishlistCount || 0);
   const [profileImage, setProfileImage] = React.useState<string | null>(null);
+  const [resolvedRole, setResolvedRole] = React.useState<string>('');
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [visibleCategoryCount, setVisibleCategoryCount] = React.useState(0);
   const [linksContainerWidth, setLinksContainerWidth] = React.useState(0);
@@ -83,8 +85,10 @@ export const Navigation: React.FC<NavigationProps> = ({
       const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
       setResolvedUserName(fullName || user.email?.split('@')[0] || userName || 'Account');
       setProfileImage(user.profileImage || null);
+      setResolvedRole(String(user.role || ''));
     } catch {
       setProfileImage(null);
+      setResolvedRole('');
     }
   }, [userName]);
 
@@ -98,6 +102,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     if (!signedIn) {
       setResolvedUserName(userName);
       setProfileImage(null);
+      setResolvedRole('');
     }
 
     if (cartItemCount !== undefined) {
@@ -335,6 +340,14 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Auth */}
             {resolvedAuth ? (
               <div className="flex items-center gap-3 pl-3 border-l">
+                {(resolvedRole === 'ADMIN' || resolvedRole === 'SUPER_ADMIN') && (
+                  <Link
+                    href="/admin/analytics"
+                    className="hidden md:inline-flex items-center rounded-md bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <Link
                   href="/account"
                   className="flex items-center gap-2 hover:text-rose-600 transition-colors"
