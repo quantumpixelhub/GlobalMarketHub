@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Globe } from 'lucide-react';
+import Image from 'next/image';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -10,18 +10,18 @@ interface LogoProps {
 export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProps) {
   const sizeClasses = {
     sm: {
-      iconWrap: 'h-7 w-7',
-      icon: 16,
+      iconWrap: 'h-8 w-8 rounded-lg',
+      image: 28,
       title: 'text-lg',
     },
     md: {
-      iconWrap: 'h-8 w-8',
-      icon: 18,
+      iconWrap: 'h-9 w-9 rounded-lg',
+      image: 32,
       title: 'text-xl',
     },
     lg: {
-      iconWrap: 'h-9 w-9',
-      icon: 20,
+      iconWrap: 'h-11 w-11 rounded-xl',
+      image: 40,
       title: 'text-2xl',
     },
   };
@@ -30,15 +30,13 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
     tone === 'light'
       ? {
           market: 'text-white',
-          hub: 'text-amber-300',
-          iconBg: 'bg-white/10 border border-white/25',
-          iconColor: 'text-rose-200',
+          hub: 'text-white',
+          iconBg: 'bg-white border border-white/80 shadow-sm',
         }
       : {
-          market: 'text-indigo-900',
-          hub: 'text-amber-500',
-          iconBg: 'bg-rose-50 border border-rose-200',
-          iconColor: 'text-rose-700',
+          market: 'text-slate-800',
+          hub: 'text-slate-800',
+          iconBg: 'bg-white border border-slate-200 shadow-sm',
         };
 
   return (
@@ -47,7 +45,14 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       className={`inline-flex items-center gap-2 hover:opacity-90 transition-opacity ${className}`}
     >
       <span className={`inline-flex items-center justify-center rounded-full ${sizeClasses[size].iconWrap} ${themeClasses.iconBg}`}>
-        <Globe size={sizeClasses[size].icon} className={themeClasses.iconColor} />
+        <Image
+          src="/logo.png"
+          alt="GlobalMarketHub"
+          width={sizeClasses[size].image}
+          height={sizeClasses[size].image}
+          className="object-contain"
+          priority={size === 'lg'}
+        />
       </span>
       <span className={`font-extrabold tracking-tight leading-none ${sizeClasses[size].title}`}>
         <span className={themeClasses.market}>GlobalMarket</span>

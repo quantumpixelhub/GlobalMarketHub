@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Mail, Lock, User, Phone } from 'lucide-react';
+import { Logo } from '@/components/shared/Logo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -91,12 +91,7 @@ export default function RegisterPage() {
         <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,23,42,0.55)] p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="h-11 w-11 rounded-xl bg-white shadow-md border border-gray-100 flex items-center justify-center overflow-hidden">
-                <Image src="/logo.png" alt="GlobalMarketHub logo" width={44} height={44} priority />
-              </div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-800 leading-none">GlobalMarketHub</h1>
-            </div>
+            <Logo size="lg" className="justify-center mb-2" />
             <p className="text-slate-600">Create your account</p>
           </div>
 
