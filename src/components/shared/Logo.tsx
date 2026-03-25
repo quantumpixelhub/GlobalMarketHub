@@ -3,13 +3,12 @@ import Image from 'next/image';
 import { Globe } from 'lucide-react';
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   tone?: 'default' | 'light';
   className?: string;
-  imageScale?: number;
 }
 
-export function Logo({ size = 'md', tone = 'default', className = '', imageScale = 1 }: LogoProps) {
+export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProps) {
   const sizeClasses = {
     sm: {
       widthClass: 'w-[170px]',
@@ -31,6 +30,13 @@ export function Logo({ size = 'md', tone = 'default', className = '', imageScale
       titleClass: 'text-[38px]',
       iconWrap: 'h-10 w-10',
       iconSize: 22,
+    },
+    xl: {
+      widthClass: 'w-[320px]',
+      heightClass: 'h-[78px]',
+      titleClass: 'text-[44px]',
+      iconWrap: 'h-11 w-11',
+      iconSize: 24,
     },
   };
 
@@ -63,7 +69,6 @@ export function Logo({ size = 'md', tone = 'default', className = '', imageScale
           fill
           sizes="260px"
           className="object-contain"
-          style={{ transform: `scale(${imageScale})`, transformOrigin: 'left center' }}
           priority={size === 'lg'}
         />
       </span>
