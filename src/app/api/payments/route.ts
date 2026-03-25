@@ -242,9 +242,10 @@ export async function POST(request: NextRequest) {
       await prisma.paymentTransaction.update({
         where: { id: transaction.id },
         data: {
-          gatewayTransactionId: uddoktaResponse.transactionId || null,
+          gatewayTransactionId: uddoktaResponse.invoiceId || uddoktaResponse.transactionId || null,
           gatewayResponse: {
             initiatedAt: new Date().toISOString(),
+            invoiceId: uddoktaResponse.invoiceId,
             providerTransactionId: uddoktaResponse.transactionId,
             paymentUrl: uddoktaResponse.paymentUrl,
             message: uddoktaResponse.message,

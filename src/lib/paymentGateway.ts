@@ -13,8 +13,22 @@ interface PaymentConfig {
 interface PaymentResponse {
   success: boolean;
   transactionId: string;
+  invoiceId?: string;
   paymentUrl?: string;
   message: string;
+}
+
+interface VerificationResponse {
+  success: boolean;
+  status: string;
+  message: string;
+  invoiceId?: string;
+  transactionId?: string;
+  paymentMethod?: string;
+  senderNumber?: string;
+  chargedAmount?: string;
+  metadata?: Record<string, unknown>;
+  raw?: unknown;
 }
 
 function pickFirstString(...values: unknown[]): string {
@@ -41,6 +55,47 @@ function isValidProviderPaymentUrl(rawUrl: string): boolean {
   }
 }
 
+function normalizeBaseUrl(rawUrl: string): string {
+  const normalized = rawUrl.replace(/\/+$/, '');
+  return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
+}
+
+function resolveUddoktaCheckoutUrl(): string {
+  const explicitUrl = pickFirstString(
+    process.env.UDDOKTAPAY_CHECKOUT_V2_URL,
+    process.env.UDDOKTAPAY_CHECKOUT_URL,
+    process.env.UDDOKTAPAY_PAYMENT_URL
+  );
+
+  if (explicitUrl) return explicitUrl;
+
+  const apiBase = normalizeBaseUrl(
+    pickFirstString(process.env.UDDOKTAPAY_API_URL, 'https://eshopping.paymently.io/api')
+  );
+
+  return `${apiBase}/checkout-v2`;
+}
+
+function resolveUddoktaVerifyUrl(): string {
+  const explicitUrl = pickFirstString(process.env.UDDOKTAPAY_VERIFY_URL);
+  if (explicitUrl) return explicitUrl;
+
+  const apiBase = normalizeBaseUrl(
+    pickFirstString(process.env.UDDOKTAPAY_API_URL, 'https://eshopping.paymently.io/api')
+  );
+
+  return `${apiBase}/verify-payment`;
+}
+
+function resolvePublicAppUrl(): string {
+  const appUrl = pickFirstString(
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_SITE_URL
+  );
+
+  return appUrl.replace(/\/+$/, '');
+}
+
 /**
  * UddoktaPay Integration
  * Bangladesh's leading payment gateway
@@ -48,19 +103,23 @@ function isValidProviderPaymentUrl(rawUrl: string): boolean {
  */
 export async function initiateUddoktaPay(config: PaymentConfig): Promise<PaymentResponse> {
   const apiKey = process.env.UDDOKTAPAY_API_KEY;
-  const checkoutV2Url =
-    process.env.UDDOKTAPAY_CHECKOUT_V2_URL ||
-    process.env.UDDOKTAPAY_CHECKOUT_URL ||
-    process.env.UDDOKTAPAY_PAYMENT_URL ||
-    'https://eshopping.paymently.io/api/checkout-v2';
+  const checkoutV2Url = resolveUddoktaCheckoutUrl();
+  const appUrl = resolvePublicAppUrl();
 
   if (!apiKey) {
     console.warn('UddoktaPay API key not configured');
     return {
-      success: true,
-      transactionId: `MOCK_UDDOKTA_${config.orderId}`,
-      paymentUrl: `https://sandbox.uddoktapay.com/payment/${config.orderId}`,
-      message: 'Payment initiated (Mock Mode - API key not configured)',
+      success: false,
+      transactionId: '',
+      message: 'UddoktaPay API key not configured',
+    };
+  }
+
+  if (!appUrl) {
+    return {
+      success: false,
+      transactionId: '',
+      message: 'NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_SITE_URL is required for payment redirects',
     };
   }
 
@@ -73,24 +132,18 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
         'RT-UDDOKTAPAY-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        // Primary contract from UddoktaPay sandbox example
         full_name: config.customerName,
         email: config.customerEmail,
-        phone: config.customerPhone,
         amount: String(config.amount),
         metadata: {
           internal_txn: config.orderId,
+          order_id: config.orderId,
           selected_method: config.gateway,
         },
-        // Backward-compatible fields for providers expecting legacy names
-        order_id: config.orderId,
-        customer_email: config.customerEmail,
-        customer_phone: config.customerPhone,
-        customer_name: config.customerName,
-        payment_method: config.gateway && config.gateway !== 'uddoktapay' ? config.gateway : undefined,
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/callback?internal_txn=${encodeURIComponent(config.orderId)}&gateway=uddoktapay`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/failure?reason=cancelled_by_user`,
-        webhook_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/callback`,
+        redirect_url: `${appUrl}/api/payment/callback?internal_txn=${encodeURIComponent(config.orderId)}&gateway=uddoktapay`,
+        return_type: 'GET',
+        cancel_url: `${appUrl}/payment/failure?reason=cancelled_by_user`,
+        webhook_url: `${appUrl}/api/payment/callback`,
       }),
     });
 
@@ -113,6 +166,7 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
     );
 
     const providerTransactionId = pickFirstString(
+      data?.invoice_id,
       data?.transaction_id,
       data?.trx_id,
       data?.id,
@@ -122,6 +176,13 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
       data?.result?.transaction_id,
       data?.result?.trx_id,
       config.orderId
+    );
+
+    const invoiceId = pickFirstString(
+      data?.invoice_id,
+      data?.data?.invoice_id,
+      data?.result?.invoice_id,
+      providerTransactionId
     );
 
     if (!isValidProviderPaymentUrl(paymentUrl)) {
@@ -135,6 +196,7 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
     return {
       success: true,
       transactionId: providerTransactionId,
+      invoiceId,
       paymentUrl,
       message: 'Payment initiated successfully',
     };
@@ -282,17 +344,25 @@ export async function initiatePayment(
  */
 export async function verifyPaymentStatus(
   gateway: string,
-  transactionId: string
-): Promise<{ success: boolean; status: string; message: string }> {
+  invoiceId: string
+): Promise<VerificationResponse> {
   if (gateway.toLowerCase() === 'uddoktapay') {
     const apiKey = process.env.UDDOKTAPAY_API_KEY;
-    const verifyUrl = process.env.UDDOKTAPAY_VERIFY_URL || 'https://eshopping.paymently.io/api/verify-payment';
+    const verifyUrl = resolveUddoktaVerifyUrl();
 
     if (!apiKey) {
       return {
         success: false,
         status: 'UNKNOWN',
         message: 'UddoktaPay credentials are missing',
+      };
+    }
+
+    if (!invoiceId) {
+      return {
+        success: false,
+        status: 'UNKNOWN',
+        message: 'invoice_id is required for UddoktaPay verification',
       };
     }
 
@@ -305,20 +375,21 @@ export async function verifyPaymentStatus(
           'RT-UDDOKTAPAY-API-KEY': apiKey,
         },
         body: JSON.stringify({
-          transaction_id: transactionId,
-          invoice_id: transactionId,
+          invoice_id: invoiceId,
         }),
       });
+
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         return {
           success: false,
           status: 'UNKNOWN',
-          message: `Verification failed with status ${response.status}`,
+          message: String(data?.message || `Verification failed with status ${response.status}`),
+          raw: data,
         };
       }
 
-      const data = await response.json();
       const rawStatus = String(
         data?.status ||
         data?.payment_status ||
@@ -331,7 +402,14 @@ export async function verifyPaymentStatus(
       return {
         success: isSuccessStatus,
         status: rawStatus,
-        message: 'Payment verified successfully',
+        message: String(data?.message || 'Payment verified successfully'),
+        invoiceId: String(data?.invoice_id || invoiceId),
+        transactionId: pickFirstString(data?.transaction_id, data?.trx_id),
+        paymentMethod: pickFirstString(data?.payment_method),
+        senderNumber: pickFirstString(data?.sender_number),
+        chargedAmount: pickFirstString(data?.charged_amount, data?.amount),
+        metadata: (data?.metadata && typeof data.metadata === 'object') ? data.metadata as Record<string, unknown> : undefined,
+        raw: data,
       };
     } catch (error) {
       return {
