@@ -19,6 +19,7 @@ import {
   CreditCard,
   Settings,
   Megaphone,
+  Store,
 } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
@@ -236,6 +237,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             );
           })}
         </nav>
+
+        <div className="p-4 border-t border-gray-700 space-y-2">
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition"
+          >
+            <Store size={18} />
+            {sidebarOpen && <span>Visit Store</span>}
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition"
+          >
+            <LogOut size={18} />
+            {sidebarOpen && <span>Logout</span>}
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
