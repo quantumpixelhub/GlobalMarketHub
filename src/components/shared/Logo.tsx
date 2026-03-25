@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Globe } from 'lucide-react';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -10,43 +11,57 @@ interface LogoProps {
 export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProps) {
   const sizeClasses = {
     sm: {
-      widthClass: 'w-[130px]',
-      heightClass: 'h-[32px]',
-      scaleClass: 'scale-[2.45]',
+      widthClass: 'w-[170px]',
+      heightClass: 'h-[42px]',
+      titleClass: 'text-[30px]',
+      iconWrap: 'h-8 w-8',
+      iconSize: 18,
     },
     md: {
-      widthClass: 'w-[158px]',
-      heightClass: 'h-[38px]',
-      scaleClass: 'scale-[2.5]',
+      widthClass: 'w-[205px]',
+      heightClass: 'h-[50px]',
+      titleClass: 'text-[34px]',
+      iconWrap: 'h-9 w-9',
+      iconSize: 20,
     },
     lg: {
-      widthClass: 'w-[192px]',
-      heightClass: 'h-[46px]',
-      scaleClass: 'scale-[2.55]',
+      widthClass: 'w-[245px]',
+      heightClass: 'h-[60px]',
+      titleClass: 'text-[38px]',
+      iconWrap: 'h-10 w-10',
+      iconSize: 22,
     },
   };
 
-  const themeClasses =
-    tone === 'light'
-      ? {
-          imageWrap: 'brightness-0 invert drop-shadow-[0_1px_2px_rgba(255,255,255,0.25)]',
-        }
-      : {
-          imageWrap: '',
-        };
+  if (tone === 'light') {
+    return (
+      <Link
+        href="/"
+        className={`inline-flex items-center gap-2 hover:opacity-90 transition-opacity ${className}`}
+      >
+        <span className={`inline-flex items-center justify-center rounded-full bg-white/10 border border-white/20 ${sizeClasses[size].iconWrap}`}>
+          <Globe size={sizeClasses[size].iconSize} className="text-sky-300" />
+        </span>
+        <span className={`font-extrabold tracking-tight leading-none ${sizeClasses[size].titleClass}`}>
+          <span className="text-cyan-300">GlobalMarket</span>
+          <span className="text-amber-300">Hub</span>
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <Link 
       href="/" 
       className={`inline-flex items-center hover:opacity-90 transition-opacity ${className}`}
     >
-      <span className={`relative overflow-hidden ${sizeClasses[size].widthClass} ${sizeClasses[size].heightClass}`}>
+      <span className={`relative ${sizeClasses[size].widthClass} ${sizeClasses[size].heightClass}`}>
         <Image
           src="/logo.png"
           alt="GlobalMarketHub"
           fill
-          sizes="220px"
-          className={`object-contain ${sizeClasses[size].scaleClass} ${themeClasses.imageWrap}`}
+          sizes="260px"
+          className="object-contain"
           priority={size === 'lg'}
         />
       </span>

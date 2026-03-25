@@ -292,7 +292,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-4 mb-2 md:mb-3">
           {/* Logo */}
-          <div className="w-full lg:w-[220px] flex-shrink-0">
+          <div className="w-full lg:w-[265px] flex-shrink-0">
             <Logo size="lg" className="origin-left" />
           </div>
 
