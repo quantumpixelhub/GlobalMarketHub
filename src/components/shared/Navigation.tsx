@@ -397,7 +397,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
-        <div className={`mt-2 md:mt-3 max-h-[220px] overflow-hidden pb-2 border-b-2 border-rose-600 transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0' : 'opacity-100 max-h-[220px]'}`}>
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0 pb-0 border-b-0 mt-0' : 'opacity-100 max-h-[220px] pb-2 border-b-2 border-rose-600 mt-2 md:mt-3'}`}>
           <div className="flex items-end gap-2 md:gap-3">
             <div ref={linksContainerRef} className="relative flex-1 min-w-0">
               <div className="flex gap-2 md:gap-3 flex-wrap scrollbar-hide">
