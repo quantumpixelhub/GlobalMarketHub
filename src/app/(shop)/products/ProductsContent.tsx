@@ -222,7 +222,7 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
               products={sortedAndFilteredProducts}
               loading={false}
               onAddToCart={handleAddToCart}
-              columns={3}
+              columns={4}
             />
           </>
         )}
