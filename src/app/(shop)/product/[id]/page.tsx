@@ -508,7 +508,7 @@ export default function ProductDetailPage() {
               className="group relative h-full"
               onMouseLeave={() => setHoveredCategoryId(null)}
             >
-              <div className="w-[88px] rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+              <div className="w-[88px] rounded-2xl border border-gray-200 bg-[#FEFEFE] p-2 shadow-sm" style={{ backgroundColor: '#FEFEFE' }}>
                 <div className="space-y-2">
                   {parentCategories.map((category) => (
                     <button
@@ -516,12 +516,11 @@ export default function ProductDetailPage() {
                       key={category.id}
                       onMouseEnter={() => setHoveredCategoryId(category.id)}
                       onFocus={() => setHoveredCategoryId(category.id)}
-                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition !bg-[#FCFCFC] ${
+                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition bg-[#FCFCFC] ${
                         activeCategoryId === category.id
                           ? 'border border-rose-200'
                           : 'hover:border-rose-200 border border-transparent'
                       }`}
-                      style={{ backgroundColor: '#FCFCFC' }}
                       aria-label={category.name}
                     >
                       {category.icon || '📦'}
