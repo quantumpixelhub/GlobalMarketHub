@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CreditCard, ShieldCheck, Smartphone, WalletCards } from 'lucide-react';
+import { CreditCard, Smartphone, WalletCards } from 'lucide-react';
 import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { CheckoutForm } from '@/components/cart/CheckoutForm';
@@ -46,14 +46,12 @@ const SHIPPING_MATRIX: Record<string, Record<string, number>> = {
 };
 
 const PAYMENT_OPTIONS = [
-  { id: 'uddoktapay', name: 'UddoktaPay', note: 'Fast local gateway' },
   { id: 'bkash', name: 'bKash', note: 'Mobile wallet' },
   { id: 'nagad', name: 'Nagad', note: 'Mobile wallet' },
   { id: 'stripe', name: 'Credit/Debit Card', note: 'Visa, Mastercard, Amex' },
 ] as const;
 
 const PAYMENT_LOGO_URLS: Record<string, string> = {
-  uddoktapay: '/payment-logos/uddoktapay.png',
   bkash: '/payment-logos/bkash.png',
   nagad: '/payment-logos/nagad.png',
 };
@@ -110,8 +108,6 @@ export default function CheckoutPage() {
     }
 
     switch (methodId) {
-      case 'uddoktapay':
-        return <ShieldCheck size={18} className="text-sky-600" />;
       case 'bkash':
         return <Smartphone size={18} className="text-pink-600" />;
       case 'nagad':
@@ -133,7 +129,7 @@ export default function CheckoutPage() {
     upazila: '',
     address: '',
     postCode: '',
-    paymentMethod: 'uddoktapay',
+    paymentMethod: 'bkash',
   });
 
   const [newAddressData, setNewAddressData] = useState({
@@ -147,7 +143,7 @@ export default function CheckoutPage() {
     upazila: '',
     address: '',
     postCode: '',
-    paymentMethod: 'uddoktapay',
+    paymentMethod: 'bkash',
   });
 
   useEffect(() => {

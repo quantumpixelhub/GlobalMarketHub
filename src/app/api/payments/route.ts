@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     const auth = await authenticate(request);
     const { orderId, paymentMethod, isGuestCheckout } = await request.json();
     const requestedPaymentMethod = String(paymentMethod || "").toLowerCase();
-    const routeViaUddokta = ["uddoktapay", "bkash", "nagad", "rocket"].includes(requestedPaymentMethod);
+    const routeViaUddokta = requestedPaymentMethod === "uddoktapay";
     const effectiveGatewayName = routeViaUddokta ? "uddoktapay" : requestedPaymentMethod;
 
     if (!orderId || !requestedPaymentMethod) {

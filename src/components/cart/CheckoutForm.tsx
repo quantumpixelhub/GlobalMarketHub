@@ -3,13 +3,11 @@ import {
   AlertCircle,
   CheckCircle,
   CreditCard,
-  ShieldCheck,
   Smartphone,
   WalletCards,
 } from 'lucide-react';
 
 const PAYMENT_LOGO_URLS: Record<string, string> = {
-  uddoktapay: '/payment-logos/uddoktapay.png',
   bkash: '/payment-logos/bkash.png',
   nagad: '/payment-logos/nagad.png',
 };
@@ -46,7 +44,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   onSubmit,
 }) => {
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]?.id || '');
-  const [paymentMethod, setPaymentMethod] = useState('uddoktapay');
+  const [paymentMethod, setPaymentMethod] = useState('bkash');
   const [deliveryArea, setDeliveryArea] = useState(initialDeliveryArea);
   const [deliverySpeed, setDeliverySpeed] = useState(initialDeliverySpeed);
   const [logoLoadError, setLogoLoadError] = useState<Record<string, boolean>>({});
@@ -79,8 +77,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     }
 
     switch (methodId) {
-      case 'uddoktapay':
-        return <ShieldCheck size={20} className="text-sky-600" />;
       case 'bkash':
         return <Smartphone size={20} className="text-pink-600" />;
       case 'nagad':
@@ -188,7 +184,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         <p className="text-sm text-gray-500 mb-4">Choose a secure payment option to complete your order.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
-            { id: 'uddoktapay', name: 'UddoktaPay', note: 'Fast checkout gateway' },
             { id: 'bkash', name: 'bKash', note: 'Mobile wallet' },
             { id: 'nagad', name: 'Nagad', note: 'Mobile wallet' },
             { id: 'stripe', name: 'Credit/Debit Card', note: 'Visa, Mastercard, Amex' },
@@ -228,7 +223,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           {paymentMethod === 'bkash' && 'You will be redirected to bKash secure payment page after clicking Proceed to Pay.'}
           {paymentMethod === 'nagad' && 'You will be redirected to Nagad secure payment page after clicking Proceed to Pay.'}
           {paymentMethod === 'stripe' && 'Enter your card details securely on the next step via encrypted card checkout.'}
-          {paymentMethod === 'uddoktapay' && 'You will continue through UddoktaPay with support for local wallets and cards.'}
         </div>
       </div>
 

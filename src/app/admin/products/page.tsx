@@ -397,17 +397,17 @@ export default function ProductsPage() {
                 {/* Category Header - Clickable */}
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full bg-gradient-to-r from-rose-600 to-rose-600 px-6 py-4 flex items-center justify-between hover:from-rose-600 hover:to-rose-700 transition"
+                  className="w-full bg-gradient-to-r from-amber-100 to-orange-100 px-6 py-4 flex items-center justify-between hover:from-amber-200 hover:to-orange-200 transition"
                 >
                   <div className="flex items-center gap-3 text-left">
                     {isExpanded ? (
-                      <ChevronDown size={20} className="text-white flex-shrink-0" />
+                      <ChevronDown size={20} className="text-amber-700 flex-shrink-0" />
                     ) : (
-                      <ChevronRight size={20} className="text-white flex-shrink-0" />
+                      <ChevronRight size={20} className="text-amber-700 flex-shrink-0" />
                     )}
                     <div>
-                      <h2 className="text-lg font-bold text-white">{category.name}</h2>
-                      <p className="text-rose-100 text-sm">
+                      <h2 className="text-lg font-bold text-amber-900">{category.name}</h2>
+                      <p className="text-amber-700 text-sm">
                         {isLoading ? 'Loading...' : `${productCount} product${productCount !== 1 ? 's' : ''}`}
                       </p>
                     </div>
