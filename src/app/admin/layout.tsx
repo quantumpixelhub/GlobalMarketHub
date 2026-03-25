@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  type LucideIcon,
   LayoutDashboard,
   Package,
   ShoppingCart,
@@ -46,7 +47,7 @@ type MenuKey = keyof NotificationCounts;
 
 type MenuItem = {
   key: MenuKey;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: LucideIcon;
   label: string;
   href: string;
 };
