@@ -52,7 +52,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 flex items-center justify-center px-4 py-8">
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 flex items-center justify-center px-4 py-4">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-28 -left-20 h-80 w-80 rounded-full bg-fuchsia-500/30 blur-3xl" />
         <div className="absolute top-24 right-[-3.5rem] h-96 w-96 rounded-full bg-cyan-500/25 blur-3xl" />
@@ -61,10 +61,10 @@ export default function LoginPage() {
       </div>
 
       <div className="relative w-full max-w-md">
-        <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,23,42,0.55)] p-8">
+        <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,23,42,0.55)] p-6 md:p-7">
           {/* Header */}
-          <div className="text-center mb-7">
-            <Logo size="lg" className="justify-center mb-2" />
+          <div className="text-center mb-5">
+            <Logo size="md" className="justify-center mb-1" />
             <p className="text-slate-600 text-sm md:text-base">Sign in to your account</p>
           </div>
 

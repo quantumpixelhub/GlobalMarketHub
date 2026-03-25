@@ -10,16 +10,16 @@ interface LogoProps {
 export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProps) {
   const sizeClasses = {
     sm: {
-      width: 150,
-      height: 36,
+      widthClass: 'w-[130px]',
+      heightClass: 'h-[32px]',
     },
     md: {
-      width: 175,
-      height: 42,
+      widthClass: 'w-[158px]',
+      heightClass: 'h-[38px]',
     },
     lg: {
-      width: 220,
-      height: 52,
+      widthClass: 'w-[192px]',
+      heightClass: 'h-[46px]',
     },
   };
 
@@ -35,16 +35,18 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
   return (
     <Link 
       href="/" 
-      className={`inline-flex items-center gap-2 hover:opacity-90 transition-opacity ${className}`}
+      className={`inline-flex items-center hover:opacity-90 transition-opacity ${className}`}
     >
-      <Image
-        src="/logo.png"
-        alt="GlobalMarketHub"
-        width={sizeClasses[size].width}
-        height={sizeClasses[size].height}
-        className={`h-auto w-auto max-w-full object-contain ${themeClasses.imageWrap}`}
-        priority={size === 'lg'}
-      />
+      <span className={`relative overflow-hidden ${sizeClasses[size].widthClass} ${sizeClasses[size].heightClass}`}>
+        <Image
+          src="/logo.png"
+          alt="GlobalMarketHub"
+          fill
+          sizes="220px"
+          className={`object-contain scale-[1.45] ${themeClasses.imageWrap}`}
+          priority={size === 'lg'}
+        />
+      </span>
     </Link>
   );
 }

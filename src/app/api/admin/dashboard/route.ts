@@ -104,6 +104,19 @@ export async function GET(request: NextRequest) {
           id: true,
           title: true,
           stock: true,
+          updatedAt: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              parent: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       }),
       prisma.order.findMany({
@@ -122,6 +135,16 @@ export async function GET(request: NextRequest) {
           status: true,
           totalAmount: true,
           createdAt: true,
+          updatedAt: true,
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          shippingAddress: true,
         },
       }),
       prisma.order.findMany({
@@ -185,10 +208,25 @@ export async function GET(request: NextRequest) {
       },
       recentOrders,
       notificationDetails: {
-        lowStockProducts,
+        lowStockProducts: lowStockProducts.map((product) => ({
+          id: product.id,
+          title: product.title,
+          stock: product.stock,
+          mainCategory: product.category?.parent?.name || product.category?.name || 'Unknown',
+          subCategory: product.category?.parent ? product.category.name : null,
+          notifiedAt: product.updatedAt,
+        })),
         recentIncompleteOrders: recentIncompleteOrders.map((order) => ({
-          ...order,
+          id: order.id,
+          orderNumber: order.orderNumber,
+          status: order.status,
           totalAmount: Number(order.totalAmount || 0),
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          customerName: [order.user?.firstName, order.user?.lastName].filter(Boolean).join(' ').trim() ||
+            `${String((order.shippingAddress as any)?.firstName || '')} ${String((order.shippingAddress as any)?.lastName || '')}`.trim(),
+          customerEmail: order.user?.email || String((order.shippingAddress as any)?.email || ''),
+          customerPhone: order.user?.phone || String((order.shippingAddress as any)?.phone || ''),
         })),
         recentRefundedOrders: recentRefundedOrders.map((order) => ({
           ...order,

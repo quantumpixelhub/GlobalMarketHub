@@ -284,11 +284,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-4 py-5 md:py-6">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6 mb-3 md:mb-4">
+      <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-4 mb-2 md:mb-3">
           {/* Logo */}
-          <div className="w-full lg:w-[280px] flex-shrink-0">
-            <Logo size="lg" className="origin-left scale-[1.12] md:scale-[1.2]" />
+          <div className="w-full lg:w-[220px] flex-shrink-0">
+            <Logo size="lg" className="origin-left" />
           </div>
 
           {/* Search Bar */}
@@ -382,9 +382,9 @@ export const Navigation: React.FC<NavigationProps> = ({
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
         <div
-          className={`mt-5 md:mt-6 transition-all duration-300 ${
+          className={`mt-2 md:mt-3 transition-all duration-300 ${
             showCategoryStripOnScroll
-              ? 'max-h-[420px] overflow-visible opacity-100 translate-y-0 pb-2 border-b-2 border-rose-600'
+              ? 'max-h-[220px] overflow-visible opacity-100 translate-y-0 pb-2 border-b-2 border-rose-600'
               : 'max-h-0 overflow-hidden opacity-0 -translate-y-1 pb-0 border-b-0'
           }`}
         >

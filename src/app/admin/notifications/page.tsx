@@ -24,13 +24,24 @@ type DashboardResponse = {
     notifications?: number;
   };
   notificationDetails?: {
-    lowStockProducts?: Array<{ id: string; title: string; stock: number }>;
+    lowStockProducts?: Array<{
+      id: string;
+      title: string;
+      stock: number;
+      mainCategory?: string;
+      subCategory?: string | null;
+      notifiedAt?: string;
+    }>;
     recentIncompleteOrders?: Array<{
       id: string;
       orderNumber: string;
       status: string;
       totalAmount: number;
       createdAt: string;
+      updatedAt?: string;
+      customerName?: string;
+      customerEmail?: string;
+      customerPhone?: string;
     }>;
     recentRefundedOrders?: Array<{
       id: string;
@@ -102,7 +113,10 @@ export default function NotificationsPage() {
             message: `${data.lowStockCount} products are below low-stock threshold.`,
             level: 'Warning',
             details: lowStockProducts.length
-              ? lowStockProducts.map((item) => `${item.title} (stock: ${item.stock})`)
+              ? lowStockProducts.map(
+                  (item) =>
+                    `${item.title} | Main: ${item.mainCategory || 'N/A'}${item.subCategory ? ` | Sub: ${item.subCategory}` : ''} | stock: ${item.stock} | Date: ${item.notifiedAt ? formatDate(item.notifiedAt) : 'N/A'}`
+                )
               : ['No product breakdown available.'],
           });
         }
@@ -117,7 +131,7 @@ export default function NotificationsPage() {
             details: recentIncomplete.length
               ? recentIncomplete.map(
                   (order) =>
-                    `${order.orderNumber} | ${order.status} | ${formatAmount(order.totalAmount)} | ${formatDate(order.createdAt)}`
+                    `${order.orderNumber} | ${order.status} | ${formatAmount(order.totalAmount)} | Customer: ${order.customerName || 'N/A'} | Email: ${order.customerEmail || 'N/A'} | Phone: ${order.customerPhone || 'N/A'} | Date: ${formatDate(order.updatedAt || order.createdAt)}`
                 )
               : ['No recent incomplete order details available.'],
           });
