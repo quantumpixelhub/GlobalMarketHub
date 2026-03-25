@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Heart, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Heart, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { SearchBar } from '../product/SearchBar';
 import { Logo } from './Logo';
 import { getGuestCartSummary } from '@/lib/guestCart';
@@ -341,12 +341,22 @@ export const Navigation: React.FC<NavigationProps> = ({
             {resolvedAuth ? (
               <div className="flex items-center gap-3 pl-3 border-l">
                 {(resolvedRole === 'ADMIN' || resolvedRole === 'SUPER_ADMIN') && (
-                  <Link
-                    href="/admin/analytics"
-                    className="hidden md:inline-flex items-center rounded-md bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100"
-                  >
-                    Admin Panel
-                  </Link>
+                  <>
+                    <Link
+                      href="/admin/analytics"
+                      className="md:hidden inline-flex items-center justify-center rounded-md bg-rose-50 p-2 text-rose-700 hover:bg-rose-100"
+                      title="Admin Panel"
+                      aria-label="Open admin panel"
+                    >
+                      <LayoutDashboard size={18} />
+                    </Link>
+                    <Link
+                      href="/admin/analytics"
+                      className="hidden md:inline-flex items-center rounded-md bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                    >
+                      Admin Panel
+                    </Link>
+                  </>
                 )}
                 <Link
                   href="/account"
