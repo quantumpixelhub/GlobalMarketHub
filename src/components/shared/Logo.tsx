@@ -16,6 +16,7 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       titleClass: 'text-[30px]',
       iconWrap: 'h-8 w-8',
       iconSize: 18,
+      defaultScaleClass: 'scale-[5]',
     },
     md: {
       widthClass: 'w-[205px]',
@@ -23,6 +24,7 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       titleClass: 'text-[34px]',
       iconWrap: 'h-9 w-9',
       iconSize: 20,
+      defaultScaleClass: 'scale-[5]',
     },
     lg: {
       widthClass: 'w-[245px]',
@@ -30,6 +32,7 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
       titleClass: 'text-[38px]',
       iconWrap: 'h-10 w-10',
       iconSize: 22,
+      defaultScaleClass: 'scale-[5]',
     },
   };
 
@@ -61,7 +64,7 @@ export function Logo({ size = 'md', tone = 'default', className = '' }: LogoProp
           alt="GlobalMarketHub"
           fill
           sizes="260px"
-          className="object-contain"
+          className={`object-contain ${sizeClasses[size].defaultScaleClass}`}
           priority={size === 'lg'}
         />
       </span>
