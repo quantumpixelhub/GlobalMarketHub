@@ -41,6 +41,17 @@ type NotificationCounts = {
   settings: number;
 };
 
+type MenuKey = keyof NotificationCounts;
+
+type MenuItem = {
+  key: MenuKey;
+  icon: React.ComponentType<{ size?: number }>;
+  label: string;
+  href: string;
+};
+
+const MENU_SEEN_STORAGE_KEY = 'admin-menu-notification-seen';
+
 const emptyCounts: NotificationCounts = {
   dashboard: 0,
   products: 0,
@@ -56,10 +67,45 @@ const emptyCounts: NotificationCounts = {
   settings: 0,
 };
 
+const menuItems: MenuItem[] = [
+  { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', href: '/admin/analytics' },
+  { key: 'products', icon: Package, label: 'Products', href: '/admin/products' },
+  { key: 'orders', icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
+  { key: 'categories', icon: FolderTree, label: 'Categories', href: '/admin/categories' },
+  { key: 'campaigns', icon: Megaphone, label: 'Campaigns', href: '/admin/campaigns' },
+  { key: 'coupons', icon: Tag, label: 'Coupons', href: '/admin/coupons' },
+  { key: 'users', icon: Users, label: 'Users', href: '/admin/users' },
+  { key: 'reviews', icon: Star, label: 'Reviews', href: '/admin/reviews' },
+  { key: 'media', icon: Image, label: 'Media', href: '/admin/media' },
+  { key: 'notifications', icon: Bell, label: 'Notifications', href: '/admin/notifications' },
+  { key: 'payments', icon: CreditCard, label: 'Payments', href: '/admin/payments' },
+  { key: 'settings', icon: Settings, label: 'Settings', href: '/admin/settings' },
+];
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>(emptyCounts);
+  const [seenCounts, setSeenCounts] = useState<NotificationCounts>(emptyCounts);
   const pathname = usePathname();
+
+  const persistSeenCounts = (nextSeen: NotificationCounts) => {
+    setSeenCounts(nextSeen);
+    localStorage.setItem(MENU_SEEN_STORAGE_KEY, JSON.stringify(nextSeen));
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(MENU_SEEN_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      setSeenCounts({
+        ...emptyCounts,
+        ...(typeof parsed === 'object' && parsed ? parsed : {}),
+      });
+    } catch {
+      setSeenCounts(emptyCounts);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchNotificationCounts = async () => {
@@ -85,25 +131,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     fetchNotificationCounts();
   }, []);
 
+  useEffect(() => {
+    const activeItem = menuItems.find((item) => item.href === pathname);
+    if (!activeItem) return;
+
+    const currentCount = Number(notificationCounts[activeItem.key] || 0);
+    const seenCount = Number(seenCounts[activeItem.key] || 0);
+    if (currentCount <= seenCount) return;
+
+    persistSeenCounts({
+      ...seenCounts,
+      [activeItem.key]: currentCount,
+    });
+  }, [pathname, notificationCounts, seenCounts]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/';
   };
-
-  const menuItems = [
-    { key: 'dashboard' as const, icon: LayoutDashboard, label: 'Dashboard', href: '/admin/analytics' },
-    { key: 'products' as const, icon: Package, label: 'Products', href: '/admin/products' },
-    { key: 'orders' as const, icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
-    { key: 'categories' as const, icon: FolderTree, label: 'Categories', href: '/admin/categories' },
-    { key: 'campaigns' as const, icon: Megaphone, label: 'Campaigns', href: '/admin/campaigns' },
-    { key: 'coupons' as const, icon: Tag, label: 'Coupons', href: '/admin/coupons' },
-    { key: 'users' as const, icon: Users, label: 'Users', href: '/admin/users' },
-    { key: 'reviews' as const, icon: Star, label: 'Reviews', href: '/admin/reviews' },
-    { key: 'media' as const, icon: Image, label: 'Media', href: '/admin/media' },
-    { key: 'notifications' as const, icon: Bell, label: 'Notifications', href: '/admin/notifications' },
-    { key: 'payments' as const, icon: CreditCard, label: 'Payments', href: '/admin/payments' },
-    { key: 'settings' as const, icon: Settings, label: 'Settings', href: '/admin/settings' },
-  ];
 
   return (
     <div className="flex h-screen bg-gray-100 flex-col">
@@ -155,27 +200,41 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {menuItems.map((item) => (
+          {menuItems.map((item) => {
+            const totalCount = Number(notificationCounts[item.key] || 0);
+            const alreadySeen = Number(seenCounts[item.key] || 0);
+            const unreadCount = Math.max(0, totalCount - alreadySeen);
+
+            return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                const countAtClick = Number(notificationCounts[item.key] || 0);
+                const seenAtClick = Number(seenCounts[item.key] || 0);
+                if (countAtClick > seenAtClick) {
+                  persistSeenCounts({
+                    ...seenCounts,
+                    [item.key]: countAtClick,
+                  });
+                }
+              }}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
                 pathname === item.href ? 'bg-rose-600 text-white' : 'hover:bg-gray-800 text-gray-100'
               }`}
             >
               <item.icon size={20} />
               {sidebarOpen && <span>{item.label}</span>}
-              {sidebarOpen && (
+              {sidebarOpen && unreadCount > 0 && (
                 <span
-                  className={`ml-auto inline-flex min-w-[1.4rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    notificationCounts[item.key] > 0 ? 'bg-rose-500 text-white' : 'bg-gray-700 text-gray-200'
-                  }`}
+                  className="ml-auto inline-flex min-w-[1.4rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold bg-rose-500 text-white"
                 >
-                  {notificationCounts[item.key]}
+                  {unreadCount}
                 </span>
               )}
             </Link>
-          ))}
+            );
+          })}
         </nav>
       </div>
 

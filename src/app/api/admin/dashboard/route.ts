@@ -41,6 +41,10 @@ export async function GET(request: NextRequest) {
       recoveredOrders,
       recoveredAmountAgg,
       recentOrders,
+      lowStockProducts,
+      recentIncompleteOrders,
+      recentRefundedOrders,
+      recentRecoveredOrders,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.product.count({ where: { isActive: true } }),
@@ -87,6 +91,71 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
+      prisma.product.findMany({
+        where: {
+          isActive: true,
+          stock: { lte: 10 },
+        },
+        orderBy: {
+          stock: 'asc',
+        },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          stock: true,
+        },
+      }),
+      prisma.order.findMany({
+        where: {
+          status: {
+            in: ['PENDING', 'PROCESSING', 'SHIPPED'],
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 5,
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+        },
+      }),
+      prisma.order.findMany({
+        where: {
+          paymentStatus: 'REFUNDED',
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: 5,
+        select: {
+          id: true,
+          orderNumber: true,
+          totalAmount: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.order.findMany({
+        where: {
+          notes: {
+            contains: RECOVERY_TAG,
+          },
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: 5,
+        select: {
+          id: true,
+          orderNumber: true,
+          totalAmount: true,
+          updatedAt: true,
+        },
+      }),
     ]);
 
     return NextResponse.json({
@@ -115,6 +184,21 @@ export async function GET(request: NextRequest) {
         settings: 0,
       },
       recentOrders,
+      notificationDetails: {
+        lowStockProducts,
+        recentIncompleteOrders: recentIncompleteOrders.map((order) => ({
+          ...order,
+          totalAmount: Number(order.totalAmount || 0),
+        })),
+        recentRefundedOrders: recentRefundedOrders.map((order) => ({
+          ...order,
+          totalAmount: Number(order.totalAmount || 0),
+        })),
+        recentRecoveredOrders: recentRecoveredOrders.map((order) => ({
+          ...order,
+          totalAmount: Number(order.totalAmount || 0),
+        })),
+      },
     });
   } catch (error) {
     console.error('Admin dashboard error:', error);
