@@ -516,7 +516,7 @@ export default function ProductDetailPage() {
                       key={category.id}
                       onMouseEnter={() => setHoveredCategoryId(category.id)}
                       onFocus={() => setHoveredCategoryId(category.id)}
-                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition ${
+                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition !bg-[#FFFFF0] ${
                         activeCategoryId === category.id
                           ? 'border border-rose-200'
                           : 'hover:border-rose-200 border border-transparent'
