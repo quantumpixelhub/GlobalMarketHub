@@ -56,6 +56,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const measurementWrapRef = React.useRef<HTMLDivElement>(null);
   const initDoneRef = React.useRef(false);
   const lastScrollYRef = React.useRef(0);
+  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const mainCategories = React.useMemo(
     () => categories.filter((cat) => !cat.parentId),
@@ -212,16 +213,25 @@ export const Navigation: React.FC<NavigationProps> = ({
       const currentScrollY = window.scrollY;
       const scrollingDown = currentScrollY > lastScrollYRef.current;
       
-      if (scrollingDown !== isScrollingDown) {
-        setIsScrollingDown(scrollingDown);
+      // Debounce to prevent flickering
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
       
-      lastScrollYRef.current = currentScrollY;
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (scrollingDown !== isScrollingDown) {
+          setIsScrollingDown(scrollingDown);
+        }
+        lastScrollYRef.current = currentScrollY;
+      }, 100);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
     };
   }, [isScrollingDown]);
 
@@ -397,7 +407,11 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Category Links with Subcategories */}
         {showCategoryLinks && (
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0 pb-0 border-b-0 mt-0' : 'opacity-100 max-h-[220px] pb-2 border-b-2 border-rose-600 mt-2 md:mt-3'}`}>
+        <div className={`transition-all duration-300 ease-in-out ${isScrollingDown ? 'opacity-0 max-h-0 pb-0 border-b-0 mt-0' : 'opacity-100 max-h-[220px] pb-2 border-b-2 border-rose-600 mt-2 md:mt-3'}`}
+          style={{
+            overflow: isScrollingDown ? 'hidden' : 'visible'
+          }}
+        >
           <div className="flex items-end gap-2 md:gap-3">
             <div ref={linksContainerRef} className="relative flex-1 min-w-0">
               <div className="flex gap-2 md:gap-3 flex-wrap scrollbar-hide">
@@ -419,7 +433,11 @@ export const Navigation: React.FC<NavigationProps> = ({
 
                         {/* Subcategories Dropdown */}
                         {hasSubcategories && (
-                          <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 w-max">
+                          <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 w-max pointer-events-none group-hover:pointer-events-auto"
+                            style={{
+                              marginTop: '4px'
+                            }}
+                          >
                             {subcategories.map((sub) => (
                               <Link
                                 key={sub.id}
