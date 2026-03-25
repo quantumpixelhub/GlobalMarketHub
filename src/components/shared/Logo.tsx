@@ -47,11 +47,11 @@ export function Logo({ size = 'md', tone = 'default', className = '', imageSrc =
         href="/"
         className={`inline-flex items-center gap-2 hover:opacity-90 transition-opacity ${className}`}
       >
-        <span className={`inline-flex items-center justify-center rounded-full bg-white/10 border border-white/20 ${sizeClasses[size].iconWrap}`}>
-          <Globe size={sizeClasses[size].iconSize} className="text-sky-300" />
+        <span className={`inline-flex items-center justify-center rounded-full bg-white/20 border border-white/40 ${sizeClasses[size].iconWrap}`}>
+          <Globe size={sizeClasses[size].iconSize} className="text-cyan-100" />
         </span>
         <span className={`font-extrabold tracking-tight leading-none ${sizeClasses[size].titleClass}`}>
-          <span className="text-cyan-300">GlobalMarket</span>
+          <span className="text-white">GlobalMarket</span>
           <span className="text-amber-300">Hub</span>
         </span>
       </Link>
