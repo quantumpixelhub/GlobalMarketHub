@@ -516,12 +516,12 @@ export default function ProductDetailPage() {
                       key={category.id}
                       onMouseEnter={() => setHoveredCategoryId(category.id)}
                       onFocus={() => setHoveredCategoryId(category.id)}
-                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition !bg-[#FFFFF0] ${
+                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition !bg-[#FCFCFC] ${
                         activeCategoryId === category.id
                           ? 'border border-rose-200'
                           : 'hover:border-rose-200 border border-transparent'
                       }`}
-                      style={{ backgroundColor: '#FFFFF0' }}
+                      style={{ backgroundColor: '#FCFCFC' }}
                       aria-label={category.name}
                     >
                       {category.icon || '📦'}
