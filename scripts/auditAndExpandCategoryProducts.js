@@ -178,6 +178,7 @@ function parseArgs() {
   const argv = process.argv.slice(2);
   const args = {
     target: Number(process.env.TARGET_PRODUCTS_PER_CATEGORY || 500),
+    minTotalActive: Number(process.env.MIN_TOTAL_ACTIVE_PRODUCTS || 40001),
     scope: (process.env.CATEGORY_SCOPE || 'leaf').toLowerCase(),
     batch: Number(process.env.EXPANSION_BATCH_SIZE || 200),
     maxCreate: Number(process.env.MAX_SYNTHETIC_CREATE || 50000),
@@ -194,9 +195,13 @@ function parseArgs() {
     if (token.startsWith('--batch=')) args.batch = Number(token.split('=')[1]);
     if (token.startsWith('--max-create=')) args.maxCreate = Number(token.split('=')[1]);
     if (token.startsWith('--min-score=')) args.minRelevanceScore = Number(token.split('=')[1]);
+    if (token.startsWith('--min-total=')) args.minTotalActive = Number(token.split('=')[1]);
   }
 
   args.target = Number.isFinite(args.target) && args.target > 0 ? Math.floor(args.target) : 500;
+  args.minTotalActive = Number.isFinite(args.minTotalActive) && args.minTotalActive > 0
+    ? Math.floor(args.minTotalActive)
+    : 40001;
   args.batch = Number.isFinite(args.batch) && args.batch > 0 ? Math.floor(args.batch) : 200;
   args.maxCreate = Number.isFinite(args.maxCreate) && args.maxCreate > 0 ? Math.floor(args.maxCreate) : 50000;
   args.minRelevanceScore = Number.isFinite(args.minRelevanceScore) ? args.minRelevanceScore : 0.12;
@@ -319,9 +324,80 @@ async function ensureSyntheticSeller(familyKey, ordinal) {
   });
 }
 
-function generateSyntheticProduct({ category, familyKey, sellerId, offset }) {
+function resolvePriorityTier(index, total) {
+  if (total <= 0) return 'gradual';
+  const ratio = index / total;
+  if (ratio < 0.2) return 'positive_review';
+  if (ratio < 0.4) return 'most_sold';
+  if (ratio < 0.6) return 'most_trendy';
+  return 'gradual';
+}
+
+function getTierProfile(priorityTier) {
+  switch (priorityTier) {
+    case 'positive_review':
+      return {
+        ratingMin: 4.75,
+        ratingMax: 5,
+        reviewMin: 700,
+        reviewMax: 3000,
+        soldMin: 400,
+        soldMax: 2200,
+        stockMin: 120,
+        stockMax: 420,
+        featuredChance: 0.95,
+        ageMinutesMin: 0,
+        ageMinutesMax: 30,
+      };
+    case 'most_sold':
+      return {
+        ratingMin: 4.5,
+        ratingMax: 4.92,
+        reviewMin: 400,
+        reviewMax: 2200,
+        soldMin: 700,
+        soldMax: 5000,
+        stockMin: 180,
+        stockMax: 700,
+        featuredChance: 0.9,
+        ageMinutesMin: 30,
+        ageMinutesMax: 120,
+      };
+    case 'most_trendy':
+      return {
+        ratingMin: 4.3,
+        ratingMax: 4.85,
+        reviewMin: 180,
+        reviewMax: 1200,
+        soldMin: 250,
+        soldMax: 1600,
+        stockMin: 90,
+        stockMax: 360,
+        featuredChance: 0.85,
+        ageMinutesMin: 120,
+        ageMinutesMax: 480,
+      };
+    default:
+      return {
+        ratingMin: 3.8,
+        ratingMax: 4.65,
+        reviewMin: 12,
+        reviewMax: 520,
+        soldMin: 10,
+        soldMax: 420,
+        stockMin: 30,
+        stockMax: 240,
+        featuredChance: 0.08,
+        ageMinutesMin: 480,
+        ageMinutesMax: 24000,
+      };
+  }
+}
+
+function generateSyntheticProduct({ category, familyKey, sellerId, offset, priorityTier, priorityOrder }) {
   const family = FAMILY_DEFINITIONS[familyKey] || FAMILY_DEFINITIONS.generic;
   const seed = Number.parseInt(digest(`${category.id}-${offset}`).slice(0, 10), 16);
+  const tierProfile = getTierProfile(priorityTier);
 
   const brand = pick(family.brands, seed);
   const descriptor = pick(family.descriptors, seed + 17);
@@ -338,7 +414,16 @@ function generateSyntheticProduct({ category, familyKey, sellerId, offset }) {
   const priceRaw = family.priceMin + Math.floor(pseudo(seed + 71) * priceSpread);
   const currentPrice = Math.max(80, Math.round(priceRaw / 10) * 10);
   const originalPrice = Math.max(currentPrice + 10, Math.round(currentPrice * (1.12 + pseudo(seed + 83) * 0.28)));
-  const stock = 20 + Math.floor(pseudo(seed + 97) * 180);
+  const stock = tierProfile.stockMin + Math.floor(pseudo(seed + 97) * Math.max(1, tierProfile.stockMax - tierProfile.stockMin));
+
+  const rating = Number((tierProfile.ratingMin + pseudo(seed + 131) * Math.max(0.01, tierProfile.ratingMax - tierProfile.ratingMin)).toFixed(2));
+  const reviewCount = tierProfile.reviewMin + Math.floor(pseudo(seed + 149) * Math.max(1, tierProfile.reviewMax - tierProfile.reviewMin));
+  const soldProxy = tierProfile.soldMin + Math.floor(pseudo(seed + 163) * Math.max(1, tierProfile.soldMax - tierProfile.soldMin));
+  const trendMomentum = Number((0.55 + pseudo(seed + 173) * 0.45).toFixed(4));
+  const isFeatured = pseudo(seed + 181) < tierProfile.featuredChance;
+
+  const ageMinutes = tierProfile.ageMinutesMin + Math.floor(pseudo(seed + 191) * Math.max(1, tierProfile.ageMinutesMax - tierProfile.ageMinutesMin));
+  const createdAt = new Date(Date.now() - ageMinutes * 60 * 1000);
 
   const imageSeed = `${category.slug || 'category'}-${uniqueHash}`;
   const imageUrl = `https://picsum.photos/seed/${imageSeed}/800/800`;
@@ -356,20 +441,25 @@ function generateSyntheticProduct({ category, familyKey, sellerId, offset }) {
     lowStockThreshold: 10,
     categoryId: category.id,
     sellerId,
-    rating: Number((3.8 + pseudo(seed + 131) * 1.2).toFixed(2)),
-    reviewCount: 8 + Math.floor(pseudo(seed + 149) * 420),
+    rating,
+    reviewCount,
     specifications: {
       source: 'synthetic-phase6',
       generatedAt: new Date().toISOString(),
       family: familyKey,
       categoryName: category.name,
+      priorityTier,
+      priorityOrder,
+      syntheticSoldProxy: soldProxy,
+      syntheticTrendMomentum: trendMomentum,
       keyFeatureA: featureA,
       keyFeatureB: featureB,
       targetUse: category.name,
     },
-    certifications: ['synthetic-generated', `synthetic-${familyKey}`],
+    certifications: ['synthetic-generated', `synthetic-${familyKey}`, `priority-${priorityTier}`],
     isActive: true,
-    isFeatured: false,
+    isFeatured,
+    createdAt,
   };
 }
 
@@ -381,11 +471,64 @@ function chunkArray(items, size) {
   return chunks;
 }
 
+function buildCreatePlan({ selectedCategories, activeCountByCategory, args, totalActiveBefore }) {
+  const planByCategory = new Map();
+  let remainingBudget = args.maxCreate;
+  let basePlannedCreates = 0;
+
+  for (const category of selectedCategories) {
+    const currentCount = activeCountByCategory.get(category.id) || 0;
+    const deficit = Math.max(0, args.target - currentCount);
+    const planned = Math.min(deficit, remainingBudget);
+    planByCategory.set(category.id, planned);
+    basePlannedCreates += planned;
+    remainingBudget -= planned;
+  }
+
+  for (const category of selectedCategories) {
+    if (!planByCategory.has(category.id)) {
+      planByCategory.set(category.id, 0);
+    }
+  }
+
+  let projectedTotalAfterPlan = totalActiveBefore + basePlannedCreates;
+  let extraCreatesForMinimumTotal = 0;
+
+  if (remainingBudget > 0 && projectedTotalAfterPlan < args.minTotalActive) {
+    let needed = args.minTotalActive - projectedTotalAfterPlan;
+    const rotation = selectedCategories
+      .slice()
+      .sort((a, b) => (activeCountByCategory.get(a.id) || 0) - (activeCountByCategory.get(b.id) || 0));
+
+    let cursor = 0;
+    while (needed > 0 && remainingBudget > 0 && rotation.length > 0) {
+      const targetCategory = rotation[cursor % rotation.length];
+      planByCategory.set(targetCategory.id, (planByCategory.get(targetCategory.id) || 0) + 1);
+      needed -= 1;
+      remainingBudget -= 1;
+      extraCreatesForMinimumTotal += 1;
+      cursor += 1;
+    }
+
+    projectedTotalAfterPlan = totalActiveBefore + basePlannedCreates + extraCreatesForMinimumTotal;
+  }
+
+  return {
+    planByCategory,
+    basePlannedCreates,
+    extraCreatesForMinimumTotal,
+    totalPlannedCreates: basePlannedCreates + extraCreatesForMinimumTotal,
+    projectedTotalAfterPlan,
+    exhaustedBudget: remainingBudget <= 0,
+  };
+}
+
 async function main() {
   const args = parseArgs();
 
   console.log('Phase 6: Category relevance audit + synthetic expansion');
   console.log(`- target per category: ${args.target}`);
+  console.log(`- minimum total active products: ${args.minTotalActive}`);
   console.log(`- scope: ${args.scope}`);
   console.log(`- apply expansion: ${args.apply}`);
   console.log(`- audit only: ${args.auditOnly}`);
@@ -429,24 +572,50 @@ async function main() {
   });
 
   const activeCountByCategory = new Map(activeCountsRows.map((row) => [row.categoryId, row._count._all]));
+  const totalActiveBefore = activeCountsRows.reduce((sum, row) => sum + row._count._all, 0);
+  const createPlan = buildCreatePlan({
+    selectedCategories,
+    activeCountByCategory,
+    args,
+    totalActiveBefore,
+  });
+
+  console.log(`- active products before run: ${totalActiveBefore}`);
+  console.log(`- planned creates to reach targets: ${createPlan.basePlannedCreates}`);
+  console.log(`- extra creates for minimum total: ${createPlan.extraCreatesForMinimumTotal}`);
+  console.log(`- total planned creates: ${createPlan.totalPlannedCreates}`);
+  console.log(`- projected active products after plan: ${createPlan.projectedTotalAfterPlan}`);
+
+  if (createPlan.exhaustedBudget && createPlan.projectedTotalAfterPlan < args.minTotalActive) {
+    console.warn('WARNING: max-create budget may be too low to satisfy minimum total active products.');
+  }
 
   const report = {
     generatedAt: new Date().toISOString(),
     config: args,
     totals: {
       selectedCategories: selectedCategories.length,
+      totalActiveBefore,
+      minimumTotalRequired: args.minTotalActive,
+      projectedTotalAfterPlan: createPlan.projectedTotalAfterPlan,
       auditedProducts: 0,
       suspiciousProducts: 0,
       plannedCreates: 0,
+      extraCreatesForMinimumTotal: createPlan.extraCreatesForMinimumTotal,
       createdProducts: 0,
       remainingDeficitAfterRun: 0,
+      createdByTier: {
+        positive_review: 0,
+        most_sold: 0,
+        most_trendy: 0,
+        gradual: 0,
+      },
     },
     categories: [],
     suspiciousSamples: [],
   };
 
   const sellerCache = new Map();
-  let globalCreateBudget = args.maxCreate;
 
   for (let idx = 0; idx < selectedCategories.length; idx += 1) {
     const category = selectedCategories[idx];
@@ -487,7 +656,8 @@ async function main() {
 
     const currentCount = activeCountByCategory.get(category.id) || 0;
     const deficit = Math.max(0, args.target - currentCount);
-    const plannedCreate = Math.min(deficit, globalCreateBudget);
+    const plannedCreate = createPlan.planByCategory.get(category.id) || 0;
+    const extraForMinimumTotal = Math.max(0, plannedCreate - deficit);
 
     let created = 0;
     if (!args.auditOnly && args.apply && plannedCreate > 0) {
@@ -499,11 +669,14 @@ async function main() {
       const sellerId = sellerCache.get(familyKey);
       const syntheticRows = [];
       for (let i = 0; i < plannedCreate; i += 1) {
+        const priorityTier = resolvePriorityTier(i, plannedCreate);
         syntheticRows.push(generateSyntheticProduct({
           category,
           familyKey,
           sellerId,
           offset: currentCount + i + 1,
+          priorityTier,
+          priorityOrder: i + 1,
         }));
       }
 
@@ -513,9 +686,15 @@ async function main() {
           skipDuplicates: true,
         });
         created += result.count;
+
+        for (const row of chunk) {
+          const tier = row?.specifications?.priorityTier;
+          if (tier && Object.prototype.hasOwnProperty.call(report.totals.createdByTier, tier)) {
+            report.totals.createdByTier[tier] += 1;
+          }
+        }
       }
 
-      globalCreateBudget -= created;
       activeCountByCategory.set(category.id, currentCount + created);
     }
 
@@ -537,6 +716,7 @@ async function main() {
       targetCount: args.target,
       deficit,
       plannedCreate,
+      extraForMinimumTotal,
       created,
       remainingDeficit,
       relevance: {
@@ -572,8 +752,13 @@ async function main() {
   console.log(`- products audited: ${report.totals.auditedProducts}`);
   console.log(`- suspicious products: ${report.totals.suspiciousProducts}`);
   console.log(`- planned creates: ${report.totals.plannedCreates}`);
+  console.log(`- extra creates for minimum total: ${report.totals.extraCreatesForMinimumTotal}`);
   console.log(`- created products: ${report.totals.createdProducts}`);
   console.log(`- remaining deficit: ${report.totals.remainingDeficitAfterRun}`);
+  console.log(`- active products before run: ${report.totals.totalActiveBefore}`);
+  console.log(`- projected active products after plan: ${report.totals.projectedTotalAfterPlan}`);
+  console.log(`- minimum total required: ${report.totals.minimumTotalRequired}`);
+  console.log(`- created by tier: ${JSON.stringify(report.totals.createdByTier)}`);
   console.log(`- report: ${reportPath}`);
 }
 
