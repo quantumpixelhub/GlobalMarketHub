@@ -27,26 +27,24 @@ export const metadata: Metadata = {
 };
 
 
-import dynamic from 'next/dynamic';
-const EmojiCategoryBrowser = dynamic(() => import('@/components/shared/EmojiCategoryBrowser').then(m => m.EmojiCategoryBrowser), { ssr: false });
+
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Only show sidebar on non-homepage routes
-  const isHome = typeof window !== 'undefined' ? window.location.pathname === '/' : false;
-  // SSR-safe: fallback to hiding sidebar on homepage only if window is defined
+  // Only show sidebar on homepage, flush left
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <ToastProvider>
           <div className="flex flex-1 min-h-0">
-            {/* Sidebar: only on non-homepage routes */}
-            {!isHome && (
+            {/* Sidebar: only on homepage, flush left */}
+            {typeof window !== 'undefined' && window.location.pathname === '/' && (
               <aside className="hidden md:flex flex-col w-20 min-w-[78px] max-w-[120px] bg-[#fcfcfc] border-r border-gray-100 py-6 px-2 z-20">
-                <EmojiCategoryBrowser />
+                {/* Dynamically import to avoid SSR issues */}
+                {require('@/components/shared/EmojiCategoryBrowser').EmojiCategoryBrowser()}
               </aside>
             )}
             {/* Main content */}
