@@ -8,6 +8,20 @@ interface PaymentConfig {
   customerEmail: string;
   customerPhone: string;
   customerName: string;
+  appUrl?: string;
+}
+
+export interface UddoktaCredentialStatus {
+  ready: boolean;
+  hasApiKey: boolean;
+  hasApiSecret: boolean;
+  hasMerchantId: boolean;
+  hasAppUrl: boolean;
+  appUrl: string;
+  checkoutUrl: string;
+  verifyUrl: string;
+  missingRequired: string[];
+  missingOptional: string[];
 }
 
 interface PaymentResponse {
@@ -96,32 +110,55 @@ function resolvePublicAppUrl(): string {
   return appUrl.replace(/\/+$/, '');
 }
 
+export function getUddoktaCredentialStatus(overrideAppUrl?: string): UddoktaCredentialStatus {
+  const apiKey = pickFirstString(process.env.UDDOKTAPAY_API_KEY);
+  const apiSecret = pickFirstString(process.env.UDDOKTAPAY_API_SECRET);
+  const merchantId = pickFirstString(process.env.UDDOKTAPAY_MERCHANT_ID);
+  const appUrl = pickFirstString(overrideAppUrl, resolvePublicAppUrl()).replace(/\/+$/, '');
+  const checkoutUrl = resolveUddoktaCheckoutUrl();
+  const verifyUrl = resolveUddoktaVerifyUrl();
+
+  const missingRequired: string[] = [];
+  if (!apiKey) missingRequired.push('UDDOKTAPAY_API_KEY');
+  if (!appUrl) missingRequired.push('NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_SITE_URL');
+
+  const missingOptional: string[] = [];
+  if (!apiSecret) missingOptional.push('UDDOKTAPAY_API_SECRET');
+  if (!merchantId) missingOptional.push('UDDOKTAPAY_MERCHANT_ID');
+
+  return {
+    ready: missingRequired.length === 0,
+    hasApiKey: Boolean(apiKey),
+    hasApiSecret: Boolean(apiSecret),
+    hasMerchantId: Boolean(merchantId),
+    hasAppUrl: Boolean(appUrl),
+    appUrl,
+    checkoutUrl,
+    verifyUrl,
+    missingRequired,
+    missingOptional,
+  };
+}
+
 /**
  * UddoktaPay Integration
  * Bangladesh's leading payment gateway
  * Docs: https://uddoktapay.com/docs
  */
 export async function initiateUddoktaPay(config: PaymentConfig): Promise<PaymentResponse> {
-  const apiKey = process.env.UDDOKTAPAY_API_KEY;
-  const checkoutV2Url = resolveUddoktaCheckoutUrl();
-  const appUrl = resolvePublicAppUrl();
-
-  if (!apiKey) {
-    console.warn('UddoktaPay API key not configured');
+  const credentialStatus = getUddoktaCredentialStatus(config.appUrl);
+  if (!credentialStatus.ready) {
     return {
       success: false,
       transactionId: '',
-      message: 'UddoktaPay API key not configured',
+      message: `UddoktaPay configuration missing: ${credentialStatus.missingRequired.join(', ')}`,
     };
   }
 
-  if (!appUrl) {
-    return {
-      success: false,
-      transactionId: '',
-      message: 'NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_SITE_URL is required for payment redirects',
-    };
-  }
+  const apiKey = process.env.UDDOKTAPAY_API_KEY as string;
+  const checkoutV2Url = credentialStatus.checkoutUrl;
+  const appUrl = credentialStatus.appUrl;
+  const preferredMethod = String(config.gateway || 'uddoktapay').toLowerCase();
 
   try {
     const response = await fetch(checkoutV2Url, {
@@ -134,11 +171,16 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
       body: JSON.stringify({
         full_name: config.customerName,
         email: config.customerEmail,
+        mobile: config.customerPhone,
         amount: String(config.amount),
+        payment_method: preferredMethod,
+        paymentMethod: preferredMethod,
+        method: preferredMethod,
         metadata: {
           internal_txn: config.orderId,
           order_id: config.orderId,
           selected_method: config.gateway,
+          provider_gateway: 'uddoktapay',
         },
         redirect_url: `${appUrl}/api/payment/callback?internal_txn=${encodeURIComponent(config.orderId)}&gateway=uddoktapay`,
         return_type: 'GET',

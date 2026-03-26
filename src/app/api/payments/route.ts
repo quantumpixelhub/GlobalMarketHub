@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
-import { initiateUddoktaPay } from "@/lib/paymentGateway";
+import { getUddoktaCredentialStatus, initiateUddoktaPay } from "@/lib/paymentGateway";
+
+const UDDOKTA_ROUTED_METHODS = new Set(["uddoktapay", "bkash", "nagad", "rocket"]);
 
 function isPlaceholderConfig(value?: string | null): boolean {
   if (!value) return true;
@@ -110,8 +112,9 @@ export async function POST(request: NextRequest) {
     const auth = await authenticate(request);
     const { orderId, paymentMethod, isGuestCheckout } = await request.json();
     const requestedPaymentMethod = String(paymentMethod || "").toLowerCase();
-    const routeViaUddokta = requestedPaymentMethod === "uddoktapay";
+    const routeViaUddokta = UDDOKTA_ROUTED_METHODS.has(requestedPaymentMethod);
     const effectiveGatewayName = routeViaUddokta ? "uddoktapay" : requestedPaymentMethod;
+    const origin = new URL(request.url).origin;
 
     if (!orderId || !requestedPaymentMethod) {
       return NextResponse.json(
@@ -200,6 +203,16 @@ export async function POST(request: NextRequest) {
     );
 
     if (routeViaUddokta) {
+      const credentialStatus = getUddoktaCredentialStatus(origin);
+      if (!credentialStatus.ready) {
+        return NextResponse.json(
+          {
+            error: `UddoktaPay configuration missing: ${credentialStatus.missingRequired.join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+
       const shippingAddress = (order.shippingAddress || {}) as Record<string, unknown>;
       const fullName = [shippingAddress.firstName, shippingAddress.lastName]
         .filter(Boolean)
@@ -214,6 +227,7 @@ export async function POST(request: NextRequest) {
         customerEmail: String(order.user?.email || shippingAddress.email || "customer@example.com"),
         customerPhone: String(order.user?.phone || shippingAddress.phone || ""),
         customerName: fullName || "Customer",
+        appUrl: origin,
       });
 
       if (!uddoktaResponse.success || !uddoktaResponse.paymentUrl) {

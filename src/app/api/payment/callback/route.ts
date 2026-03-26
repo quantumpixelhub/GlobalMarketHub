@@ -59,7 +59,8 @@ async function handleVerification(args: {
     return { ok: false, reason: 'missing_invoice_id', transactionId: transaction.id, orderId: transaction.orderId };
   }
 
-  const verification = await verifyPaymentStatus(gateway, invoiceForVerification);
+  const verifyGateway = String(transaction.gatewayName || gateway || 'uddoktapay').toLowerCase();
+  const verification = await verifyPaymentStatus(verifyGateway, invoiceForVerification);
 
   if (verification.status === 'PENDING') {
     await prisma.paymentTransaction.update({
@@ -139,7 +140,7 @@ async function handleVerification(args: {
     data: {
       paymentStatus: 'SUCCESS',
       status: 'PROCESSING',
-      notes: `${transaction.order.notes || ''}\n[Payment] Payment confirmed via ${gateway} (${invoiceForVerification}) at ${new Date().toISOString()}`.trim(),
+      notes: `${transaction.order.notes || ''}\n[Payment] Payment confirmed via ${verifyGateway} (${invoiceForVerification}) at ${new Date().toISOString()}`.trim(),
     },
   });
 
