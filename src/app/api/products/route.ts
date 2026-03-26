@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
+import { applyWeightedRanking } from '@/lib/weightedRanking';
 
 type VariantInput = {
   attributeName?: string;
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const category = searchParams.get('category');
+    const q = searchParams.get('q') || '';
     const categoryId = searchParams.get('categoryId');
     const sortBy = searchParams.get('sort') || 'createdAt';
 
@@ -92,24 +94,66 @@ export async function GET(request: NextRequest) {
       reviews: { reviewCount: 'desc' },
     };
 
+    if (q.trim()) {
+      where.OR = [
+        { title: { contains: q.trim(), mode: 'insensitive' } },
+        { description: { contains: q.trim(), mode: 'insensitive' } },
+        { category: { name: { contains: q.trim(), mode: 'insensitive' } } },
+      ];
+    }
+
     // Fetch products
-    const products = await prisma.product.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: orderByMap[sortBy] || { createdAt: 'desc' },
-      include: {
-        category: true,
-        variants: true,
-        seller: {
-          select: {
-            id: true,
-            storeName: true,
-            rating: true,
+    let products: any[] = [];
+    if (sortBy === 'relevance') {
+      const rankingPool = await prisma.product.findMany({
+        where,
+        take: Math.max(limit * 6, 120),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: true,
+          variants: true,
+          seller: {
+            select: {
+              id: true,
+              storeName: true,
+              rating: true,
+              reviewCount: true,
+              isVerified: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      const ranked = applyWeightedRanking(
+        rankingPool.map((product) => ({
+          ...product,
+          currentPrice: Number(product.currentPrice),
+          originalPrice: Number(product.originalPrice),
+          rating: Number(product.rating),
+        })),
+        q
+      );
+
+      products = ranked.slice((page - 1) * limit, (page - 1) * limit + limit);
+    } else {
+      products = await prisma.product.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: orderByMap[sortBy] || { createdAt: 'desc' },
+        include: {
+          category: true,
+          variants: true,
+          seller: {
+            select: {
+              id: true,
+              storeName: true,
+              rating: true,
+            },
+          },
+        },
+      });
+    }
 
     // Count total
     const total = await prisma.product.count({ where });

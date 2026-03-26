@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { liveMarketplaceSearch, type LiveOffer } from "@/lib/liveMarketplaceSearch";
+import { applyWeightedRanking } from "@/lib/weightedRanking";
 
 export const dynamic = 'force-dynamic';
 
-type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated' | 'best_value';
+type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated' | 'best_value' | 'weighted_relevance';
 
 type SearchListing = {
   id: string;
@@ -418,6 +419,7 @@ const buildSectionPools = async ({ q, page, sectionFetchTarget, externalWhere }:
 
 const getSortMode = (value: string | null): SortMode => {
   const normalized = (value || '').toLowerCase();
+  if (normalized === 'weighted_relevance' || normalized === 'relevance') return 'weighted_relevance';
   if (normalized === 'best_price') return 'best_price';
   if (normalized === 'trust_seller') return 'trust_seller';
   if (normalized === 'most_reviews') return 'most_reviews';
@@ -426,6 +428,9 @@ const getSortMode = (value: string | null): SortMode => {
 };
 
 const compareListings = (mode: SortMode) => (a: SearchListing, b: SearchListing) => {
+  if (mode === 'weighted_relevance') {
+    return 0;
+  }
   if (mode === 'best_price') {
     return a.currentPrice - b.currentPrice;
   }
@@ -774,9 +779,38 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    localInventory.sort(compareListings(sortMode));
-    domesticSellers.sort(compareListings(sortMode));
-    internationalSellers.sort(compareListings(sortMode));
+    if (sortMode === 'weighted_relevance') {
+      const rankedLocal = applyWeightedRanking(
+        localInventory.map((item) => ({
+          ...item,
+          description: item.title,
+        })),
+        q
+      );
+      localInventory.splice(0, localInventory.length, ...rankedLocal);
+
+      const rankedDomestic = applyWeightedRanking(
+        domesticSellers.map((item) => ({
+          ...item,
+          description: item.title,
+        })),
+        q
+      );
+      domesticSellers.splice(0, domesticSellers.length, ...rankedDomestic);
+
+      const rankedInternational = applyWeightedRanking(
+        internationalSellers.map((item) => ({
+          ...item,
+          description: item.title,
+        })),
+        q
+      );
+      internationalSellers.splice(0, internationalSellers.length, ...rankedInternational);
+    } else {
+      localInventory.sort(compareListings(sortMode));
+      domesticSellers.sort(compareListings(sortMode));
+      internationalSellers.sort(compareListings(sortMode));
+    }
 
     // Guardrail: avoid returning an all-zero marketplace response for valid queries.
     if (q.trim() && domesticSellers.length === 0 && internationalSellers.length === 0) {
@@ -992,6 +1026,7 @@ export async function GET(request: NextRequest) {
           internationalSellers: paginatedInternational,
         },
         sortMode,
+        supportedSortModes: ['weighted_relevance', 'best_value', 'best_price', 'trust_seller', 'most_reviews', 'highest_rated'],
         results: products,
         pagination: {
           page,
