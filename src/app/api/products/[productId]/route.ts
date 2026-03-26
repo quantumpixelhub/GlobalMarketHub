@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
+import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 
 type VariantInput = {
   attributeName?: string;
@@ -60,7 +61,7 @@ async function authorizeAdmin(request: NextRequest) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { productId: string } }
 ) {
   try {
@@ -112,6 +113,18 @@ export async function GET(
     if (!product || !product.isActive) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+
+    const auth = await authenticate(request);
+    await trackEvent({
+      eventType: EVENT_TYPES.PRODUCT_VIEW,
+      userId: auth.success ? String(auth.data?.userId || "") : undefined,
+      sessionId: request.headers.get('x-session-id'),
+      productId: product.id,
+      categoryId: product.categoryId,
+      source: 'product_detail_api',
+      ipAddress: getClientIp(request.headers),
+      userAgent: request.headers.get('user-agent'),
+    });
 
     return NextResponse.json(
       {

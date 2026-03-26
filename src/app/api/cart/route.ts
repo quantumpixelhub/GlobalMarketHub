@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
+import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 
 function isImportedProduct(product: any): boolean {
   const certifications = Array.isArray(product?.certifications) ? product.certifications : [];
@@ -211,6 +212,24 @@ export async function POST(request: NextRequest) {
         },
       });
     }
+
+    await trackEvent({
+      eventType: EVENT_TYPES.ADD_TO_CART,
+      userId,
+      sessionId: request.headers.get('x-session-id'),
+      productId,
+      categoryId: product.categoryId,
+      cartId: cart.id,
+      quantity,
+      unitPrice: effectivePrice,
+      totalValue: Number(effectivePrice) * Number(quantity),
+      source: 'cart_api',
+      ipAddress: getClientIp(request.headers),
+      userAgent: request.headers.get('user-agent'),
+      metadata: {
+        variantId: variantId || null,
+      },
+    });
 
     return NextResponse.json(
       { message: "Item added to cart", cartId: cart.id },

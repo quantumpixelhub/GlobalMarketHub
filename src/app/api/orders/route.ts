@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate, createToken, hashPassword } from "@/lib/auth";
+import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
@@ -349,6 +350,28 @@ export async function POST(request: NextRequest) {
         include: { items: true },
       });
 
+      await Promise.all(
+        order.items.map((item) =>
+          trackEvent({
+            eventType: EVENT_TYPES.PURCHASE,
+            userId: guestUserId,
+            sessionId: request.headers.get('x-session-id'),
+            productId: item.productId,
+            orderId: order.id,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            totalValue: Number(item.price) * item.quantity,
+            source: 'orders_api_guest',
+            ipAddress: getClientIp(request.headers),
+            userAgent: request.headers.get('user-agent'),
+            metadata: {
+              checkoutType: 'guest',
+              orderNumber: order.orderNumber,
+            },
+          })
+        )
+      );
+
       return NextResponse.json(
         {
           message: "Guest order created successfully",
@@ -468,6 +491,28 @@ export async function POST(request: NextRequest) {
         include: { items: true },
       });
 
+      await Promise.all(
+        order.items.map((item) =>
+          trackEvent({
+            eventType: EVENT_TYPES.PURCHASE,
+            userId,
+            sessionId: request.headers.get('x-session-id'),
+            productId: item.productId,
+            orderId: order.id,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            totalValue: Number(item.price) * item.quantity,
+            source: 'orders_api_direct',
+            ipAddress: getClientIp(request.headers),
+            userAgent: request.headers.get('user-agent'),
+            metadata: {
+              checkoutType: 'direct',
+              orderNumber: order.orderNumber,
+            },
+          })
+        )
+      );
+
       return NextResponse.json(
         {
           message: "Order created successfully",
@@ -566,6 +611,29 @@ export async function POST(request: NextRequest) {
       },
       include: { items: true },
     });
+
+    await Promise.all(
+      order.items.map((item) =>
+        trackEvent({
+          eventType: EVENT_TYPES.PURCHASE,
+          userId,
+          sessionId: request.headers.get('x-session-id'),
+          productId: item.productId,
+          orderId: order.id,
+          cartId,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalValue: Number(item.price) * item.quantity,
+          source: 'orders_api_cart',
+          ipAddress: getClientIp(request.headers),
+          userAgent: request.headers.get('user-agent'),
+          metadata: {
+            checkoutType: 'cart',
+            orderNumber: order.orderNumber,
+          },
+        })
+      )
+    );
 
     // Mark cart as checked out
     await prisma.cart.update({
