@@ -109,7 +109,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               return (
                 <div
                   key={category.id}
-                  className="relative"
+                  className="relative after:content-[''] after:absolute after:top-0 after:bottom-0 after:left-full after:w-3"
                   onMouseEnter={() => setHoveredCategoryId(category.id)}
                   onMouseLeave={() => setHoveredCategoryId(null)}
                 >
@@ -149,7 +149,11 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
                   {/* Hover Sub-categories Panel */}
                   {subcategories.length > 0 && isHovered && (
-                    <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
+                    <div
+                      className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2"
+                      onMouseEnter={() => setHoveredCategoryId(category.id)}
+                      onMouseLeave={() => setHoveredCategoryId(null)}
+                    >
                       {subcategories.map((subcategory) => (
                         <button
                           key={subcategory.id}
