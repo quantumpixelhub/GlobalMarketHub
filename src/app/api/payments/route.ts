@@ -465,6 +465,7 @@ export async function GET(request: NextRequest) {
               userId: true,
               paymentStatus: true,
               status: true,
+              notes: true,
             },
           },
         },
