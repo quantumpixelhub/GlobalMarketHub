@@ -27,7 +27,6 @@ export const metadata: Metadata = {
 };
 
 
-import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 const EmojiCategoryBrowser = dynamic(() => import('@/components/shared/EmojiCategoryBrowser').then(m => m.EmojiCategoryBrowser), { ssr: false });
 
