@@ -37,7 +37,8 @@ export default function RootLayout({
   // Show sidebar on all pages, flush left, but only show category links on homepage and product-related pages
   const isBrowser = typeof window !== 'undefined';
   const path = isBrowser ? window.location.pathname : '';
-  const showSidebar = path === '/' || path.startsWith('/product') || path.startsWith('/category') || path.startsWith('/cart') || path.startsWith('/checkout');
+  // Show sidebar on homepage, category, cart, and checkout pages, but NOT on product details page
+  const showSidebar = path === '/' || path.startsWith('/category') || path.startsWith('/cart') || path.startsWith('/checkout');
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
