@@ -522,30 +522,31 @@ export default function ProductDetailPage() {
       <Navigation showCategoryLinks={false} />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-[88px_minmax(0,1fr)] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[60px_minmax(0,1fr)] gap-4">
           <div className="hidden lg:block">
             <div
               className="relative h-full"
+              style={{ marginLeft: '-16px' }}
               onMouseEnter={() => setIsRailHovered(true)}
               onMouseLeave={() => {
                 setIsRailHovered(false);
                 setHoveredCategoryId(null);
               }}
             >
-              <div className="w-[88px] rounded-2xl border border-[#d6cec2] p-2 shadow-sm" style={{ backgroundColor: '#F3EDE3' }}>
-                <div className="space-y-2">
+              <div className="w-[60px] rounded-xl border border-gray-200 p-1 shadow-sm bg-white">
+                <div className="space-y-1">
                   {parentCategories.map((category) => (
                     <button
                       type="button"
                       key={category.id}
                       onMouseEnter={() => setHoveredCategoryId(category.id)}
                       onFocus={() => setHoveredCategoryId(category.id)}
-                      className={`w-full h-14 rounded-xl flex items-center justify-center text-2xl transition ${
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition ${
                         activeCategoryId === category.id
                           ? 'border-2 border-[#d17b56] shadow-md'
                           : 'hover:border-[#d6cec2] border border-transparent'
                       }`}
-                      style={{ backgroundColor: '#EFE7DC' }}
+                      style={{ backgroundColor: '#fcfcfc' }}
                       aria-label={category.name}
                     >
                       {category.icon || '📦'}
