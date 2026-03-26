@@ -11,6 +11,7 @@ function isPlaceholderConfig(value?: string | null): boolean {
   if (!normalized) return true;
 
   return (
+    normalized.startsWith("MANUAL_") ||
     normalized.includes("_HERE") ||
     normalized.includes("_MERCHANT_ID") ||
     normalized.includes("_API_KEY") ||
@@ -173,6 +174,44 @@ export async function POST(request: NextRequest) {
       ? null
       : gateway.merchantId;
 
+    let uddoktaCredentialOverrides:
+      | {
+          apiKey?: string;
+          checkoutUrl?: string;
+          appUrl?: string;
+        }
+      | undefined;
+
+    if (routeViaUddokta) {
+      const uddoktaGateway = requestedPaymentMethod === "uddoktapay"
+        ? gateway
+        : await prisma.paymentGatewayConfig.findUnique({ where: { gatewayName: "uddoktapay" } });
+
+      const fallbackApiKey = !isPlaceholderConfig(uddoktaGateway?.apiKey)
+        ? String(uddoktaGateway?.apiKey || "")
+        : "";
+
+      const fallbackCheckoutUrl = !isPlaceholderConfig(uddoktaGateway?.webhookUrl)
+        ? String(uddoktaGateway?.webhookUrl || "")
+        : "";
+
+      uddoktaCredentialOverrides = {
+        apiKey: fallbackApiKey,
+        checkoutUrl: fallbackCheckoutUrl,
+        appUrl: origin,
+      };
+
+      const credentialStatus = getUddoktaCredentialStatus(origin, uddoktaCredentialOverrides);
+      if (!credentialStatus.ready) {
+        return NextResponse.json(
+          {
+            error: `UddoktaPay configuration missing: ${credentialStatus.missingRequired.join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Create payment transaction
     const transaction = await prisma.paymentTransaction.create({
       data: {
@@ -203,16 +242,6 @@ export async function POST(request: NextRequest) {
     );
 
     if (routeViaUddokta) {
-      const credentialStatus = getUddoktaCredentialStatus(origin);
-      if (!credentialStatus.ready) {
-        return NextResponse.json(
-          {
-            error: `UddoktaPay configuration missing: ${credentialStatus.missingRequired.join(", ")}`,
-          },
-          { status: 400 }
-        );
-      }
-
       const shippingAddress = (order.shippingAddress || {}) as Record<string, unknown>;
       const fullName = [shippingAddress.firstName, shippingAddress.lastName]
         .filter(Boolean)
@@ -228,6 +257,7 @@ export async function POST(request: NextRequest) {
         customerPhone: String(order.user?.phone || shippingAddress.phone || ""),
         customerName: fullName || "Customer",
         appUrl: origin,
+        uddoktaCredentials: uddoktaCredentialOverrides,
       });
 
       if (!uddoktaResponse.success || !uddoktaResponse.paymentUrl) {

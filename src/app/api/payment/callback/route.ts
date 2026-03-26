@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPaymentStatus } from '@/lib/paymentGateway';
 
+function isPlaceholderConfig(value?: string | null): boolean {
+  if (!value) return true;
+  const normalized = value.trim();
+  if (!normalized) return true;
+
+  return (
+    normalized.startsWith('MANUAL_') ||
+    normalized.includes('_HERE') ||
+    normalized.includes('_MERCHANT_ID') ||
+    normalized.includes('_API_KEY') ||
+    normalized.includes('_SECRET') ||
+    normalized.includes('yourapp.com')
+  );
+}
+
 async function resolveTransaction(args: {
   internalTxnId?: string | null;
   invoiceId?: string | null;
@@ -60,7 +75,24 @@ async function handleVerification(args: {
   }
 
   const verifyGateway = String(transaction.gatewayName || gateway || 'uddoktapay').toLowerCase();
-  const verification = await verifyPaymentStatus(verifyGateway, invoiceForVerification);
+
+  let uddoktaOverrides: { apiKey?: string } | undefined;
+  if (verifyGateway === 'uddoktapay') {
+    const uddoktaGateway = await prisma.paymentGatewayConfig.findUnique({
+      where: { gatewayName: 'uddoktapay' },
+      select: { apiKey: true },
+    });
+
+    const fallbackApiKey = !isPlaceholderConfig(uddoktaGateway?.apiKey)
+      ? String(uddoktaGateway?.apiKey || '')
+      : '';
+
+    uddoktaOverrides = {
+      apiKey: fallbackApiKey,
+    };
+  }
+
+  const verification = await verifyPaymentStatus(verifyGateway, invoiceForVerification, uddoktaOverrides);
 
   if (verification.status === 'PENDING') {
     await prisma.paymentTransaction.update({

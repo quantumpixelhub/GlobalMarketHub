@@ -9,6 +9,16 @@ interface PaymentConfig {
   customerPhone: string;
   customerName: string;
   appUrl?: string;
+  uddoktaCredentials?: UddoktaCredentialOverrides;
+}
+
+export interface UddoktaCredentialOverrides {
+  apiKey?: string;
+  apiSecret?: string;
+  merchantId?: string;
+  checkoutUrl?: string;
+  verifyUrl?: string;
+  appUrl?: string;
 }
 
 export interface UddoktaCredentialStatus {
@@ -110,13 +120,16 @@ function resolvePublicAppUrl(): string {
   return appUrl.replace(/\/+$/, '');
 }
 
-export function getUddoktaCredentialStatus(overrideAppUrl?: string): UddoktaCredentialStatus {
-  const apiKey = pickFirstString(process.env.UDDOKTAPAY_API_KEY);
-  const apiSecret = pickFirstString(process.env.UDDOKTAPAY_API_SECRET);
-  const merchantId = pickFirstString(process.env.UDDOKTAPAY_MERCHANT_ID);
-  const appUrl = pickFirstString(overrideAppUrl, resolvePublicAppUrl()).replace(/\/+$/, '');
-  const checkoutUrl = resolveUddoktaCheckoutUrl();
-  const verifyUrl = resolveUddoktaVerifyUrl();
+export function getUddoktaCredentialStatus(
+  overrideAppUrl?: string,
+  overrides?: UddoktaCredentialOverrides
+): UddoktaCredentialStatus {
+  const apiKey = pickFirstString(overrides?.apiKey, process.env.UDDOKTAPAY_API_KEY);
+  const apiSecret = pickFirstString(overrides?.apiSecret, process.env.UDDOKTAPAY_API_SECRET);
+  const merchantId = pickFirstString(overrides?.merchantId, process.env.UDDOKTAPAY_MERCHANT_ID);
+  const appUrl = pickFirstString(overrides?.appUrl, overrideAppUrl, resolvePublicAppUrl()).replace(/\/+$/, '');
+  const checkoutUrl = pickFirstString(overrides?.checkoutUrl, resolveUddoktaCheckoutUrl());
+  const verifyUrl = pickFirstString(overrides?.verifyUrl, resolveUddoktaVerifyUrl());
 
   const missingRequired: string[] = [];
   if (!apiKey) missingRequired.push('UDDOKTAPAY_API_KEY');
@@ -146,7 +159,7 @@ export function getUddoktaCredentialStatus(overrideAppUrl?: string): UddoktaCred
  * Docs: https://uddoktapay.com/docs
  */
 export async function initiateUddoktaPay(config: PaymentConfig): Promise<PaymentResponse> {
-  const credentialStatus = getUddoktaCredentialStatus(config.appUrl);
+  const credentialStatus = getUddoktaCredentialStatus(config.appUrl, config.uddoktaCredentials);
   if (!credentialStatus.ready) {
     return {
       success: false,
@@ -155,7 +168,7 @@ export async function initiateUddoktaPay(config: PaymentConfig): Promise<Payment
     };
   }
 
-  const apiKey = process.env.UDDOKTAPAY_API_KEY as string;
+  const apiKey = pickFirstString(config.uddoktaCredentials?.apiKey, process.env.UDDOKTAPAY_API_KEY) as string;
   const checkoutV2Url = credentialStatus.checkoutUrl;
   const appUrl = credentialStatus.appUrl;
   const preferredMethod = String(config.gateway || 'uddoktapay').toLowerCase();
@@ -386,11 +399,12 @@ export async function initiatePayment(
  */
 export async function verifyPaymentStatus(
   gateway: string,
-  invoiceId: string
+  invoiceId: string,
+  overrides?: UddoktaCredentialOverrides
 ): Promise<VerificationResponse> {
   if (gateway.toLowerCase() === 'uddoktapay') {
-    const apiKey = process.env.UDDOKTAPAY_API_KEY;
-    const verifyUrl = resolveUddoktaVerifyUrl();
+    const apiKey = pickFirstString(overrides?.apiKey, process.env.UDDOKTAPAY_API_KEY);
+    const verifyUrl = pickFirstString(overrides?.verifyUrl, resolveUddoktaVerifyUrl());
 
     if (!apiKey) {
       return {
