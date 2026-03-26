@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
-import { getUddoktaCredentialStatus, initiateUddoktaPay } from "@/lib/paymentGateway";
+import { getUddoktaCredentialStatus, initiateUddoktaPay, verifyPaymentStatus } from "@/lib/paymentGateway";
 
 const UDDOKTA_ROUTED_METHODS = new Set(["uddoktapay", "bkash", "nagad", "rocket"]);
 
@@ -328,6 +328,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const transactionId = searchParams.get("transactionId");
+    const shouldVerify = searchParams.get("verify") === "true";
+    const userId = String(auth.data?.userId || "");
 
     if (!transactionId) {
       return NextResponse.json(
@@ -338,6 +340,17 @@ export async function GET(request: NextRequest) {
 
     const transaction = await prisma.paymentTransaction.findUnique({
       where: { id: transactionId },
+      include: {
+        order: {
+          select: {
+            id: true,
+            userId: true,
+            paymentStatus: true,
+            status: true,
+            notes: true,
+          },
+        },
+      },
     });
 
     if (!transaction) {
@@ -347,9 +360,128 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (transaction.userId !== userId && transaction.order?.userId !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    let latestTransaction = transaction;
+
+    if (shouldVerify && transaction.status === "PENDING" && transaction.gatewayTransactionId) {
+      const verifyGateway = String(transaction.gatewayName || "").toLowerCase();
+      let uddoktaOverrides: { apiKey?: string } | undefined;
+
+      if (verifyGateway === "uddoktapay") {
+        const uddoktaGateway = await prisma.paymentGatewayConfig.findUnique({
+          where: { gatewayName: "uddoktapay" },
+          select: { apiKey: true },
+        });
+
+        const fallbackApiKey = !isPlaceholderConfig(uddoktaGateway?.apiKey)
+          ? String(uddoktaGateway?.apiKey || "")
+          : "";
+
+        uddoktaOverrides = {
+          apiKey: fallbackApiKey,
+        };
+      }
+
+      const verification = await verifyPaymentStatus(
+        verifyGateway,
+        String(transaction.gatewayTransactionId),
+        uddoktaOverrides
+      );
+
+      if (verification.status === "PENDING") {
+        await prisma.paymentTransaction.update({
+          where: { id: transaction.id },
+          data: {
+            gatewayResponse: {
+              ...(typeof transaction.gatewayResponse === "object" && transaction.gatewayResponse
+                ? transaction.gatewayResponse
+                : {}),
+              verify: verification.raw || verification,
+              verifiedAt: new Date().toISOString(),
+              verificationStatus: "PENDING",
+            } as any,
+          },
+        });
+      } else if (!verification.success) {
+        await prisma.paymentTransaction.update({
+          where: { id: transaction.id },
+          data: {
+            status: "FAILED",
+            errorMessage: verification.message,
+            completedAt: new Date(),
+            gatewayResponse: {
+              ...(typeof transaction.gatewayResponse === "object" && transaction.gatewayResponse
+                ? transaction.gatewayResponse
+                : {}),
+              verify: verification.raw || verification,
+              verifiedAt: new Date().toISOString(),
+              verificationStatus: verification.status || "ERROR",
+            } as any,
+          },
+        });
+
+        await prisma.order.update({
+          where: { id: transaction.orderId },
+          data: {
+            paymentStatus: "FAILED",
+          },
+        });
+      } else {
+        await prisma.paymentTransaction.update({
+          where: { id: transaction.id },
+          data: {
+            status: "SUCCESS",
+            completedAt: new Date(),
+            gatewayResponse: {
+              ...(typeof transaction.gatewayResponse === "object" && transaction.gatewayResponse
+                ? transaction.gatewayResponse
+                : {}),
+              verify: verification.raw || verification,
+              verifiedAt: new Date().toISOString(),
+              verificationStatus: verification.status,
+            } as any,
+          },
+        });
+
+        await prisma.order.update({
+          where: { id: transaction.orderId },
+          data: {
+            paymentStatus: "SUCCESS",
+            status: "PROCESSING",
+            notes: `${transaction.order?.notes || ""}\n[Payment] Auto-verified via ${verifyGateway} at ${new Date().toISOString()}`.trim(),
+          },
+        });
+      }
+
+      const refreshed = await prisma.paymentTransaction.findUnique({
+        where: { id: transaction.id },
+        include: {
+          order: {
+            select: {
+              id: true,
+              userId: true,
+              paymentStatus: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      if (refreshed) {
+        latestTransaction = refreshed;
+      }
+    }
+
     return NextResponse.json(
       {
-        transaction,
+        transaction: latestTransaction,
+        verification: {
+          canVerify: Boolean(latestTransaction.gatewayTransactionId),
+          verifiedOnRequest: shouldVerify,
+        },
       },
       { status: 200 }
     );

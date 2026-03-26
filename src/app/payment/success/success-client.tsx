@@ -18,11 +18,17 @@ export default function PaymentSuccessClient() {
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [verificationState, setVerificationState] = useState<'checking' | 'confirmed' | 'pending' | 'failed'>('checking');
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
 
   const orderId = searchParams.get('orderId');
   const transactionId = searchParams.get('transactionId');
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let attempts = 0;
+    const maxAttempts = 24; // 2 minutes (5s polling)
+
     const fetchOrder = async () => {
       if (!orderId) {
         setError('Order ID not found');
@@ -53,8 +59,123 @@ export default function PaymentSuccessClient() {
       }
     };
 
+    const verifyPayment = async () => {
+      if (!transactionId) {
+        setVerificationState('confirmed');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setVerificationState('pending');
+          return;
+        }
+
+        const verifyRes = await fetch(`/api/payments?transactionId=${encodeURIComponent(transactionId)}&verify=true`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!verifyRes.ok) {
+          setVerificationState('pending');
+          return;
+        }
+
+        const verifyData = await verifyRes.json();
+        const txStatus = String(verifyData?.transaction?.status || 'PENDING').toUpperCase();
+        const orderPaymentStatus = String(verifyData?.transaction?.order?.paymentStatus || 'PENDING').toUpperCase();
+
+        if (txStatus === 'SUCCESS' || orderPaymentStatus === 'SUCCESS') {
+          setVerificationState('confirmed');
+          await fetchOrder();
+          if (interval) {
+            clearInterval(interval);
+          }
+          return;
+        }
+
+        if (txStatus === 'FAILED' || orderPaymentStatus === 'FAILED') {
+          setVerificationState('failed');
+          setError('Payment could not be confirmed. Please contact support with your transaction reference.');
+          if (interval) {
+            clearInterval(interval);
+          }
+          return;
+        }
+
+        setVerificationState('pending');
+      } catch {
+        setVerificationState('pending');
+      }
+    };
+
     fetchOrder();
-  }, [orderId]);
+    verifyPayment();
+
+    interval = setInterval(() => {
+      attempts += 1;
+      if (attempts >= maxAttempts) {
+        if (interval) {
+          clearInterval(interval);
+        }
+        return;
+      }
+
+      verifyPayment();
+    }, 5000);
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [orderId, transactionId]);
+
+  const handleInvoice = async (download: boolean) => {
+    if (!orderId) return;
+
+    try {
+      setInvoiceLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Please sign in again to access your invoice.');
+      }
+
+      const endpoint = `/api/orders/${orderId}/invoice${download ? '?download=1' : ''}`;
+      const response = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate invoice.');
+      }
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (download) {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `invoice-${orderId}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      }
+
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to open invoice.';
+      setError(message);
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -78,6 +199,12 @@ export default function PaymentSuccessClient() {
 
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
           <p className="text-gray-600 mb-8">Thank you for your purchase. Your payment has been confirmed.</p>
+
+          {verificationState === 'pending' && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-amber-900 text-sm">Payment confirmation is syncing from gateway. This page updates automatically.</p>
+            </div>
+          )}
 
           {/* Order Details */}
           {error ? (
@@ -132,6 +259,24 @@ export default function PaymentSuccessClient() {
 
           {/* Action Buttons */}
           <div className="space-y-3">
+            {orderId && (
+              <button
+                onClick={() => handleInvoice(true)}
+                disabled={invoiceLoading}
+                className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg transition"
+              >
+                {invoiceLoading ? 'Preparing Invoice...' : 'Download Invoice'}
+              </button>
+            )}
+            {orderId && (
+              <button
+                onClick={() => handleInvoice(false)}
+                disabled={invoiceLoading}
+                className="block w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-3 rounded-lg transition border border-emerald-200"
+              >
+                View Invoice
+              </button>
+            )}
             <Link
               href={`/account/orders/${orderId}`}
               className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"

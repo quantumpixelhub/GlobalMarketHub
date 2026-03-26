@@ -227,6 +227,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!result.ok) {
+      if (result.reason === 'payment_pending') {
+        return NextResponse.redirect(
+          new URL(`/payment/pending?orderId=${result.orderId || ''}&transactionId=${result.transactionId || ''}`, request.url)
+        );
+      }
+
       return NextResponse.redirect(
         new URL(`/payment/failure?reason=${encodeURIComponent(result.reason || 'verification_failed')}`, request.url)
       );
