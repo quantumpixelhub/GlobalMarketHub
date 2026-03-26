@@ -6,9 +6,17 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { addToGuestCart } from '@/lib/guestCart';
+import { getOrCreateClientSessionId } from '@/lib/clientSession';
 import { useToast } from '@/components/ui/ToastProvider';
 
-type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated' | 'best_value';
+type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated' | 'best_value' | 'weighted_relevance';
+
+type RankingABTest = {
+  experimentKey: string;
+  variant: 'A' | 'B';
+  override: boolean;
+  trafficToB: number;
+};
 
 interface SearchListing {
   id: string;
@@ -59,6 +67,7 @@ interface SearchResponse {
     fromCache?: boolean;
     stale?: boolean;
   };
+  abTest?: RankingABTest | null;
 }
 
 const PAGE_SIZE = 24;
@@ -94,10 +103,16 @@ function SearchContent() {
   const [goToPageInput, setGoToPageInput] = useState('');
   const [pagination, setPagination] = useState<SearchResponse['pagination']>();
   const [sourceStats, setSourceStats] = useState<SearchResponse['sourceStats']>();
+  const [abTest, setAbTest] = useState<RankingABTest | null>(null);
   const [loading, setLoading] = useState(true);
   const pageCacheRef = useRef<Map<string, CachedSearchEntry>>(new Map());
   const requestSeqRef = useRef(0);
+  const sessionIdRef = useRef<string>('');
   const { showToast } = useToast();
+
+  if (!sessionIdRef.current) {
+    sessionIdRef.current = getOrCreateClientSessionId();
+  }
 
   const setPageWithUrl = (targetPage: number) => {
     const safePage = Math.max(1, targetPage);
@@ -141,6 +156,7 @@ function SearchContent() {
         if (cached && cachedIsFresh && hasAnyResults(cached.data)) {
           setPagination(cached.data.pagination);
           setSourceStats(cached.data.sourceStats);
+          setAbTest(cached.data.abTest || null);
           if (cached.data.sections) {
             setLocalProducts(cached.data.sections.localInventory || []);
             setDomesticProducts(cached.data.sections.domesticSellers || []);
@@ -152,7 +168,7 @@ function SearchContent() {
 
         setLoading(true);
         const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}&page=${page}&limit=${PAGE_SIZE}`,
+          `/api/search?q=${encodeURIComponent(query)}&sortMode=${encodeURIComponent(sortMode)}&page=${page}&limit=${PAGE_SIZE}&sessionId=${encodeURIComponent(sessionIdRef.current)}`,
           { cache: 'no-store', signal: controller.signal }
         );
         if (!res.ok) {
@@ -172,6 +188,7 @@ function SearchContent() {
         }
         setPagination(data.pagination);
         setSourceStats(data.sourceStats);
+        setAbTest(data.abTest || null);
 
         if (data.sections) {
           setLocalProducts(data.sections.localInventory || []);
@@ -185,6 +202,7 @@ function SearchContent() {
         setInternationalProducts([]);
         setPagination(undefined);
         setSourceStats(undefined);
+        setAbTest(null);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -195,6 +213,7 @@ function SearchContent() {
         setInternationalProducts([]);
         setPagination(undefined);
         setSourceStats(undefined);
+        setAbTest(null);
       } finally {
         if (requestId === requestSeqRef.current) {
           setLoading(false);
@@ -407,6 +426,7 @@ function SearchContent() {
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-600"
           >
             <option value="best_value">Best Value</option>
+            <option value="weighted_relevance">Personalized (A/B Test)</option>
             <option value="best_price">Best Price</option>
             <option value="trust_seller">Trust Seller</option>
             <option value="most_reviews">Most Reviews</option>
@@ -465,6 +485,14 @@ function SearchContent() {
             products={localProducts}
             loading={loading}
             onAddToCart={handleAddToCart}
+            rankingMetricContext={abTest ? {
+              experimentKey: abTest.experimentKey,
+              variant: abTest.variant,
+              endpoint: 'search_local_grid',
+              query,
+              sortMode,
+              resultCount: localProducts.length,
+            } : undefined}
             columns={4}
           />
         </section>
@@ -477,7 +505,19 @@ function SearchContent() {
             </div>
             <span className="text-sm text-gray-500">{pagination?.sections?.domesticSellers?.total ?? domesticProducts.length} items</span>
           </div>
-          <ProductGrid products={domesticProducts} loading={loading} columns={4} />
+          <ProductGrid
+            products={domesticProducts}
+            loading={loading}
+            rankingMetricContext={abTest ? {
+              experimentKey: abTest.experimentKey,
+              variant: abTest.variant,
+              endpoint: 'search_domestic_grid',
+              query,
+              sortMode,
+              resultCount: domesticProducts.length,
+            } : undefined}
+            columns={4}
+          />
         </section>
 
         <section className="mb-10 rounded-xl border border-rose-200 bg-rose-50/40 p-4 md:p-5">
@@ -488,7 +528,19 @@ function SearchContent() {
             </div>
             <span className="text-sm text-gray-500">{pagination?.sections?.internationalSellers?.total ?? internationalProducts.length} items</span>
           </div>
-          <ProductGrid products={internationalProducts} loading={loading} columns={4} />
+          <ProductGrid
+            products={internationalProducts}
+            loading={loading}
+            rankingMetricContext={abTest ? {
+              experimentKey: abTest.experimentKey,
+              variant: abTest.variant,
+              endpoint: 'search_international_grid',
+              query,
+              sortMode,
+              resultCount: internationalProducts.length,
+            } : undefined}
+            columns={4}
+          />
         </section>
 
         <div className="mb-10 flex justify-center">

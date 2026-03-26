@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { trackRankingClick, type RankingMetricContext } from '@/lib/rankingMetricsClient';
 
 interface ProductCardProps {
   id: string;
@@ -24,6 +25,7 @@ interface ProductCardProps {
   externalUrl?: string;
   lastSyncedAt?: string;
   discountVerified?: boolean;
+  rankingMetricContext?: RankingMetricContext;
   onAddToCart?: (productId: string) => void;
   onAddToWishlist?: (productId: string) => void;
 }
@@ -44,6 +46,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   externalUrl,
   lastSyncedAt,
   discountVerified = false,
+  rankingMetricContext,
   onAddToCart,
   onAddToWishlist,
 }) => {
@@ -88,6 +91,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   }, [lastSyncedAt]);
 
   const goToProduct = () => {
+    if (rankingMetricContext) {
+      trackRankingClick(rankingMetricContext, id);
+    }
+
     if (externalUrl) {
       window.open(externalUrl, '_blank', 'noopener,noreferrer');
       return;

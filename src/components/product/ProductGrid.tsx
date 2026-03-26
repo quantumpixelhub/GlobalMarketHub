@@ -1,5 +1,6 @@
 import React from 'react';
 import { ProductCard } from './ProductCard';
+import type { RankingMetricContext } from '@/lib/rankingMetricsClient';
 
 interface Product {
   id: string;
@@ -27,6 +28,7 @@ interface ProductGridProps {
   loading?: boolean;
   onAddToCart?: (productId: string) => void;
   onAddToWishlist?: (productId: string) => void;
+  rankingMetricContext?: RankingMetricContext;
   columns?: 2 | 3 | 4 | 5;
 }
 
@@ -35,6 +37,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   loading = false,
   onAddToCart,
   onAddToWishlist,
+  rankingMetricContext,
   columns = 4,
 }) => {
   if (loading) {
@@ -68,6 +71,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         <ProductCard
           key={product.id}
           {...product}
+          rankingMetricContext={rankingMetricContext}
           onAddToCart={onAddToCart}
           onAddToWishlist={onAddToWishlist}
         />

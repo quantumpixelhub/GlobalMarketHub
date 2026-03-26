@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { CategoryFilter } from '@/components/product/CategoryFilter';
+import { getOrCreateClientSessionId } from '@/lib/clientSession';
 import { addToGuestCart } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
 
@@ -36,6 +37,13 @@ interface ProductsContentProps {
   initialCategorySlug?: string;
 }
 
+type RankingABTest = {
+  experimentKey: string;
+  variant: 'A' | 'B';
+  override: boolean;
+  trafficToB: number;
+};
+
 function ProductsContentInner({ initialProducts, initialCategories, initialCategorySlug = '' }: ProductsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,8 +56,14 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(500000);
   const [sortBy, setSortBy] = useState('createdAt');
+  const [rankingABTest, setRankingABTest] = useState<RankingABTest | null>(null);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
+  const sessionIdRef = React.useRef<string>('');
+
+  if (!sessionIdRef.current) {
+    sessionIdRef.current = getOrCreateClientSessionId();
+  }
 
   const categoryById = React.useMemo(
     () => Object.fromEntries(categories.map((category) => [category.id, category])) as Record<string, Category>,
@@ -86,10 +100,11 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
         // No category selected - fetch all products
         setLoading(true);
         try {
-          const res = await fetch('/api/products?limit=100');
+          const res = await fetch(`/api/products?limit=100&sort=${encodeURIComponent(sortBy)}&sessionId=${encodeURIComponent(sessionIdRef.current)}`);
           if (res.ok) {
             const data = await res.json();
             setProducts(data.products || data.data || []);
+            setRankingABTest(data?.ranking?.abTest || null);
           }
         } catch (error) {
           console.error('Error fetching products:', error);
@@ -102,10 +117,11 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
       // Category selected - fetch products from that category
       setLoading(true);
       try {
-        const res = await fetch(`/api/products?category=${encodeURIComponent(resolvedCategorySlug)}&limit=100`);
+        const res = await fetch(`/api/products?category=${encodeURIComponent(resolvedCategorySlug)}&limit=100&sort=${encodeURIComponent(sortBy)}&sessionId=${encodeURIComponent(sessionIdRef.current)}`);
         if (res.ok) {
           const data = await res.json();
           setProducts(data.products || data.data || []);
+          setRankingABTest(data?.ranking?.abTest || null);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -115,7 +131,7 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
     };
     
     fetchProductsByCategory();
-  }, [resolvedCategorySlug]);
+  }, [resolvedCategorySlug, sortBy]);
 
   const handleAddToCart = async (productId: string) => {
     const token = localStorage.getItem('token');
@@ -211,6 +227,7 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
                 className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-rose-600"
               >
                 <option value="createdAt">Newest First</option>
+                <option value="relevance">Personalized (A/B Test)</option>
                 <option value="price">Price: Low to High</option>
                 <option value="rating">Highest Rated</option>
                 <option value="reviews">Most Reviewed</option>
@@ -222,6 +239,14 @@ function ProductsContentInner({ initialProducts, initialCategories, initialCateg
               products={sortedAndFilteredProducts}
               loading={false}
               onAddToCart={handleAddToCart}
+              rankingMetricContext={sortBy === 'relevance' && rankingABTest ? {
+                experimentKey: rankingABTest.experimentKey,
+                variant: rankingABTest.variant,
+                endpoint: 'products_grid',
+                categoryId: resolvedCategorySlug || undefined,
+                sortMode: sortBy,
+                resultCount: sortedAndFilteredProducts.length,
+              } : undefined}
               columns={4}
             />
           </>
