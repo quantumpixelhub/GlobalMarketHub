@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { liveMarketplaceSearch, type LiveOffer } from "@/lib/liveMarketplaceSearch";
+import { authenticate } from "@/lib/auth";
+import { applyPersonalizationReranking, buildPersonalizationProfile } from "@/lib/personalization";
 import { applyWeightedRanking } from "@/lib/weightedRanking";
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +12,8 @@ type SortMode = 'best_price' | 'trust_seller' | 'most_reviews' | 'highest_rated'
 type SearchListing = {
   id: string;
   title: string;
+  categoryId?: string;
+  sellerId?: string;
   currentPrice: number;
   originalPrice: number;
   mainImage: string;
@@ -581,6 +585,12 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("order") || "desc";
     const sortMode = getSortMode(searchParams.get('sortMode'));
+    const sessionId = request.headers.get('x-session-id') || searchParams.get('sessionId') || undefined;
+    const auth = sortMode === 'weighted_relevance' ? await authenticate(request) : { success: false, data: null };
+    const userId = auth.success && auth.data?.userId ? String(auth.data.userId) : undefined;
+    const personalizationProfile = sortMode === 'weighted_relevance'
+      ? await buildPersonalizationProfile({ userId, sessionId })
+      : null;
     const sectionCacheKey = [
       q.trim().toLowerCase(),
       sortMode,
@@ -657,6 +667,8 @@ export async function GET(request: NextRequest) {
     const localInventory: SearchListing[] = products.map((product) => ({
       id: product.id,
       title: product.title,
+      categoryId: product.category?.id,
+      sellerId: product.seller.id,
       currentPrice: Number(product.currentPrice),
       originalPrice: Number(product.originalPrice),
       mainImage: product.mainImage,
@@ -780,30 +792,55 @@ export async function GET(request: NextRequest) {
     }
 
     if (sortMode === 'weighted_relevance') {
-      const rankedLocal = applyWeightedRanking(
+      const rankedLocalBase = applyWeightedRanking(
         localInventory.map((item) => ({
           ...item,
           description: item.title,
         })),
         q
       );
+      const rankedLocal = applyPersonalizationReranking(
+        rankedLocalBase.map((item) => ({
+          ...item,
+          categoryId: item.categoryId,
+          sellerId: item.sellerId || item.seller?.id,
+          createdAt: item.lastSyncedAt,
+        })),
+        personalizationProfile
+      );
       localInventory.splice(0, localInventory.length, ...rankedLocal);
 
-      const rankedDomestic = applyWeightedRanking(
+      const rankedDomesticBase = applyWeightedRanking(
         domesticSellers.map((item) => ({
           ...item,
           description: item.title,
         })),
         q
       );
+      const rankedDomestic = applyPersonalizationReranking(
+        rankedDomesticBase.map((item) => ({
+          ...item,
+          sellerId: item.sellerId || item.seller?.id,
+          createdAt: item.lastSyncedAt,
+        })),
+        personalizationProfile
+      );
       domesticSellers.splice(0, domesticSellers.length, ...rankedDomestic);
 
-      const rankedInternational = applyWeightedRanking(
+      const rankedInternationalBase = applyWeightedRanking(
         internationalSellers.map((item) => ({
           ...item,
           description: item.title,
         })),
         q
+      );
+      const rankedInternational = applyPersonalizationReranking(
+        rankedInternationalBase.map((item) => ({
+          ...item,
+          sellerId: item.sellerId || item.seller?.id,
+          createdAt: item.lastSyncedAt,
+        })),
+        personalizationProfile
       );
       internationalSellers.splice(0, internationalSellers.length, ...rankedInternational);
     } else {
@@ -1027,6 +1064,10 @@ export async function GET(request: NextRequest) {
         },
         sortMode,
         supportedSortModes: ['weighted_relevance', 'best_value', 'best_price', 'trust_seller', 'most_reviews', 'highest_rated'],
+        personalization: {
+          applied: sortMode === 'weighted_relevance' && Boolean(personalizationProfile?.hasSignals),
+          eventCount: personalizationProfile?.eventCount || 0,
+        },
         results: products,
         pagination: {
           page,

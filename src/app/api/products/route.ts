@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 import { applyWeightedRanking } from '@/lib/weightedRanking';
+import { applyPersonalizationReranking, buildPersonalizationProfile } from '@/lib/personalization';
 
 type VariantInput = {
   attributeName?: string;
@@ -65,6 +66,13 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q') || '';
     const categoryId = searchParams.get('categoryId');
     const sortBy = searchParams.get('sort') || 'createdAt';
+    const sessionId = request.headers.get('x-session-id') || searchParams.get('sessionId') || undefined;
+    const auth = await authenticate(request);
+    const userId = auth.success && auth.data?.userId ? String(auth.data.userId) : undefined;
+
+    const personalizationProfile = sortBy === 'relevance'
+      ? await buildPersonalizationProfile({ userId, sessionId })
+      : null;
 
     // Build where clause
     const where: any = { isActive: true };
@@ -130,11 +138,27 @@ export async function GET(request: NextRequest) {
           currentPrice: Number(product.currentPrice),
           originalPrice: Number(product.originalPrice),
           rating: Number(product.rating),
+          seller: product.seller
+            ? {
+                ...product.seller,
+                rating: Number(product.seller.rating || 0),
+              }
+            : undefined,
         })),
         q
       );
 
-      products = ranked.slice((page - 1) * limit, (page - 1) * limit + limit);
+      const reranked = applyPersonalizationReranking(
+        ranked.map((item) => ({
+          ...item,
+          categoryId: item.categoryId,
+          sellerId: item.sellerId || item.seller?.id,
+          createdAt: item.createdAt,
+        })),
+        personalizationProfile
+      );
+
+      products = reranked.slice((page - 1) * limit, (page - 1) * limit + limit);
     } else {
       products = await prisma.product.findMany({
         where,
@@ -162,6 +186,11 @@ export async function GET(request: NextRequest) {
       success: true,
       products,
       data: products,
+      ranking: {
+        mode: sortBy,
+        personalizationApplied: sortBy === 'relevance' && Boolean(personalizationProfile?.hasSignals),
+        personalizationEventCount: personalizationProfile?.eventCount || 0,
+      },
       pagination: {
         page,
         limit,

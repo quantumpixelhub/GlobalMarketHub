@@ -9,6 +9,8 @@ type RankableProduct = {
   stock: number;
   isFeatured?: boolean;
   seller?: {
+    id?: string;
+    storeName?: string;
     rating?: number;
     reviewCount?: number;
     isVerified?: boolean;
