@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
+import { getRankingExperimentAssignment, shouldApplyPersonalization, trackRankingMetric } from '@/lib/abRanking';
 import { applyWeightedRanking } from '@/lib/weightedRanking';
 import { applyPersonalizationReranking, buildPersonalizationProfile } from '@/lib/personalization';
 
@@ -66,11 +67,22 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q') || '';
     const categoryId = searchParams.get('categoryId');
     const sortBy = searchParams.get('sort') || 'createdAt';
+    const rankVariantOverride = searchParams.get('rankVariant');
     const sessionId = request.headers.get('x-session-id') || searchParams.get('sessionId') || undefined;
     const auth = await authenticate(request);
     const userId = auth.success && auth.data?.userId ? String(auth.data.userId) : undefined;
 
-    const personalizationProfile = sortBy === 'relevance'
+    const rankingExperiment = sortBy === 'relevance'
+      ? getRankingExperimentAssignment({
+          userId,
+          sessionId,
+          overrideVariant: rankVariantOverride,
+        })
+      : null;
+
+    const usePersonalization = sortBy === 'relevance' && shouldApplyPersonalization(rankingExperiment);
+
+    const personalizationProfile = usePersonalization
       ? await buildPersonalizationProfile({ userId, sessionId })
       : null;
 
@@ -148,17 +160,43 @@ export async function GET(request: NextRequest) {
         q
       );
 
-      const reranked = applyPersonalizationReranking(
-        ranked.map((item) => ({
-          ...item,
-          categoryId: item.categoryId,
-          sellerId: item.sellerId || item.seller?.id,
-          createdAt: item.createdAt,
-        })),
-        personalizationProfile
-      );
+      const reranked = usePersonalization
+        ? applyPersonalizationReranking(
+            ranked.map((item) => ({
+              ...item,
+              categoryId: item.categoryId,
+              sellerId: item.sellerId || item.seller?.id,
+              createdAt: item.createdAt,
+            })),
+            personalizationProfile
+          )
+        : ranked.map((item) => ({
+            ...item,
+            personalizationScore: 0,
+            finalScore: item.rankingScore,
+          }));
 
       products = reranked.slice((page - 1) * limit, (page - 1) * limit + limit);
+
+      if (rankingExperiment) {
+        await trackRankingMetric({
+          experimentKey: rankingExperiment.experimentKey,
+          variant: rankingExperiment.variant,
+          eventType: 'exposure',
+          endpoint: 'products_api',
+          userId,
+          sessionId,
+          query: q || undefined,
+          categoryId: categoryId || undefined,
+          sortMode: sortBy,
+          resultCount: products.length,
+          metadata: {
+            page,
+            limit,
+            personalizationApplied: usePersonalization,
+          },
+        });
+      }
     } else {
       products = await prisma.product.findMany({
         where,
@@ -188,8 +226,16 @@ export async function GET(request: NextRequest) {
       data: products,
       ranking: {
         mode: sortBy,
-        personalizationApplied: sortBy === 'relevance' && Boolean(personalizationProfile?.hasSignals),
+        personalizationApplied: usePersonalization && Boolean(personalizationProfile?.hasSignals),
         personalizationEventCount: personalizationProfile?.eventCount || 0,
+        abTest: rankingExperiment
+          ? {
+              experimentKey: rankingExperiment.experimentKey,
+              variant: rankingExperiment.variant,
+              override: rankingExperiment.override,
+              trafficToB: rankingExperiment.trafficToB,
+            }
+          : null,
       },
       pagination: {
         page,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authenticate, createToken, hashPassword } from "@/lib/auth";
+import { trackRankingMetric } from "@/lib/abRanking";
 import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
@@ -185,7 +186,14 @@ export async function POST(request: NextRequest) {
       createAccount,
       deliveryArea,
       deliverySpeed,
+      rankingExperimentKey,
+      rankingVariant,
     } = body;
+
+    const normalizedRankingVariant = String(rankingVariant || '').toUpperCase();
+    const hasRankingExperiment =
+      Boolean(rankingExperimentKey) &&
+      (normalizedRankingVariant === 'A' || normalizedRankingVariant === 'B');
 
     if (!auth.success && !isGuestCheckout) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -350,6 +358,23 @@ export async function POST(request: NextRequest) {
         include: { items: true },
       });
 
+      if (hasRankingExperiment) {
+        await trackRankingMetric({
+          experimentKey: String(rankingExperimentKey),
+          variant: normalizedRankingVariant as 'A' | 'B',
+          eventType: 'conversion',
+          endpoint: 'orders_api_guest',
+          userId: guestUserId,
+          sessionId: request.headers.get('x-session-id') || undefined,
+          orderId: order.id,
+          conversionValue: Number(order.totalAmount),
+          metadata: {
+            checkoutType: 'guest',
+            orderNumber: order.orderNumber,
+          },
+        });
+      }
+
       await Promise.all(
         order.items.map((item) =>
           trackEvent({
@@ -491,6 +516,23 @@ export async function POST(request: NextRequest) {
         include: { items: true },
       });
 
+      if (hasRankingExperiment) {
+        await trackRankingMetric({
+          experimentKey: String(rankingExperimentKey),
+          variant: normalizedRankingVariant as 'A' | 'B',
+          eventType: 'conversion',
+          endpoint: 'orders_api_direct',
+          userId,
+          sessionId: request.headers.get('x-session-id') || undefined,
+          orderId: order.id,
+          conversionValue: Number(order.totalAmount),
+          metadata: {
+            checkoutType: 'direct',
+            orderNumber: order.orderNumber,
+          },
+        });
+      }
+
       await Promise.all(
         order.items.map((item) =>
           trackEvent({
@@ -611,6 +653,23 @@ export async function POST(request: NextRequest) {
       },
       include: { items: true },
     });
+
+    if (hasRankingExperiment) {
+      await trackRankingMetric({
+        experimentKey: String(rankingExperimentKey),
+        variant: normalizedRankingVariant as 'A' | 'B',
+        eventType: 'conversion',
+        endpoint: 'orders_api_cart',
+        userId,
+        sessionId: request.headers.get('x-session-id') || undefined,
+        orderId: order.id,
+        conversionValue: Number(order.totalAmount),
+        metadata: {
+          checkoutType: 'cart',
+          orderNumber: order.orderNumber,
+        },
+      });
+    }
 
     await Promise.all(
       order.items.map((item) =>

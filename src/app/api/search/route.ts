@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { liveMarketplaceSearch, type LiveOffer } from "@/lib/liveMarketplaceSearch";
 import { authenticate } from "@/lib/auth";
+import { getRankingExperimentAssignment, shouldApplyPersonalization, trackRankingMetric } from "@/lib/abRanking";
 import { applyPersonalizationReranking, buildPersonalizationProfile } from "@/lib/personalization";
 import { applyWeightedRanking } from "@/lib/weightedRanking";
 
@@ -585,10 +586,21 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("order") || "desc";
     const sortMode = getSortMode(searchParams.get('sortMode'));
+    const rankVariantOverride = searchParams.get('rankVariant');
     const sessionId = request.headers.get('x-session-id') || searchParams.get('sessionId') || undefined;
     const auth = sortMode === 'weighted_relevance' ? await authenticate(request) : { success: false, data: null };
     const userId = auth.success && auth.data?.userId ? String(auth.data.userId) : undefined;
-    const personalizationProfile = sortMode === 'weighted_relevance'
+    const rankingExperiment = sortMode === 'weighted_relevance'
+      ? getRankingExperimentAssignment({
+          userId,
+          sessionId,
+          overrideVariant: rankVariantOverride,
+        })
+      : null;
+
+    const usePersonalization = sortMode === 'weighted_relevance' && shouldApplyPersonalization(rankingExperiment);
+
+    const personalizationProfile = usePersonalization
       ? await buildPersonalizationProfile({ userId, sessionId })
       : null;
     const sectionCacheKey = [
@@ -799,15 +811,21 @@ export async function GET(request: NextRequest) {
         })),
         q
       );
-      const rankedLocal = applyPersonalizationReranking(
-        rankedLocalBase.map((item) => ({
-          ...item,
-          categoryId: item.categoryId,
-          sellerId: item.sellerId || item.seller?.id,
-          createdAt: item.lastSyncedAt,
-        })),
-        personalizationProfile
-      );
+      const rankedLocal = usePersonalization
+        ? applyPersonalizationReranking(
+            rankedLocalBase.map((item) => ({
+              ...item,
+              categoryId: item.categoryId,
+              sellerId: item.sellerId || item.seller?.id,
+              createdAt: item.lastSyncedAt,
+            })),
+            personalizationProfile
+          )
+        : rankedLocalBase.map((item) => ({
+            ...item,
+            personalizationScore: 0,
+            finalScore: item.rankingScore,
+          }));
       localInventory.splice(0, localInventory.length, ...rankedLocal);
 
       const rankedDomesticBase = applyWeightedRanking(
@@ -817,14 +835,20 @@ export async function GET(request: NextRequest) {
         })),
         q
       );
-      const rankedDomestic = applyPersonalizationReranking(
-        rankedDomesticBase.map((item) => ({
-          ...item,
-          sellerId: item.sellerId || item.seller?.id,
-          createdAt: item.lastSyncedAt,
-        })),
-        personalizationProfile
-      );
+      const rankedDomestic = usePersonalization
+        ? applyPersonalizationReranking(
+            rankedDomesticBase.map((item) => ({
+              ...item,
+              sellerId: item.sellerId || item.seller?.id,
+              createdAt: item.lastSyncedAt,
+            })),
+            personalizationProfile
+          )
+        : rankedDomesticBase.map((item) => ({
+            ...item,
+            personalizationScore: 0,
+            finalScore: item.rankingScore,
+          }));
       domesticSellers.splice(0, domesticSellers.length, ...rankedDomestic);
 
       const rankedInternationalBase = applyWeightedRanking(
@@ -834,14 +858,20 @@ export async function GET(request: NextRequest) {
         })),
         q
       );
-      const rankedInternational = applyPersonalizationReranking(
-        rankedInternationalBase.map((item) => ({
-          ...item,
-          sellerId: item.sellerId || item.seller?.id,
-          createdAt: item.lastSyncedAt,
-        })),
-        personalizationProfile
-      );
+      const rankedInternational = usePersonalization
+        ? applyPersonalizationReranking(
+            rankedInternationalBase.map((item) => ({
+              ...item,
+              sellerId: item.sellerId || item.seller?.id,
+              createdAt: item.lastSyncedAt,
+            })),
+            personalizationProfile
+          )
+        : rankedInternationalBase.map((item) => ({
+            ...item,
+            personalizationScore: 0,
+            finalScore: item.rankingScore,
+          }));
       internationalSellers.splice(0, internationalSellers.length, ...rankedInternational);
     } else {
       localInventory.sort(compareListings(sortMode));
@@ -1055,6 +1085,26 @@ export async function GET(request: NextRequest) {
     const paginatedDomestic = domesticSellers.slice(skip, Math.min(skip + limit, domesticTotal));
     const paginatedInternational = internationalSellers.slice(skip, Math.min(skip + limit, internationalTotal));
 
+    if (sortMode === 'weighted_relevance' && rankingExperiment) {
+      await trackRankingMetric({
+        experimentKey: rankingExperiment.experimentKey,
+        variant: rankingExperiment.variant,
+        eventType: 'exposure',
+        endpoint: 'search_api',
+        userId,
+        sessionId,
+        query: q || undefined,
+        categoryId: categoryId || undefined,
+        sortMode,
+        resultCount: localInventory.length + paginatedDomestic.length + paginatedInternational.length,
+        metadata: {
+          page,
+          limit,
+          personalizationApplied: usePersonalization,
+        },
+      });
+    }
+
     return NextResponse.json(
       {
         sections: {
@@ -1065,9 +1115,17 @@ export async function GET(request: NextRequest) {
         sortMode,
         supportedSortModes: ['weighted_relevance', 'best_value', 'best_price', 'trust_seller', 'most_reviews', 'highest_rated'],
         personalization: {
-          applied: sortMode === 'weighted_relevance' && Boolean(personalizationProfile?.hasSignals),
+          applied: usePersonalization && Boolean(personalizationProfile?.hasSignals),
           eventCount: personalizationProfile?.eventCount || 0,
         },
+        abTest: rankingExperiment
+          ? {
+              experimentKey: rankingExperiment.experimentKey,
+              variant: rankingExperiment.variant,
+              override: rankingExperiment.override,
+              trafficToB: rankingExperiment.trafficToB,
+            }
+          : null,
         results: products,
         pagination: {
           page,
