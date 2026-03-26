@@ -27,7 +27,9 @@
     "db:purge-synthetic-external-offers": "node scripts/purgeSyntheticExternalOffers.js",
     "db:sync-marketplace-offers": "node scripts/syncMarketplaceOffers.js",
     "db:sync-category-taxonomy": "node scripts/syncCategoryTaxonomy.js",
-    "db:import-top20-categories": "node scripts/importTop20Categories150.js"
+    "db:import-top20-categories": "node scripts/importTop20Categories150.js",
+    "db:phase6:audit": "node scripts/auditAndExpandCategoryProducts.js --audit-only --scope=leaf --target=500",
+    "db:phase6:expand": "node scripts/auditAndExpandCategoryProducts.js --apply --scope=leaf --target=500"
   },
   "dependencies": {
     "@next/font": "^14.1.4",
