@@ -41,21 +41,19 @@ export const EmojiCategoryBrowser: React.FC = () => {
   }
 
   return (
-    <div className="space-y-3">
+    <nav className="flex flex-col gap-2 items-center">
       {categories.map((category) => (
         <Link
           key={category.id}
           href={`/products/${category.slug}`}
-          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors group"
+          className="flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-white hover:bg-gray-100 transition-colors group shadow-sm border border-gray-100"
+          title={category.name}
         >
-          <span className="text-4xl flex-shrink-0">
+          <span className="text-2xl flex-shrink-0">
             {category.description || '📦'}
-          </span>
-          <span className="font-medium text-gray-800 group-hover:text-rose-600 transition-colors">
-            {category.name}
           </span>
         </Link>
       ))}
-    </div>
+    </nav>
   );
 };
