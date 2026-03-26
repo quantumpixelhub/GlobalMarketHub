@@ -83,6 +83,7 @@ export default function ProductDetailPage() {
   const [mediaTab, setMediaTab] = useState<'photos' | 'video'>('photos');
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
+  const [frequentlyBoughtTogether, setFrequentlyBoughtTogether] = useState<RecommendedProduct[]>([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
@@ -120,17 +121,33 @@ export default function ProductDetailPage() {
           };
           setProduct(normalized);
 
-          if (normalized.category?.id) {
+          if (normalized.id) {
             setLoadingRecommendations(true);
             try {
-              const relatedRes = await fetch(`/api/products?categoryId=${normalized.category.id}&limit=8`);
+              const relatedRes = await fetch(`/api/recommendations/${normalized.id}?similarLimit=8&fbtLimit=8`);
               if (relatedRes.ok) {
                 const relatedData = await relatedRes.json();
-                const relatedItems = Array.isArray(relatedData?.products)
-                  ? relatedData.products
+                const similarItems = Array.isArray(relatedData?.similarProducts)
+                  ? relatedData.similarProducts
+                  : [];
+                const coPurchaseItems = Array.isArray(relatedData?.frequentlyBoughtTogether)
+                  ? relatedData.frequentlyBoughtTogether
                   : [];
 
-                const normalizedRelated: RecommendedProduct[] = relatedItems
+                const normalizedRelated: RecommendedProduct[] = similarItems
+                  .filter((item: any) => item.id !== normalized.id)
+                  .slice(0, 4)
+                  .map((item: any) => ({
+                    id: item.id,
+                    title: item.title,
+                    mainImage: item.mainImage,
+                    currentPrice: asNumber(item.currentPrice),
+                    originalPrice: asNumber(item.originalPrice),
+                    rating: asNumber(item.rating),
+                    reviewCount: asNumber(item.reviewCount),
+                  }));
+
+                const normalizedFrequentlyBoughtTogether: RecommendedProduct[] = coPurchaseItems
                   .filter((item: any) => item.id !== normalized.id)
                   .slice(0, 4)
                   .map((item: any) => ({
@@ -144,6 +161,7 @@ export default function ProductDetailPage() {
                   }));
 
                 setRecommendedProducts(normalizedRelated);
+                setFrequentlyBoughtTogether(normalizedFrequentlyBoughtTogether);
               }
             } catch (relatedError) {
               console.error('Error fetching recommended products:', relatedError);
@@ -905,6 +923,44 @@ export default function ProductDetailPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {recommendedProducts.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/product/${item.id}`}
+                  className="block rounded-xl border border-gray-200 hover:border-rose-300 hover:shadow-sm transition overflow-hidden"
+                >
+                  <img
+                    src={item.mainImage}
+                    alt={item.title}
+                    className="w-full h-44 object-cover bg-gray-100"
+                  />
+                  <div className="p-3">
+                    <p className="text-sm font-medium text-gray-900 line-clamp-2 min-h-[40px]">{item.title}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="font-bold text-rose-700">৳{item.currentPrice.toLocaleString()}</span>
+                      {item.originalPrice > item.currentPrice && (
+                        <span className="text-xs text-gray-400 line-through">৳{item.originalPrice.toLocaleString()}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">⭐ {item.rating.toFixed(1)} ({item.reviewCount})</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">Frequently Bought Together</h2>
+          </div>
+
+          {loadingRecommendations ? (
+            <p className="text-sm text-gray-600">Loading recommendations...</p>
+          ) : frequentlyBoughtTogether.length === 0 ? (
+            <p className="text-sm text-gray-600">No bundle suggestions found right now.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {frequentlyBoughtTogether.map((item) => (
                 <Link
                   key={item.id}
                   href={`/product/${item.id}`}
