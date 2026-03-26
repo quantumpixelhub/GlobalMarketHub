@@ -29,7 +29,8 @@
     "db:sync-category-taxonomy": "node scripts/syncCategoryTaxonomy.js",
     "db:import-top20-categories": "node scripts/importTop20Categories150.js",
     "db:phase6:audit": "node scripts/auditAndExpandCategoryProducts.js --audit-only --scope=leaf --target=500",
-    "db:phase6:expand": "node scripts/auditAndExpandCategoryProducts.js --apply --scope=leaf --target=500 --min-total=40001"
+    "db:phase6:expand": "node scripts/auditAndExpandCategoryProducts.js --apply --scope=leaf --target=500 --min-total=40001",
+    "db:phase7:verify": "node scripts/verifyRankingObjectivesPhase7.js --scope=leaf --target=500 --min-total=40001 --top-n=20"
   },
   "dependencies": {
     "@next/font": "^14.1.4",
