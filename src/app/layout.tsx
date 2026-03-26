@@ -34,16 +34,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Only show sidebar on homepage, flush left
+  // Show sidebar on all pages, flush left, but only show category links on homepage and product-related pages
+  const isBrowser = typeof window !== 'undefined';
+  const path = isBrowser ? window.location.pathname : '';
+  const showSidebar = path === '/' || path.startsWith('/product') || path.startsWith('/category') || path.startsWith('/cart') || path.startsWith('/checkout');
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <ToastProvider>
           <div className="flex flex-1 min-h-0">
-            {/* Sidebar: only on homepage, flush left */}
-            {typeof window !== 'undefined' && window.location.pathname === '/' && (
+            {/* Sidebar: flush left on all relevant pages */}
+            {showSidebar && (
               <aside className="hidden md:flex flex-col w-20 min-w-[78px] max-w-[120px] bg-[#fcfcfc] border-r border-gray-100 py-6 px-2 z-20">
-                {/* Dynamically import to avoid SSR issues */}
                 {require('@/components/shared/EmojiCategoryBrowser').EmojiCategoryBrowser()}
               </aside>
             )}
