@@ -153,7 +153,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       {/* Top Header */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
@@ -180,7 +180,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-73px)]">
+      <div className="flex min-h-[calc(100vh-73px)] overflow-hidden">
       {/* Sidebar */}
       <div
         className={`${
@@ -259,9 +259,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 overflow-hidden">
         {/* Page Content */}
-        <div className="p-6 bg-gray-50 min-h-[calc(100vh-73px)]">{children}</div>
+        <div className="p-6 bg-gray-50 min-h-[calc(100vh-73px)] overflow-x-hidden">{children}</div>
       </div>
       </div>
     </div>

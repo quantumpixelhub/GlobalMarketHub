@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Eye, CheckCircle, Clock, XCircle } from 'lucide-react';
 
 interface Order {
@@ -28,6 +28,7 @@ interface Order {
     amount: number;
     completedAt?: string | null;
   } | null;
+  categoryNames?: string[];
   user?: {
     email: string;
     firstName: string;
@@ -55,6 +56,14 @@ export default function OrdersPage() {
   const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
   const [recoveringOrderId, setRecoveringOrderId] = useState<string | null>(null);
   const [refundingOrderId, setRefundingOrderId] = useState<string | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState('PROCESSING');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [customerFilter, setCustomerFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -85,6 +94,7 @@ export default function OrdersPage() {
           setRecoveredAmount(Number(data?.summary?.recoveredAmount || 0));
           setRefundedCount(Number(data?.summary?.refundedCount || 0));
           setOrders(list);
+          setSelectedOrderIds([]);
           const initialEdits: Record<string, EditableOrderFields> = {};
           list.forEach((order: Order) => {
             initialEdits[order.id] = {
@@ -107,6 +117,143 @@ export default function OrdersPage() {
 
     fetchOrders();
   }, [activeFilter]);
+
+  const categoryOptions = useMemo(() => {
+    const all = new Set<string>();
+    orders.forEach((order) => {
+      (order.categoryNames || []).forEach((name) => {
+        if (name) all.add(name);
+      });
+    });
+    return Array.from(all).sort((a, b) => a.localeCompare(b));
+  }, [orders]);
+
+  const customerOptions = useMemo(() => {
+    const all = new Set<string>();
+    orders.forEach((order) => {
+      const label = order.customerName || order.customerEmail || 'Unknown Customer';
+      if (label) all.add(label);
+    });
+    return Array.from(all).sort((a, b) => a.localeCompare(b));
+  }, [orders]);
+
+  const monthOptions = useMemo(() => {
+    const all = new Set<string>();
+    orders.forEach((order) => {
+      const d = new Date(order.createdAt);
+      if (Number.isNaN(d.getTime())) return;
+      const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      all.add(month);
+    });
+    return Array.from(all).sort((a, b) => b.localeCompare(a));
+  }, [orders]);
+
+  const yearOptions = useMemo(() => {
+    const all = new Set<string>();
+    orders.forEach((order) => {
+      const d = new Date(order.createdAt);
+      if (Number.isNaN(d.getTime())) return;
+      all.add(String(d.getFullYear()));
+    });
+    return Array.from(all).sort((a, b) => Number(b) - Number(a));
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const orderDate = new Date(order.createdAt);
+      const orderDateStr = Number.isNaN(orderDate.getTime())
+        ? ''
+        : `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
+      const orderMonthStr = Number.isNaN(orderDate.getTime())
+        ? ''
+        : `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}`;
+      const orderYearStr = Number.isNaN(orderDate.getTime()) ? '' : String(orderDate.getFullYear());
+      const orderCustomer = order.customerName || order.customerEmail || 'Unknown Customer';
+
+      if (categoryFilter !== 'all' && !(order.categoryNames || []).includes(categoryFilter)) return false;
+      if (customerFilter !== 'all' && orderCustomer !== customerFilter) return false;
+      if (statusFilter !== 'all' && order.status !== statusFilter) return false;
+      if (dateFilter && orderDateStr !== dateFilter) return false;
+      if (monthFilter !== 'all' && orderMonthStr !== monthFilter) return false;
+      if (yearFilter !== 'all' && orderYearStr !== yearFilter) return false;
+
+      return true;
+    });
+  }, [orders, categoryFilter, customerFilter, statusFilter, dateFilter, monthFilter, yearFilter]);
+
+  const allVisibleSelected = filteredOrders.length > 0 && filteredOrders.every((order) => selectedOrderIds.includes(order.id));
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedOrderIds((prev) => prev.filter((id) => !filteredOrders.some((order) => order.id === id)));
+      return;
+    }
+
+    const merged = new Set(selectedOrderIds);
+    filteredOrders.forEach((order) => merged.add(order.id));
+    setSelectedOrderIds(Array.from(merged));
+  };
+
+  const toggleSelectOrder = (orderId: string) => {
+    setSelectedOrderIds((prev) =>
+      prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
+    );
+  };
+
+  const applyBulkStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login again');
+      return;
+    }
+
+    if (!selectedOrderIds.length) {
+      alert('Select at least one order');
+      return;
+    }
+
+    try {
+      const selected = orders.filter((order) => selectedOrderIds.includes(order.id));
+      await Promise.all(
+        selected.map((order) =>
+          fetch('/api/admin/orders', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              orderId: order.id,
+              courierName: edits[order.id]?.courierName || '',
+              trackingNumber: edits[order.id]?.trackingNumber || '',
+              status: bulkStatus,
+            }),
+          })
+        )
+      );
+
+      setOrders((prev) => prev.map((order) => (
+        selectedOrderIds.includes(order.id)
+          ? { ...order, status: bulkStatus }
+          : order
+      )));
+      setEdits((prev) => {
+        const next = { ...prev };
+        selectedOrderIds.forEach((id) => {
+          next[id] = {
+            courierName: next[id]?.courierName || '',
+            trackingNumber: next[id]?.trackingNumber || '',
+            status: bulkStatus,
+          };
+        });
+        return next;
+      });
+      setSelectedOrderIds([]);
+    } catch (error) {
+      console.error('Bulk update error:', error);
+      alert('Failed to update selected orders');
+    }
+  };
 
   const updateEditField = (orderId: string, field: keyof EditableOrderFields, value: string) => {
     setEdits((prev) => ({
@@ -384,17 +531,131 @@ export default function OrdersPage() {
             Refunded Payments ({refundedCount})
           </button>
         </div>
+
+        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="all">All Categories</option>
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+
+            <select
+              value={customerFilter}
+              onChange={(e) => setCustomerFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="all">All Customers</option>
+              {customerOptions.map((customer) => (
+                <option key={customer} value={customer}>{customer}</option>
+              ))}
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="all">All Status</option>
+              <option value="PENDING">Pending</option>
+              <option value="PROCESSING">Processing</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="RETURNED">Returned</option>
+            </select>
+
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="all">All Months</option>
+              {monthOptions.map((month) => (
+                <option key={month} value={month}>{month}</option>
+              ))}
+            </select>
+
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="all">All Years</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <span className="text-sm text-gray-600">Selected: <span className="font-semibold">{selectedOrderIds.length}</span></span>
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="PENDING">Pending</option>
+              <option value="PROCESSING">Processing</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="RETURNED">Returned</option>
+            </select>
+            <button
+              type="button"
+              onClick={applyBulkStatus}
+              className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700"
+            >
+              Apply To Selected
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCategoryFilter('all');
+                setCustomerFilter('all');
+                setStatusFilter('all');
+                setDateFilter('');
+                setMonthFilter('all');
+                setYearFilter('all');
+              }}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
       </div>
 
       {loading ? (
         <p>Loading orders...</p>
       ) : (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <table className="w-full min-w-[1850px]">
+          <div className="bg-white rounded-lg shadow max-w-full overflow-x-auto">
+            <table className="w-max min-w-[1950px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
+                  <th className="text-left px-4 py-4 font-semibold text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                    />
+                  </th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Order #</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Category</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Customer</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Email</th>
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Phone</th>
@@ -411,9 +672,19 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <tr key={order.id} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrderIds.includes(order.id)}
+                        onChange={() => toggleSelectOrder(order.id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 font-medium text-gray-800">{order.orderNumber}</td>
+                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                      {(order.categoryNames || []).length ? (order.categoryNames || []).join(', ') : '-'}
+                    </td>
                     <td className="px-6 py-4 text-gray-600">
                       {order.customerName || (order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Unknown Customer')}
                     </td>

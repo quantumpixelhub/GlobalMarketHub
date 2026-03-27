@@ -71,6 +71,13 @@ function normalizeOrder(order: any) {
   const hasCourier = courierName !== 'Not Assigned';
   const isIncomplete = !['DELIVERED', 'CANCELLED', 'RETURNED'].includes(order.status);
   const isRecovered = hasRecoveryTag(order.notes);
+  const categoryNames = Array.from(
+    new Set(
+      (order.items || [])
+        .map((item: any) => normalizeText(item?.product?.category?.name))
+        .filter(Boolean)
+    )
+  );
 
   let trackingProgress = 'Completed';
   if (isIncomplete) {
@@ -94,6 +101,7 @@ function normalizeOrder(order: any) {
     isIncomplete,
     isRecovered,
     trackingProgress,
+    categoryNames,
   };
 }
 
@@ -165,7 +173,19 @@ export async function GET(request: NextRequest) {
               lastName: true,
             },
           },
-          items: true,
+          items: {
+            include: {
+              product: {
+                select: {
+                  category: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           payment: {
             select: {
               id: true,
@@ -274,7 +294,19 @@ export async function PATCH(request: NextRequest) {
             lastName: true,
           },
         },
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                category: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         payment: {
           select: {
             id: true,
@@ -328,7 +360,19 @@ export async function PATCH(request: NextRequest) {
               lastName: true,
             },
           },
-          items: true,
+          items: {
+            include: {
+              product: {
+                select: {
+                  category: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           payment: {
             select: {
               id: true,
@@ -368,7 +412,19 @@ export async function PATCH(request: NextRequest) {
             lastName: true,
           },
         },
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                category: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         payment: {
           select: {
             id: true,
