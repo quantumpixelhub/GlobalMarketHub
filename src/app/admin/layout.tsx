@@ -153,9 +153,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 overflow-x-hidden">
+    <div className="h-screen bg-gray-100 overflow-hidden">
       {/* Top Header */}
-      <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Welcome Back!</h2>
           <p className="text-xs text-gray-500">Manage your store and track performance</p>
@@ -180,12 +180,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-73px)] overflow-hidden">
       {/* Sidebar */}
       <div
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } sticky top-[73px] h-[calc(100vh-73px)] bg-gray-900 text-white transition-all duration-300 flex flex-col flex-shrink-0 overflow-y-auto`}
+        } fixed top-[73px] left-0 bottom-0 z-30 bg-gray-900 text-white transition-all duration-300 flex flex-col flex-shrink-0 overflow-y-auto`}
       >
         {/* Logo & Sidebar Toggle */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
@@ -259,10 +258,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 overflow-hidden">
-        {/* Page Content */}
-        <div className="p-6 bg-gray-50 min-h-[calc(100vh-73px)] overflow-x-hidden">{children}</div>
-      </div>
+      <div
+        className={`pt-[73px] h-screen transition-all duration-300 ${
+          sidebarOpen ? 'ml-64' : 'ml-20'
+        }`}
+      >
+        <div className="h-[calc(100vh-73px)] overflow-y-auto overflow-x-hidden">
+          {/* Page Content */}
+          <div className="p-6 bg-gray-50 min-h-full overflow-x-hidden">{children}</div>
+        </div>
       </div>
     </div>
   );
