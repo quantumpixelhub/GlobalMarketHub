@@ -52,6 +52,7 @@ export default function MockPaymentClient({ transactionId, gateway, initialAmoun
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [paidAmount, setPaidAmount] = useState<number | null>(null);
 
   const logoSrc = useMemo(() => logoByGateway[normalizedGateway] || logoByGateway.bkash, [normalizedGateway]);
   const gatewayTitle = useMemo(() => titleByGateway[normalizedGateway] || 'bKash', [normalizedGateway]);
@@ -142,6 +143,7 @@ export default function MockPaymentClient({ transactionId, gateway, initialAmoun
 
       setIsSuccess(true);
       setSuccessMessage(data.message || 'Payment Successful');
+      setPaidAmount(typeof data?.amount === 'number' ? data.amount : amount);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Payment submission failed.');
     } finally {
@@ -158,6 +160,7 @@ export default function MockPaymentClient({ transactionId, gateway, initialAmoun
       <div className="bg-white border border-emerald-200 rounded-xl p-6">
         <h1 className="text-2xl font-bold text-emerald-700">Payment Successful</h1>
         <p className="text-gray-700 mt-2">{successMessage}</p>
+        <p className="text-sm text-gray-600 mt-2">Amount: ৳ {(paidAmount ?? amount).toLocaleString()}</p>
         <p className="text-sm text-gray-500 mt-3">Invoice ID: {invoiceId}</p>
       </div>
     );

@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
+import { verifyPassword } from '@/lib/auth';
 
 type JsonRecord = Record<string, unknown>;
-
-function getPhoneFromJson(details: unknown): string | null {
-  if (!details || typeof details !== 'object') return null;
-  const source = details as JsonRecord;
-  const phone = source.phone || source.mobile || source.senderNumber;
-  return typeof phone === 'string' && phone.trim() ? phone.trim() : null;
-}
 
 function maskMobile(raw: string | null): string | null {
   if (!raw) return null;
@@ -20,14 +14,9 @@ function maskMobile(raw: string | null): string | null {
 
 async function resolveSavedMobile(args: {
   userId?: string;
-  transactionUserPhone?: string | null;
-  transactionPhone?: string | null;
   gateway: string;
 }) {
-  const { userId, transactionUserPhone, transactionPhone, gateway } = args;
-
-  if (transactionPhone) return transactionPhone;
-  if (transactionUserPhone) return transactionUserPhone;
+  const { userId, gateway } = args;
 
   if (!userId) return null;
 
@@ -44,15 +33,32 @@ async function resolveSavedMobile(args: {
     },
   });
 
-  const phoneFromCustomer = getPhoneFromJson(latestSuccess?.customerDetails);
-  if (phoneFromCustomer) return phoneFromCustomer;
+  const customer = latestSuccess?.customerDetails;
+  if (customer && typeof customer === 'object') {
+    const saved = (customer as JsonRecord).walletPhone;
+    if (typeof saved === 'string' && saved.trim()) return saved.trim();
+  }
 
-  return getPhoneFromJson(latestSuccess?.gatewayResponse);
+  const gatewayResponse = latestSuccess?.gatewayResponse;
+  if (gatewayResponse && typeof gatewayResponse === 'object') {
+    const saved = (gatewayResponse as JsonRecord).savedWalletPhone;
+    if (typeof saved === 'string' && saved.trim()) return saved.trim();
+  }
+
+  return null;
+}
+
+function normalizeDigits(value: string | null | undefined): string {
+  return String(value || '').replace(/\D/g, '');
 }
 
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
+    if (!auth.success) {
+      return NextResponse.json({ error: 'Please login to continue payment.' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const transactionId = String(searchParams.get('transactionId') || '');
     const gateway = String(searchParams.get('gateway') || 'bkash').toLowerCase();
@@ -83,9 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     const savedMobile = await resolveSavedMobile({
-      userId: auth.success ? transaction.userId : undefined,
-      transactionUserPhone: transaction.user?.phone || null,
-      transactionPhone: getPhoneFromJson(transaction.customerDetails),
+      userId: transaction.userId,
       gateway,
     });
 
@@ -109,6 +113,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticate(request);
+    if (!auth.success) {
+      return NextResponse.json({ error: 'Please login to submit payment.' }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const transactionId = String(body?.transactionId || '');
@@ -132,6 +140,7 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             phone: true,
+            password: true,
           },
         },
       },
@@ -146,17 +155,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const savedMobile = await resolveSavedMobile({
-      userId: auth.success ? transaction.userId : undefined,
-      transactionUserPhone: transaction.user?.phone || null,
-      transactionPhone: getPhoneFromJson(transaction.customerDetails),
-      gateway,
-    });
+    const savedMobile = await resolveSavedMobile({ userId: transaction.userId, gateway });
+
+    const passwordMatches = await verifyPassword(password, transaction.user.password);
+    if (!passwordMatches) {
+      return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
+    }
 
     if (!savedMobile) {
       const digits = mobileNumber.replace(/\D/g, '');
       if (digits.length < 10 || digits.length > 14) {
         return NextResponse.json({ error: 'Valid mobile number is required.' }, { status: 400 });
+      }
+
+      const registeredDigits = normalizeDigits(transaction.user.phone);
+      if (registeredDigits && digits !== registeredDigits) {
+        return NextResponse.json({ error: 'Mobile number does not match your registered account.' }, { status: 400 });
       }
     }
 
@@ -170,6 +184,7 @@ export async function POST(request: NextRequest) {
           customerDetails: {
             ...(typeof transaction.customerDetails === 'object' && transaction.customerDetails ? transaction.customerDetails : {}),
             phone: savedMobile || mobileNumber,
+            walletPhone: savedMobile || mobileNumber,
           } as any,
           gatewayResponse: {
             ...(typeof transaction.gatewayResponse === 'object' && transaction.gatewayResponse ? transaction.gatewayResponse : {}),
@@ -177,6 +192,7 @@ export async function POST(request: NextRequest) {
             paymentStatus: 'SUCCESS',
             gateway,
             usedSavedAccount: Boolean(savedMobile),
+            savedWalletPhone: savedMobile || mobileNumber,
           } as any,
         },
       });
@@ -197,6 +213,7 @@ export async function POST(request: NextRequest) {
         message: 'Payment Successful',
         transactionId: transaction.id,
         orderId: transaction.orderId,
+        amount: Number(transaction.amount),
       },
       { status: 200 }
     );
