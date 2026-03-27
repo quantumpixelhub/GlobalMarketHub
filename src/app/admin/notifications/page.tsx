@@ -11,7 +11,10 @@ type NotificationItem = {
   title: string;
   message: string;
   level: NotificationLevel;
-  details: string[];
+  table: {
+    columns: string[];
+    rows: string[][];
+  };
 };
 
 type DashboardResponse = {
@@ -96,7 +99,10 @@ export default function NotificationsPage() {
               title: 'Unable to load notifications',
               message: 'Failed to load latest admin alerts.',
               level: 'Warning',
-              details: ['Please refresh this page or try again later.'],
+              table: {
+                columns: ['SL', 'Details'],
+                rows: [['1', 'Please refresh this page or try again later.']],
+              },
             },
           ]);
           return;
@@ -112,12 +118,19 @@ export default function NotificationsPage() {
             title: 'Low Stock Alert',
             message: `${data.lowStockCount} products are below low-stock threshold.`,
             level: 'Warning',
-            details: lowStockProducts.length
-              ? lowStockProducts.map(
-                  (item) =>
-                    `${item.title} | Main: ${item.mainCategory || 'N/A'}${item.subCategory ? ` | Sub: ${item.subCategory}` : ''} | stock: ${item.stock} | Date: ${item.notifiedAt ? formatDate(item.notifiedAt) : 'N/A'}`
-                )
-              : ['No product breakdown available.'],
+            table: {
+              columns: ['SL', 'Product', 'Main Category', 'Sub Category', 'Stock', 'Date'],
+              rows: lowStockProducts.length
+                ? lowStockProducts.map((item, index) => [
+                    String(index + 1),
+                    item.title,
+                    item.mainCategory || 'N/A',
+                    item.subCategory || '-',
+                    String(item.stock),
+                    item.notifiedAt ? formatDate(item.notifiedAt) : 'N/A',
+                  ])
+                : [['1', 'No product breakdown available.', '-', '-', '-', '-']],
+            },
           });
         }
 
@@ -128,12 +141,21 @@ export default function NotificationsPage() {
             title: 'Incomplete Tracking Orders',
             message: `${data.incompleteCount} orders still need completion tracking.`,
             level: 'Info',
-            details: recentIncomplete.length
-              ? recentIncomplete.map(
-                  (order) =>
-                    `${order.orderNumber} | ${order.status} | ${formatAmount(order.totalAmount)} | Customer: ${order.customerName || 'N/A'} | Email: ${order.customerEmail || 'N/A'} | Phone: ${order.customerPhone || 'N/A'} | Date: ${formatDate(order.updatedAt || order.createdAt)}`
-                )
-              : ['No recent incomplete order details available.'],
+            table: {
+              columns: ['SL', 'Order #', 'Status', 'Amount', 'Customer', 'Email', 'Phone', 'Date'],
+              rows: recentIncomplete.length
+                ? recentIncomplete.map((order, index) => [
+                    String(index + 1),
+                    order.orderNumber,
+                    order.status,
+                    formatAmount(order.totalAmount),
+                    order.customerName || 'N/A',
+                    order.customerEmail || 'N/A',
+                    order.customerPhone || 'N/A',
+                    formatDate(order.updatedAt || order.createdAt),
+                  ])
+                : [['1', 'No recent incomplete order details available.', '-', '-', '-', '-', '-', '-']],
+            },
           });
         }
 
@@ -144,12 +166,17 @@ export default function NotificationsPage() {
             title: 'Recovered Orders',
             message: `${data.recoveredOrders} orders recovered (${formatAmount(Number(data.recoveredAmount || 0))}).`,
             level: 'Success',
-            details: recentRecovered.length
-              ? recentRecovered.map(
-                  (order) =>
-                    `${order.orderNumber} | ${formatAmount(order.totalAmount)} | ${formatDate(order.updatedAt)}`
-                )
-              : ['No recent recovered order details available.'],
+            table: {
+              columns: ['SL', 'Order #', 'Amount', 'Date'],
+              rows: recentRecovered.length
+                ? recentRecovered.map((order, index) => [
+                    String(index + 1),
+                    order.orderNumber,
+                    formatAmount(order.totalAmount),
+                    formatDate(order.updatedAt),
+                  ])
+                : [['1', 'No recent recovered order details available.', '-', '-']],
+            },
           });
         }
 
@@ -160,12 +187,17 @@ export default function NotificationsPage() {
             title: 'Refunded Payments',
             message: `${data.refundedCount} payments are refunded.`,
             level: 'Info',
-            details: recentRefunded.length
-              ? recentRefunded.map(
-                  (order) =>
-                    `${order.orderNumber} | ${formatAmount(order.totalAmount)} | ${formatDate(order.updatedAt)}`
-                )
-              : ['No recent refunded payment details available.'],
+            table: {
+              columns: ['SL', 'Order #', 'Amount', 'Date'],
+              rows: recentRefunded.length
+                ? recentRefunded.map((order, index) => [
+                    String(index + 1),
+                    order.orderNumber,
+                    formatAmount(order.totalAmount),
+                    formatDate(order.updatedAt),
+                  ])
+                : [['1', 'No recent refunded payment details available.', '-', '-']],
+            },
           });
         }
 
@@ -175,7 +207,10 @@ export default function NotificationsPage() {
             title: 'No new notifications',
             message: 'All admin alerts have been reviewed.',
             level: 'Success',
-            details: ['You are all caught up for now.'],
+            table: {
+              columns: ['SL', 'Details'],
+              rows: [['1', 'You are all caught up for now.']],
+            },
           });
         }
 
@@ -201,7 +236,10 @@ export default function NotificationsPage() {
             title: 'Unexpected notification error',
             message: 'Could not load notifications.',
             level: 'Warning',
-            details: ['Please try refreshing the page.'],
+            table: {
+              columns: ['SL', 'Details'],
+              rows: [['1', 'Please try refreshing the page.']],
+            },
           },
         ]);
       } finally {
@@ -236,15 +274,30 @@ export default function NotificationsPage() {
                 <span className={`text-xs px-2 py-1 rounded ${levelBadgeClass(item.level)}`}>{item.level}</span>
               </div>
               <p className="text-gray-700 mb-3">{item.message}</p>
-              <div className="rounded border border-gray-200 bg-gray-50 p-3">
+              <div className="rounded border border-gray-200 bg-gray-50 p-3 overflow-x-auto">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Details</p>
-                <ul className="space-y-1">
-                  {item.details.map((detail, index) => (
-                    <li key={`${item.id}-${index}`} className="text-sm text-gray-700">
-                      {detail}
-                    </li>
-                  ))}
-                </ul>
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-left text-gray-600">
+                      {item.table.columns.map((column) => (
+                        <th key={`${item.id}-${column}`} className="px-3 py-2 font-semibold whitespace-nowrap">
+                          {column}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.table.rows.map((row, rowIndex) => (
+                      <tr key={`${item.id}-row-${rowIndex}`} className="border-b border-gray-100 last:border-0 text-gray-700">
+                        {row.map((cell, cellIndex) => (
+                          <td key={`${item.id}-${rowIndex}-${cellIndex}`} className="px-3 py-2 align-top">
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           ))}
