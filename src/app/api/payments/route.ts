@@ -281,7 +281,12 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      paymentUrl = uddoktaResponse.paymentUrl;
+      // Keep wallet flows on our hosted payment page so users do not see sandbox branding.
+      if (["bkash", "nagad"].includes(requestedPaymentMethod)) {
+        paymentUrl = `${origin}/payment/mock?transactionId=${encodeURIComponent(transaction.id)}&gateway=${encodeURIComponent(requestedPaymentMethod)}&amount=${encodeURIComponent(String(order.totalAmount))}&orderId=${encodeURIComponent(order.id)}`;
+      } else {
+        paymentUrl = uddoktaResponse.paymentUrl;
+      }
 
       await prisma.paymentTransaction.update({
         where: { id: transaction.id },
@@ -292,6 +297,7 @@ export async function POST(request: NextRequest) {
             invoiceId: uddoktaResponse.invoiceId,
             providerTransactionId: uddoktaResponse.transactionId,
             paymentUrl: uddoktaResponse.paymentUrl,
+            hostedPaymentUrl: paymentUrl,
             message: uddoktaResponse.message,
           },
         },
