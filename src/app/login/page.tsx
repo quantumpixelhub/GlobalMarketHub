@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
+import { useCSRFToken } from '@/hooks/useCSRFToken';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { token: csrfToken, sessionId, refreshToken, handleError } = useCSRFToken();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -29,11 +31,28 @@ export default function LoginPage() {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+          'X-Session-Id': sessionId,
+        },
+        body: JSON.stringify({
+          ...formData,
+          _csrf: csrfToken,
+          _session_id: sessionId,
+        }),
       });
 
       const data = await res.json();
+
+      // Handle CSRF token validation error
+      if (res.status === 403) {
+        const wasStale = await handleError(res);
+        if (wasStale) {
+          setError('Security token expired. Please try again.');
+          return;
+        }
+      }
 
       if (res.ok) {
         // Store token

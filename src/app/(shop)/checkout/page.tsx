@@ -7,6 +7,7 @@ import { Footer } from '@/components/shared/Footer';
 import { CheckoutForm } from '@/components/cart/CheckoutForm';
 import { clearGuestCart, getGuestCartSummary } from '@/lib/guestCart';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useCSRFToken } from '@/hooks/useCSRFToken';
 
 interface UserAddress {
   id: string;
@@ -78,6 +79,8 @@ interface ProfileData {
 }
 
 export default function CheckoutPage() {
+  const { showToast } = useToast();
+  const { token: csrfToken, sessionId, handleError } = useCSRFToken();
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [buyNowItems, setBuyNowItems] = useState<BuyNowItem[]>([]);
@@ -264,7 +267,9 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
+          'X-Session-Id': sessionId,
         },
         body: JSON.stringify({
           ...(buyNowItems.length > 0
@@ -278,8 +283,19 @@ export default function CheckoutPage() {
           shippingAddressId: data.addressId,
           deliveryArea: data.deliveryArea,
           deliverySpeed: data.deliverySpeed,
+          _csrf: data._csrf,
+          _session_id: data._session_id,
         }),
       });
+
+      // Handle CSRF token validation error
+      if (orderRes.status === 403) {
+        const wasStale = await handleError(orderRes);
+        if (wasStale) {
+          showToast('Security token expired. Please try again.', 'error');
+          return;
+        }
+      }
 
       if (!orderRes.ok) {
         const errorData = await orderRes.json();
@@ -293,11 +309,15 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
+          'X-Session-Id': sessionId,
         },
         body: JSON.stringify({
           orderId: orderData.order.id,
           paymentMethod: data.paymentMethod,
+          _csrf: data._csrf,
+          _session_id: data._session_id,
         }),
       });
 

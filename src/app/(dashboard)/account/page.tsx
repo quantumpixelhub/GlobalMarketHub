@@ -5,6 +5,7 @@ import { Navigation } from '@/components/shared/Navigation';
 import { Footer } from '@/components/shared/Footer';
 import { User, MapPin, Package, LogOut, Camera } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useCSRFToken } from '@/hooks/useCSRFToken';
 
 interface UserProfile {
   id: string;
@@ -27,6 +28,7 @@ interface Order {
 
 export default function AccountPage() {
   const { showToast } = useToast();
+  const { token: csrfToken, sessionId, refreshToken, handleError } = useCSRFToken();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,9 +116,24 @@ export default function AccountPage() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
+          'X-Session-Id': sessionId,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          _csrf: csrfToken,
+          _session_id: sessionId,
+        }),
       });
+
+      // Handle CSRF token validation error
+      if (res.status === 403) {
+        const wasStale = await handleError(res);
+        if (wasStale) {
+          showToast('Security token expired. Please try again.', 'error');
+          return;
+        }
+      }
 
       if (res.ok) {
         const data = await res.json();
@@ -143,10 +160,25 @@ export default function AccountPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
+          'X-Session-Id': sessionId,
         },
-        body: JSON.stringify(addressForm),
+        body: JSON.stringify({
+          ...addressForm,
+          _csrf: csrfToken,
+          _session_id: sessionId,
+        }),
       });
+
+      // Handle CSRF token validation error
+      if (res.status === 403) {
+        const wasStale = await handleError(res);
+        if (wasStale) {
+          showToast('Security token expired. Please try again.', 'error');
+          return;
+        }
+      }
 
       if (!res.ok) {
         const errorData = await res.json();

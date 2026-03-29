@@ -6,6 +6,7 @@ import {
   Smartphone,
   WalletCards,
 } from 'lucide-react';
+import { useCSRFToken } from '@/hooks/useCSRFToken';
 
 const PAYMENT_LOGO_URLS: Record<string, string> = {
   bkash: '/payment-logos/bkash.png',
@@ -43,6 +44,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   onDeliveryOptionsChange,
   onSubmit,
 }) => {
+  const { token: csrfToken, sessionId } = useCSRFToken();
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]?.id || '');
   const [paymentMethod, setPaymentMethod] = useState('bkash');
   const [deliveryArea, setDeliveryArea] = useState(initialDeliveryArea);
@@ -60,6 +62,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       paymentMethod,
       deliveryArea,
       deliverySpeed,
+      _csrf: csrfToken,
+      _session_id: sessionId,
     });
   };
 
