@@ -5,6 +5,7 @@ import { authenticate } from "@/lib/auth";
 import { updateProfileSchema } from "@/lib/schemas";
 import { rateLimiters } from "@/middleware/rateLimit";
 import { sanitizeProfile } from "@/lib/sanitize";
+import { encryptUserForStorage, decryptUserFromStorage, encryptAddressForStorage, decryptAddressFromStorage, decryptAddressListFromStorage } from "@/lib/encryptionHelpers";
 
 export const dynamic = 'force-dynamic';
 
@@ -40,9 +41,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Decrypt user data for response
+    const decryptedUser = decryptUserFromStorage(user);
+
+    // Also decrypt addresses if present
+    if (decryptedUser.addresses && Array.isArray(decryptedUser.addresses)) {
+      decryptedUser.addresses = decryptAddressListFromStorage(decryptedUser.addresses);
+    }
+
     return NextResponse.json(
       {
-        user,
+        user: decryptedUser,
       },
       { status: 200 }
     );
@@ -82,16 +91,18 @@ export async function PUT(request: NextRequest) {
       bio: body.bio,
     });
 
+    // Encrypt PII fields before storage
+    const updateData = encryptUserForStorage({
+      firstName: sanitizedFirstName,
+      lastName: sanitizedLastName,
+      phone: validatedData.phone,
+      ...(body.language && { language: body.language }),
+      ...(body.currency && { currency: body.currency }),
+    });
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: {
-        firstName: sanitizedFirstName,
-        lastName: sanitizedLastName,
-        phone: validatedData.phone,
-        // Handle optional fields if provided
-        ...(body.language && { language: body.language }),
-        ...(body.currency && { currency: body.currency }),
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -105,10 +116,13 @@ export async function PUT(request: NextRequest) {
       },
     });
 
+    // Decrypt for response
+    const decryptedUser = decryptUserFromStorage(user);
+
     return NextResponse.json(
       {
         message: "Profile updated successfully",
-        user,
+        user: decryptedUser,
       },
       { status: 200 }
     );
@@ -170,24 +184,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Encrypt address data before storage
+    const encryptedAddressData = encryptAddressForStorage({
+      firstName,
+      lastName,
+      phone,
+      address,
+      division,
+      district,
+      upazila,
+      postCode: postCode || null,
+    });
+
     const created = await prisma.userAddress.create({
       data: {
         userId,
         label: label || "Home",
-        firstName,
-        lastName,
-        phone,
         email,
-        division,
-        district,
-        upazila,
-        address,
-        postCode: postCode || null,
+        ...encryptedAddressData,
         isDefault: Boolean(isDefault),
       },
     });
 
-    return NextResponse.json({ message: "Address created", address: created }, { status: 201 });
+    // Decrypt for response
+    const decryptedAddress = decryptAddressFromStorage(created);
+
+    return NextResponse.json({ message: "Address created", address: decryptedAddress }, { status: 201 });
   } catch (error) {
     console.error("Create address error:", error);
     return NextResponse.json(

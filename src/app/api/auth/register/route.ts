@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword, createToken } from '@/lib/auth';
 import { registerSchema } from '@/lib/schemas';
 import { rateLimiters } from '@/middleware/rateLimit';
+import { encryptUserForStorage, decryptUserFromStorage } from '@/lib/encryptionHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,15 +38,19 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(validatedData.password);
 
-    // Create user
+    // Create user with encrypted PII
+    const userData = {
+      email: validatedData.email,
+      phone: validatedData.phone,
+      password: hashedPassword,
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
+    };
+
+    const encryptedData = encryptUserForStorage(userData);
+
     const user = await prisma.user.create({
-      data: {
-        email: validatedData.email,
-        phone: validatedData.phone,
-        password: hashedPassword,
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-      },
+      data: encryptedData,
       select: {
         id: true,
         email: true,
@@ -54,6 +59,9 @@ export async function POST(request: NextRequest) {
         lastName: true,
       },
     });
+
+    // Decrypt user data for response
+    const decryptedUser = decryptUserFromStorage(user);
 
     // Generate token
     const token = await createToken(
@@ -65,7 +73,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: 'User registered successfully',
-        user,
+        user: decryptedUser,
         token,
       },
       { status: 201 }

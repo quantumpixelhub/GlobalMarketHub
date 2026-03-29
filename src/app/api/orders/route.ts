@@ -7,6 +7,7 @@ import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 import { createOrderSchema } from "@/lib/schemas";
 import { rateLimiters } from "@/middleware/rateLimit";
 import { sanitizeAddress } from "@/lib/sanitize";
+import { encryptAddressForStorage } from "@/lib/encryptionHelpers";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
