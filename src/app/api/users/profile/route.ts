@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 import { updateProfileSchema } from "@/lib/schemas";
 import { rateLimiters } from "@/middleware/rateLimit";
+import { sanitizeProfile } from "@/lib/sanitize";
 
 export const dynamic = 'force-dynamic';
 
@@ -74,11 +75,18 @@ export async function PUT(request: NextRequest) {
     // Validate input with schema
     const validatedData = updateProfileSchema.parse(body);
 
+    // Sanitize profile data to prevent XSS
+    const { firstName: sanitizedFirstName, lastName: sanitizedLastName } = sanitizeProfile({
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
+      bio: body.bio,
+    });
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
+        firstName: sanitizedFirstName,
+        lastName: sanitizedLastName,
         phone: validatedData.phone,
         // Handle optional fields if provided
         ...(body.language && { language: body.language }),

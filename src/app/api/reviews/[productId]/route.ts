@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 import { createReviewSchema } from "@/lib/schemas";
 import { rateLimiters } from "@/middleware/rateLimit";
+import { sanitizeReview, sanitizeUrls } from "@/lib/sanitize";
 
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   try {
@@ -86,6 +87,15 @@ export async function POST(request: NextRequest, { params }: { params: { product
 
     const { rating, title, content, images } = validatedData;
 
+    // Sanitize review content to prevent XSS
+    const { title: sanitizedTitle, content: sanitizedContent } = sanitizeReview({
+      title,
+      content,
+    });
+
+    // Sanitize image URLs
+    const sanitizedImages = images ? sanitizeUrls(images) : [];
+
     // Check product exists
     const product = await prisma.product.findUnique({
       where: { id: params.productId },
@@ -110,15 +120,15 @@ export async function POST(request: NextRequest, { params }: { params: { product
       );
     }
 
-    // Create review
+    // Create review with sanitized content
     const review = await prisma.review.create({
       data: {
         productId: params.productId,
         userId,
         rating: Number(rating),
-        title,
-        content,
-        images: images || [],
+        title: sanitizedTitle,
+        content: sanitizedContent,
+        images: sanitizedImages,
         isVerifiedPurchase: true, // TODO: Check if user purchased product
         isApproved: true, // Auto-approve for MVP
       },

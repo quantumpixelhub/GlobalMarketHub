@@ -6,6 +6,7 @@ import { trackRankingMetric } from "@/lib/abRanking";
 import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 import { createOrderSchema } from "@/lib/schemas";
 import { rateLimiters } from "@/middleware/rateLimit";
+import { sanitizeAddress } from "@/lib/sanitize";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
@@ -221,28 +222,41 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Sanitize guest information to prevent XSS
+      const sanitizedGuestInfo = sanitizeAddress({
+        firstName: guestInfo.firstName,
+        lastName: guestInfo.lastName,
+        phone: guestInfo.phone,
+        email: guestInfo.email,
+        address: guestInfo.address,
+        division: guestInfo.division,
+        district: guestInfo.district,
+        upazila: guestInfo.upazila,
+        postCode: guestInfo.postCode,
+      });
+
       let guestUserId = await getOrCreateGuestUserId();
       let accountToken: string | null = null;
       let accountCreated = false;
 
-      if (createAccount && guestInfo?.email) {
+      if (createAccount && sanitizedGuestInfo?.email) {
         const existingByEmail = await prisma.user.findUnique({
-          where: { email: guestInfo.email },
+          where: { email: sanitizedGuestInfo.email },
           select: { id: true },
         });
 
         if (!existingByEmail) {
-          const uniquePhone = await getUniquePhone(guestInfo.phone);
+          const uniquePhone = await getUniquePhone(sanitizedGuestInfo.phone);
           const password = await hashPassword(`Guest@${Date.now().toString().slice(-6)}`);
 
           const createdUser = await prisma.user.create({
             data: {
-              email: guestInfo.email,
+              email: sanitizedGuestInfo.email,
               phone: uniquePhone,
               password,
               role: "CUSTOMER",
-              firstName: guestInfo.firstName || "Guest",
-              lastName: guestInfo.lastName || "Customer",
+              firstName: sanitizedGuestInfo.firstName || "Guest",
+              lastName: sanitizedGuestInfo.lastName || "Customer",
             },
           });
 
@@ -250,15 +264,15 @@ export async function POST(request: NextRequest) {
             data: {
               userId: createdUser.id,
               label: guestInfo.label || "Home",
-              firstName: guestInfo.firstName || "Guest",
-              lastName: guestInfo.lastName || "Customer",
-              phone: guestInfo.phone || uniquePhone,
-              email: guestInfo.email,
-              division: guestInfo.division,
-              district: guestInfo.district,
-              upazila: guestInfo.upazila,
-              address: guestInfo.address,
-              postCode: guestInfo.postCode || null,
+              firstName: sanitizedGuestInfo.firstName || "Guest",
+              lastName: sanitizedGuestInfo.lastName || "Customer",
+              phone: sanitizedGuestInfo.phone || uniquePhone,
+              email: sanitizedGuestInfo.email,
+              division: sanitizedGuestInfo.division,
+              district: sanitizedGuestInfo.district,
+              upazila: sanitizedGuestInfo.upazila,
+              address: sanitizedGuestInfo.address,
+              postCode: sanitizedGuestInfo.postCode || null,
               isDefault: true,
             },
           });

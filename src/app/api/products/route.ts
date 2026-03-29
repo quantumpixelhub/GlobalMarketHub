@@ -9,6 +9,7 @@ import { applyWeightedRanking } from '@/lib/weightedRanking';
 import { applyPersonalizationReranking, buildPersonalizationProfile } from '@/lib/personalization';
 import { createProductSchema } from '@/lib/schemas';
 import { rateLimiters } from '@/middleware/rateLimit';
+import { sanitizeProduct } from '@/lib/sanitize';
 
 type VariantInput = {
   attributeName?: string;
@@ -297,7 +298,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const baseSlug = title
+    // Sanitize product content to prevent XSS
+    const { title: sanitizedTitle, description: sanitizedDescription } = sanitizeProduct({
+      title,
+      description,
+    });
+
+    const baseSlug = sanitizedTitle
       .toLowerCase()
       .trim()
       .replace(/\s+/g, '-')
@@ -308,10 +315,10 @@ export async function POST(request: NextRequest) {
 
     const product = await prisma.product.create({
       data: {
-        title,
+        title: sanitizedTitle,
         slug,
         sku: `SKU-${Date.now()}`,
-        description,
+        description: sanitizedDescription,
         originalPrice: parseFloat(String(originalPrice)),
         currentPrice: parseFloat(String(currentPrice)),
         stock: Number(stock || 0),
