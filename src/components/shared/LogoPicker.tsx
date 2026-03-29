@@ -85,12 +85,12 @@ const logoOptions: LogoOption[] = [
     id: 'minimal-badge',
     name: 'Minimal Badge',
     description: 'Minimalist elegant badge design',
-    color1: '#F59E0B',
+    color1: '#14B8A6',
     color2: '#D97706',
-    bgGradient: 'from-amber-50 to-amber-100',
+    bgGradient: 'from-teal-50 to-teal-100',
     svg: `<g transform="translate(38, 20)">
-      <circle cx="18" cy="18" r="16" fill="none" stroke="#F59E0B" strokeWidth="2.5" />
-      <path d="M16 10 L20 10 L21 24 L15 24 Z" fill="#F59E0B" />
+      <circle cx="18" cy="18" r="16" fill="none" stroke="#14B8A6" strokeWidth="2.5" />
+      <path d="M16 10 L20 10 L21 24 L15 24 Z" fill="#14B8A6" />
       <circle cx="10" cy="24" r="1.5" fill="#D97706" />
       <circle cx="26" cy="24" r="1.5" fill="#D97706" />
     </g>`,

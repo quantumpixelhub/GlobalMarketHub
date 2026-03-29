@@ -290,7 +290,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       {/* Top Bar */}
-      <div className="hidden md:block bg-orange-500 text-white text-sm py-2">
+      <div className="hidden md:block bg-teal-500 text-white text-sm py-2">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <span>🚚 Free shipping on orders over ৳2,500</span>
           <span>✉️ Contact: support@globalhub.com</span>
@@ -490,7 +490,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
 
             <details className="relative flex-shrink-0 self-end group">
-              <summary className="list-none cursor-pointer text-xs whitespace-nowrap font-semibold py-2 px-3 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors">
+              <summary className="list-none cursor-pointer text-xs whitespace-nowrap font-semibold py-2 px-3 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors">
                 See All →
               </summary>
 

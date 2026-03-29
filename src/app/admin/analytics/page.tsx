@@ -40,7 +40,7 @@ const monthlySalesData = [
 const orderStatusData = [
   { name: 'Processing', value: 1, color: '#3B82F6' },
   { name: 'Shipped', value: 1, color: '#8B5CF6' },
-  { name: 'Pending', value: 2, color: '#F59E0B' },
+  { name: 'Pending', value: 2, color: '#14B8A6' },
   { name: 'Delivered', value: 1, color: '#ff5a5f' },
 ];
 
@@ -187,7 +187,7 @@ export default function AnalyticsPage() {
                   borderRadius: '8px',
                 }}
               />
-              <Bar dataKey="sales" fill="#FF6B35" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="sales" fill="#14B8A6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

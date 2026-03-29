@@ -117,7 +117,7 @@ export default function PaymentPendingClient() {
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="flex justify-center mb-6">
-            {(state === 'checking' || state === 'pending') && <Loader2 className="h-14 w-14 text-orange-500 animate-spin" />}
+            {(state === 'checking' || state === 'pending') && <Loader2 className="h-14 w-14 text-teal-500 animate-spin" />}
             {state === 'error' && <RefreshCw className="h-14 w-14 text-red-500" />}
             {state === 'failed' && <Clock3 className="h-14 w-14 text-red-500" />}
           </div>
@@ -125,7 +125,7 @@ export default function PaymentPendingClient() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Verification In Progress</h1>
           <p className="text-gray-600 mb-4">{message}</p>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left text-sm text-orange-900">
+          <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-6 text-left text-sm text-teal-900">
             <p><span className="font-semibold">Order ID:</span> {orderId || 'N/A'}</p>
             <p className="break-all"><span className="font-semibold">Transaction ID:</span> {transactionId || 'N/A'}</p>
           </div>
@@ -133,7 +133,7 @@ export default function PaymentPendingClient() {
           <div className="space-y-3">
             <Link
               href={orderId ? `/account/orders/${orderId}` : '/account'}
-              className="block w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition"
+              className="block w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 rounded-lg transition"
             >
               Check Order Status
             </Link>

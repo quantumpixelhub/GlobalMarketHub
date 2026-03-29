@@ -385,7 +385,7 @@ export default function ProductDetailPage() {
             <div className="relative h-8 w-8" aria-hidden="true">
               <div className="absolute inset-0 rounded-full border-2 border-rose-200" />
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-rose-600 animate-spin" />
-              <div className="absolute inset-1 rounded-full border-2 border-transparent border-t-orange-500 animate-spin [animation-duration:1.4s]" />
+              <div className="absolute inset-1 rounded-full border-2 border-transparent border-t-teal-500 animate-spin [animation-duration:1.4s]" />
             </div>
             <span className="text-sm font-medium text-gray-600">Loading product...</span>
           </div>
@@ -809,7 +809,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleBuyNow}
                   disabled={effectiveStock === 0}
-                  className="bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-400 font-semibold"
+                  className="bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 disabled:bg-gray-400 font-semibold"
                 >
                   Buy Now
                 </button>
@@ -841,15 +841,15 @@ export default function ProductDetailPage() {
                 <p className="relative mt-2 text-xs text-gray-600">Delivered units completed successfully</p>
               </div>
 
-              <div className="group relative overflow-hidden rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-orange-100/70 px-4 py-3 shadow-sm">
-                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-200/40" />
+              <div className="group relative overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-br from-teal-50 via-white to-teal-100/70 px-4 py-3 shadow-sm">
+                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-teal-200/40" />
                 <div className="relative flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-500 text-white shadow-sm">
                     <ThumbsUp size={18} />
                   </span>
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-orange-700 font-semibold">Positive Reviews</p>
-                    <p className="text-2xl leading-7 font-extrabold text-orange-700">
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-teal-700 font-semibold">Positive Reviews</p>
+                    <p className="text-2xl leading-7 font-extrabold text-teal-700">
                       {(product.positiveReviews || 0).toLocaleString()}
                     </p>
                   </div>

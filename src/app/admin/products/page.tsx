@@ -397,7 +397,7 @@ export default function ProductsPage() {
                 {/* Category Header - Clickable */}
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full bg-gradient-to-r from-amber-100 to-orange-100 px-6 py-4 flex items-center justify-between hover:from-amber-200 hover:to-orange-200 transition"
+                  className="w-full bg-gradient-to-r from-teal-100 to-teal-100 px-6 py-4 flex items-center justify-between hover:from-teal-200 hover:to-teal-200 transition"
                 >
                   <div className="flex items-center gap-3 text-left">
                     {isExpanded ? (

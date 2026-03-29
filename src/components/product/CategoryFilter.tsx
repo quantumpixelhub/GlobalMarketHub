@@ -87,7 +87,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               onClick={() => onCategoryChange?.('')}
               className={`block w-full text-left px-3 py-2 rounded flex items-center ${
                 !selectedCategory
-                  ? 'bg-orange-100 text-orange-700 font-semibold'
+                  ? 'bg-teal-100 text-teal-700 font-semibold'
                   : 'hover:bg-gray-100'
               } ${isSidebarHovered ? 'md:justify-start md:px-3' : 'md:justify-center md:px-2'}`}
             >
@@ -122,7 +122,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                     } ${isSidebarHovered ? 'md:justify-between md:px-3' : 'md:justify-center md:px-2'}`}
                   >
                     <span className={`flex items-center min-w-0 ${isSidebarHovered ? 'md:gap-2' : 'md:gap-0'}`}>
-                      {category.icon && <span className={`text-base leading-none rounded-full p-1.5 flex items-center justify-center transition-all duration-200 ${isHovered ? 'bg-orange-400 shadow-md' : 'bg-white shadow-sm'}`}>{category.icon}</span>}
+                      {category.icon && <span className={`text-base leading-none rounded-full p-1.5 flex items-center justify-center transition-all duration-200 ${isHovered ? 'bg-teal-400 shadow-md' : 'bg-white shadow-sm'}`}>{category.icon}</span>}
                       {category.image && (
                         <img
                           src={category.image}
@@ -160,7 +160,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                           onClick={() => onCategoryChange?.(subcategory.slug)}
                           className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
                             selectedCategory === subcategory.slug
-                              ? 'bg-orange-100 text-orange-700 font-semibold'
+                              ? 'bg-teal-100 text-teal-700 font-semibold'
                               : 'hover:bg-gray-100 text-gray-700'
                           }`}
                         >
@@ -221,7 +221,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             </div>
             <button
               onClick={handleApplyPrice}
-              className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+              className="w-full bg-teal-500 text-white py-2 rounded hover:bg-teal-600"
             >
               Apply Filter
             </button>

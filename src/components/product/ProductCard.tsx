@@ -306,7 +306,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={handleBuyNowClick}
               disabled={isOutOfStock}
-              className="bg-orange-500 text-white py-1.5 rounded text-sm hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              className="bg-teal-500 text-white py-1.5 rounded text-sm hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               Buy Now
             </button>
