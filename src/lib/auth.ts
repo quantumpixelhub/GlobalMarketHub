@@ -4,9 +4,19 @@ import { jwtVerify, SignJWT } from 'jose';
 import { NextRequest } from 'next/server';
 import bcryptjs from 'bcryptjs';
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-min-32-chars'
-);
+// Validate JWT_SECRET is set
+function getJWTSecret() {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error(
+      'JWT_SECRET environment variable is required. ' +
+      'Generate one with: openssl rand -base64 32'
+    );
+  }
+  return new TextEncoder().encode(jwtSecret);
+}
+
+const secret = getJWTSecret();
 
 export async function createToken(payload: any, expiresIn: number = 3600) {
   return new SignJWT(payload)
@@ -64,4 +74,20 @@ export async function verifyPassword(
   hash: string
 ): Promise<boolean> {
   return bcryptjs.compare(password, hash);
+}
+
+/**
+ * Validate all required security environment variables
+ * Call this on app startup
+ */
+export function validateSecurityConfig() {
+  const requiredEnvVars = ['JWT_SECRET'];
+  const missingVars = requiredEnvVars.filter(key => !process.env[key]);
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(', ')}. ` +
+      'Please set them in your .env.local file before starting the application.'
+    );
+  }
 }

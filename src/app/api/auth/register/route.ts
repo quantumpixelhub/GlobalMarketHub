@@ -1,25 +1,29 @@
 // src/app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, createToken } from '@/lib/auth';
+import { registerSchema } from '@/lib/schemas';
+import { rateLimiters } from '@/middleware/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phone, password, firstName, lastName } = await request.json();
-
-    // Validate input
-    if (!email || !phone || !password) {
-      return NextResponse.json(
-        { error: 'Email, phone, and password are required' },
-        { status: 400 }
-      );
+    // Apply rate limiting (5 attempts per 15 minutes)
+    const rateLimitResponse = await rateLimiters.auth(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
+
+    const body = await request.json();
+
+    // Validate input using Zod schema
+    const validatedData = registerSchema.parse(body);
 
     // Check if user exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ email }, { phone }],
+        OR: [{ email: validatedData.email }, { phone: validatedData.phone }],
       },
     });
 
@@ -31,16 +35,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(validatedData.password);
 
     // Create user
     const user = await prisma.user.create({
       data: {
-        email,
-        phone,
+        email: validatedData.email,
+        phone: validatedData.phone,
         password: hashedPassword,
-        firstName,
-        lastName,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
       },
       select: {
         id: true,
@@ -67,6 +71,19 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: error.errors.map((err) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Registration failed' },
