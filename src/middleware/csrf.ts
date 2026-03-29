@@ -153,7 +153,7 @@ export function cleanupCsrfTokens(): number {
 
 // Auto cleanup every 1 hour
 if (typeof globalThis !== 'undefined') {
-  globalThis.csrfCleanup ||= setInterval(cleanupCsrfTokens, 60 * 60 * 1000);
+  (globalThis as any).csrfCleanup ||= setInterval(cleanupCsrfTokens, 60 * 60 * 1000);
 }
 
 /**

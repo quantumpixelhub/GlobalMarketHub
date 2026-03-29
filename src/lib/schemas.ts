@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-// Password validation: min 12 chars, uppercase, lowercase, number, special char
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
-
-// Bangladesh phone number regex
+// Bangladesh phone number regex: +8801XXXXXXXXX or 01XXXXXXXXX
 const PHONE_REGEX = /^\+?880\d{9,10}$/;
 
 export const registerSchema = z.object({

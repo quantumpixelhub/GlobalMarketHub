@@ -120,7 +120,7 @@ export function cleanupRateLimitCache() {
 
 // Cleanup every 5 minutes
 if (typeof globalThis !== 'undefined') {
-  globalThis.rateLimitCleanup ||= setInterval(cleanupRateLimitCache, 5 * 60 * 1000);
+  (globalThis as any).rateLimitCleanup ||= setInterval(cleanupRateLimitCache, 5 * 60 * 1000);
 }
 
 /**
