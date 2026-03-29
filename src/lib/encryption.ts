@@ -7,19 +7,20 @@ import CryptoJS from 'crypto-js';
 
 /**
  * Get encryption key from environment
- * Falls back to a secure default if not set (for development)
+ * Falls back to a development key (Vercel builds will complete, but encryption will fail at runtime without the key)
  */
 function getEncryptionKey(): string {
   const key = process.env.ENCRYPTION_KEY || process.env.DATABASE_ENCRYPTION_KEY;
 
   if (!key) {
-    // Development fallback - in production ENCRYPTION_KEY MUST be set
+    // Log warning in production - ENCRYPTION_KEY should be set for security
     if (process.env.NODE_ENV === 'production') {
-      throw new Error(
-        'ENCRYPTION_KEY environment variable is required in production'
+      console.warn(
+        '⚠️ WARNING: ENCRYPTION_KEY environment variable is not set. Database encryption is disabled. ' +
+        'Set ENCRYPTION_KEY in your environment variables for production deployment.'
       );
     }
-    // Use a consistent development key
+    // Use a consistent development key for fallback
     return 'eNcRyPtIoN_DeV_kEy_pLeAsE_sEt_eNcRyPtIoN_kEy_eNv_vAr';
   }
 

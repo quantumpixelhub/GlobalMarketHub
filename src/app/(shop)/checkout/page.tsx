@@ -95,7 +95,6 @@ export default function CheckoutPage() {
   const [newAddressDeliveryArea, setNewAddressDeliveryArea] = useState('inside-dhaka');
   const [newAddressDeliverySpeed, setNewAddressDeliverySpeed] = useState('standard');
   const [logoLoadError, setLogoLoadError] = useState<Record<string, boolean>>({});
-  const { showToast } = useToast();
 
   const renderPaymentIcon = (methodId: string) => {
     const logoUrl = PAYMENT_LOGO_URLS[methodId];

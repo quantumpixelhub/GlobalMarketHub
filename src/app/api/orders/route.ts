@@ -7,7 +7,6 @@ import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
 import { createOrderSchema } from "@/lib/schemas";
 import { rateLimiters } from "@/middleware/rateLimit";
 import { sanitizeAddress } from "@/lib/sanitize";
-import { encryptAddressForStorage } from "@/lib/encryptionHelpers";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
@@ -269,10 +268,10 @@ export async function POST(request: NextRequest) {
               lastName: sanitizedGuestInfo.lastName || "Customer",
               phone: sanitizedGuestInfo.phone || uniquePhone,
               email: sanitizedGuestInfo.email,
-              division: sanitizedGuestInfo.division,
-              district: sanitizedGuestInfo.district,
-              upazila: sanitizedGuestInfo.upazila,
-              address: sanitizedGuestInfo.address,
+              division: sanitizedGuestInfo.division || "Dhaka",
+              district: sanitizedGuestInfo.district || "Dhaka",
+              upazila: sanitizedGuestInfo.upazila || "Gulshan",
+              address: sanitizedGuestInfo.address || "N/A",
               postCode: sanitizedGuestInfo.postCode || null,
               isDefault: true,
             },
@@ -291,8 +290,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const normalizedDeliveryArea = normalizeDeliveryArea(deliveryArea || guestInfo?.deliveryArea);
-      const normalizedDeliverySpeed = normalizeDeliverySpeed(deliverySpeed || guestInfo?.deliverySpeed);
+      const normalizedDeliveryArea = normalizeDeliveryArea(deliveryArea);
+      const normalizedDeliverySpeed = normalizeDeliverySpeed(deliverySpeed);
 
       const guestProductIds = Array.from(
         new Set(

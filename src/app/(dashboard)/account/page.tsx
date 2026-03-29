@@ -28,7 +28,7 @@ interface Order {
 
 export default function AccountPage() {
   const { showToast } = useToast();
-  const { token: csrfToken, sessionId, refreshToken, handleError } = useCSRFToken();
+  const { token: csrfToken, sessionId, handleError } = useCSRFToken();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

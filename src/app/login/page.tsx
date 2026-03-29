@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
@@ -9,7 +9,7 @@ import { useCSRFToken } from '@/hooks/useCSRFToken';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { token: csrfToken, sessionId, refreshToken, handleError } = useCSRFToken();
+  const { token: csrfToken, sessionId, handleError } = useCSRFToken();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
