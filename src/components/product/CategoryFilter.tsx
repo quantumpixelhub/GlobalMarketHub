@@ -31,6 +31,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const [showPrice, setShowPrice] = useState(true);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [localMin, setLocalMin] = useState(minPrice);
   const [localMax, setLocalMax] = useState(maxPrice);
 
@@ -55,6 +56,17 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
   const handleApplyPrice = () => {
     onPriceChange?.(localMin, localMax);
+  };
+
+  const handleCategoryMouseEnter = (categoryId: string) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setHoveredCategoryId(categoryId);
+  };
+
+  const handleCategoryMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredCategoryId(null);
+    }, 300); // 300ms delay before hiding submenu
   };
 
   const expandedDesktopClasses = isSidebarHovered
@@ -109,9 +121,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               return (
                 <div
                   key={category.id}
-                  className="relative after:content-[''] after:absolute after:top-0 after:bottom-0 after:left-full after:w-3"
-                  onMouseEnter={() => setHoveredCategoryId(category.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
+                  className="relative after:content-[''] after:absolute after:top-0 after:bottom-0 after:left-full after:w-6"
+                  onMouseEnter={() => handleCategoryMouseEnter(category.id)}
+                  onMouseLeave={() => handleCategoryMouseLeave()}
                 >
                   <button
                     onClick={() => onCategoryChange?.(category.slug)}
@@ -150,9 +162,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                   {/* Hover Sub-categories Panel */}
                   {subcategories.length > 0 && isHovered && (
                     <div
-                      className="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2"
-                      onMouseEnter={() => setHoveredCategoryId(category.id)}
-                      onMouseLeave={() => setHoveredCategoryId(null)}
+                      className="absolute left-full top-0 ml-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2"
+                      onMouseEnter={() => handleCategoryMouseEnter(category.id)}
+                      onMouseLeave={() => handleCategoryMouseLeave()}
                     >
                       {subcategories.map((subcategory) => (
                         <button

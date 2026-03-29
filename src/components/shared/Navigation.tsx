@@ -439,9 +439,10 @@ export const Navigation: React.FC<NavigationProps> = ({
 
                         {/* Subcategories Dropdown */}
                         {hasSubcategories && (
-                          <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 w-max pointer-events-none group-hover:pointer-events-auto"
+                          <div className="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 w-max pointer-events-none group-hover:pointer-events-auto"
                             style={{
-                              marginTop: '4px'
+                              marginTop: '-4px',
+                              paddingTop: '8px'
                             }}
                           >
                             {subcategories.map((sub) => (
