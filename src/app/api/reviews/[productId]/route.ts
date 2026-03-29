@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
+import { createReviewSchema } from "@/lib/schemas";
+import { rateLimiters } from "@/middleware/rateLimit";
 
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   try {
@@ -60,6 +63,12 @@ export async function GET(request: NextRequest, { params }: { params: { productI
 
 export async function POST(request: NextRequest, { params }: { params: { productId: string } }) {
   try {
+    // Apply rate limiting for user submissions
+    const rateLimitResponse = await rateLimiters.api(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     // Authenticate user
     const auth = await authenticate(request);
     if (!auth.success) {
@@ -67,21 +76,15 @@ export async function POST(request: NextRequest, { params }: { params: { product
     }
 
     const userId = (auth as any)?.userId;
-    const { rating, title, content, images } = await request.json();
+    const body = await request.json();
 
-    if (!rating || !title || !content) {
-      return NextResponse.json(
-        { error: "Rating, title, and content are required" },
-        { status: 400 }
-      );
-    }
+    // Validate input with schema
+    const validatedData = createReviewSchema.parse({
+      ...body,
+      productId: params.productId,
+    });
 
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: "Rating must be between 1 and 5" },
-        { status: 400 }
-      );
-    }
+    const { rating, title, content, images } = validatedData;
 
     // Check product exists
     const product = await prisma.product.findUnique({
@@ -129,6 +132,19 @@ export async function POST(request: NextRequest, { params }: { params: { product
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Create review error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

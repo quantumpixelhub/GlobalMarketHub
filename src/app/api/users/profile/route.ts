@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
+import { updateProfileSchema } from "@/lib/schemas";
+import { rateLimiters } from "@/middleware/rateLimit";
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +56,12 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.api(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     // Authenticate user
     const auth = await authenticate(request);
     if (!auth.success) {
@@ -60,16 +69,20 @@ export async function PUT(request: NextRequest) {
     }
 
     const userId = auth.data?.userId as string;
-    const { firstName, lastName, phone, language, currency } = await request.json();
+    const body = await request.json();
+
+    // Validate input with schema
+    const validatedData = updateProfileSchema.parse(body);
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        ...(firstName && { firstName }),
-        ...(lastName && { lastName }),
-        ...(phone && { phone }),
-        ...(language && { language }),
-        ...(currency && { currency }),
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        phone: validatedData.phone,
+        // Handle optional fields if provided
+        ...(body.language && { language: body.language }),
+        ...(body.currency && { currency: body.currency }),
       },
       select: {
         id: true,
@@ -92,6 +105,19 @@ export async function PUT(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Update profile error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

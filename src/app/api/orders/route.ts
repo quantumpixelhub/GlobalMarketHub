@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authenticate, createToken, hashPassword } from "@/lib/auth";
 import { trackRankingMetric } from "@/lib/abRanking";
 import { EVENT_TYPES, getClientIp, trackEvent } from "@/lib/eventTracker";
+import { createOrderSchema } from "@/lib/schemas";
+import { rateLimiters } from "@/middleware/rateLimit";
 
 const GUEST_CUSTOMER_EMAIL = "guest.checkout@globalhub.com";
 const GUEST_CUSTOMER_PHONE = "00000000000";
@@ -174,8 +177,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting for payment operations
+    const rateLimitResponse = await rateLimiters.payment(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const auth = await authenticate(request);
     const body = await request.json();
+
+    // Validate request body with schema
+    const validatedData = createOrderSchema.parse(body);
+
     const {
       cartId,
       shippingAddressId,
@@ -188,7 +201,7 @@ export async function POST(request: NextRequest) {
       deliverySpeed,
       rankingExperimentKey,
       rankingVariant,
-    } = body;
+    } = validatedData;
 
     const normalizedRankingVariant = String(rankingVariant || '').toUpperCase();
     const hasRankingExperiment =
@@ -708,6 +721,19 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Create order error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

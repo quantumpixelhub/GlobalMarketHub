@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authenticate } from "@/lib/auth";
 import { getUddoktaCredentialStatus, initiateUddoktaPay, verifyPaymentStatus } from "@/lib/paymentGateway";
+import { rateLimiters } from "@/middleware/rateLimit";
 
 const UDDOKTA_ROUTED_METHODS = new Set(["uddoktapay", "bkash", "nagad", "rocket"]);
 
@@ -110,6 +112,12 @@ function buildGatewayPaymentUrl(
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting for payment operations
+    const rateLimitResponse = await rateLimiters.payment(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const auth = await authenticate(request);
     const { orderId, paymentMethod, isGuestCheckout } = await request.json();
     const requestedPaymentMethod = String(paymentMethod || "").toLowerCase();
@@ -316,6 +324,19 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("Initiate payment error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

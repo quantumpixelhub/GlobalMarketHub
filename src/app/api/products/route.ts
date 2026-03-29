@@ -1,11 +1,14 @@
 // src/app/api/products/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 import { getRankingExperimentAssignment, shouldApplyPersonalization, trackRankingMetric } from '@/lib/abRanking';
 import { applyWeightedRanking } from '@/lib/weightedRanking';
 import { applyPersonalizationReranking, buildPersonalizationProfile } from '@/lib/personalization';
+import { createProductSchema } from '@/lib/schemas';
+import { rateLimiters } from '@/middleware/rateLimit';
 
 type VariantInput = {
   attributeName?: string;
@@ -255,25 +258,43 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting for admin operations
+    const rateLimitResponse = await rateLimiters.api(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const isAdmin = await authorizeAdmin(request);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const body = await request.json();
+
+    // Validate basic product schema
+    const validatedData = createProductSchema.parse(body);
+
     const {
       title,
       description,
-      originalPrice,
-      currentPrice,
-      stock,
+      price: currentPrice,
       categoryId,
+    } = validatedData;
+
+    // Extract additional fields not in basic schema
+    const {
+      originalPrice = currentPrice,
+      stock = 0,
       sellerId,
       mainImage,
       variants,
-    } = await request.json();
+    } = body;
 
-    if (!title || !description || !originalPrice || !currentPrice || !categoryId || !sellerId || !mainImage) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!sellerId || !mainImage) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: [{ field: 'sellerId', message: 'Seller ID is required' }, { field: 'mainImage', message: 'Main image is required' }] },
+        { status: 400 }
+      );
     }
 
     const baseSlug = title
@@ -291,8 +312,8 @@ export async function POST(request: NextRequest) {
         slug,
         sku: `SKU-${Date.now()}`,
         description,
-        originalPrice: parseFloat(originalPrice),
-        currentPrice: parseFloat(currentPrice),
+        originalPrice: parseFloat(String(originalPrice)),
+        currentPrice: parseFloat(String(currentPrice)),
         stock: Number(stock || 0),
         categoryId,
         sellerId,
@@ -313,6 +334,19 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: error.errors.map((err) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
     console.error('Product creation error:', error);
     return NextResponse.json(
       { error: 'Failed to create product' },
